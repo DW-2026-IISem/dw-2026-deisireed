@@ -1,0 +1,140 @@
+---
+title: "Act_1Desarrollo"
+author: "Deisireed Castañeda"
+date: "2026-08-25"
+output: html_document
+---
+
+# ACTIVIDAD 01 DESARROLLO WEB
+
+Deisireed Castañeda
+
+Jaider Quintero
+
+## **1. Requisitos Previos**
+
+- WSL2 instalado y funcionando
+
+![![](images/clipboard-3346774316.png)](images/clipboard-3224020678.png)
+
+![](images/clipboard-1830552719.png)
+
+![![](images/clipboard-4149819159.png)](images/clipboard-4060481642.png)
+
+![](images/clipboard-2362459992.png)
+
+Verificación del Docker:
+
+![](images/clipboard-3076888517.png)
+
+## **CREACIÓN DE CARPETAS**
+
+![](images/clipboard-1960001359.png)
+
+## Archivo docker compose.yml
+
+### Oracle
+
+![](images/clipboard-3451509764.png)
+
+### sql server
+
+### ![](images/clipboard-2302307968.png)
+
+### postgres
+
+## ![](images/clipboard-2549939589.png)
+
+### MySQL
+
+### ![](images/clipboard-288522475.png)
+
+## ARCHIVO .ENV
+
+### Oracle
+
+### ![](images/clipboard-2841921981.png)sqlserver
+
+### ![](images/clipboard-249954047.png)Postgres
+
+![](images/clipboard-1144219700.png)
+
+### MySQL
+
+![](images/clipboard-4255811321.png)
+
+## **Crear README.md**
+
+### MySQL
+
+![](images/clipboard-4045353527.png)
+
+### Postgres
+
+![](images/clipboard-1285688142.png)
+
+### sqlserver
+
+### ![](images/clipboard-3338483575.png)
+
+### Oracle
+
+![](images/clipboard-1314307268.png)
+
+## **Crear un usuario PROPIO con ACCESO REMOTO**
+
+Sqlserver
+
+![](images/clipboard-256123730.png)
+
+### mysql
+
+![](images/clipboard-2028757514.png)
+
+![![](images/clipboard-2028757514.png)](images/clipboard-779680532.png)
+
+### postgres ![](images/clipboard-21312010.png)
+
+### oracle
+
+### ![](images/clipboard-499151043.png)
+
+![](images/clipboard-2723194235.png)
+
+![](images/clipboard-2629659648.png)
+
+### **CONECTAR REMOTAMENTE DESDE CUALQUIER EQUIPO MySQL**
+
+![](images/clipboard-3108817441.png)
+
+### ORACLE
+
+### ![](images/clipboard-5839562.png)
+
+### POSTGRES
+
+![](images/clipboard-1922886370.png)
+
+### sqlserver
+
+###  ![](images/clipboard-1569975354.png)
+
+## **BACKUPS DE UNA BASE DE DATOS** 
+
+sqlserver
+
+![](images/clipboard-79516088.png)
+
+MySQL
+
+![ ](images/clipboard-3163167281.png)
+
+postgres
+
+![](images/clipboard-109793315.png)
+
+oracle
+
+![](images/clipboard-3846518118.png)
+
+![](images/clipboard-3431031421.png)
