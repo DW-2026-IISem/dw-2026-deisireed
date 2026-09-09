@@ -41,3 +41,20 @@ git commit -m "chore: ensure nest cli available locally"
 ```
 
 #### 1.3 — Crear proyecto NestJS
+
+``` bash
+cd /home/portatiljq/apps/dlloweb/nestjs/express_sequelize 
+nest new backend_ia
+cd backend_ia
+```
+
+![](images/clipboard-3796001161.png)
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . 
+git commit -m "chore: scaffold nestjs project backend_ia"
+```
+
+#### 
