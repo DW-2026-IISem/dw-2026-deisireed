@@ -25,3 +25,19 @@ git commit -m "chore: prepare workspace folders for nest backend"
 ```
 
 #### 1.2 — Instalar Nest CLI (si no existe)
+
+``` bash
+npm install -g @nestjs/cli 
+nest --version
+```
+
+![](images/clipboard-1058948841.png)
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . 
+git commit -m "chore: ensure nest cli available locally"
+```
+
+#### 1.3 — Crear proyecto NestJS
