@@ -96,11 +96,11 @@ git commit -m "chore: inicialización del proyecto NestJS"
 
 #### 2.1 — Dependencias de producción
 
-Config, Swagger, JWT/Passport, Sequelize + drivers de 4 motores, validación, bcrypt y utilidades HTTP.
-
 ``` bash
 npm install @nestjs/config @nestjs/swagger @nestjs/jwt @nestjs/passport @nestjs/mapped-types \   passport passport-jwt sequelize sequelize-typescript mysql2 pg tedious oracledb \   class-validator class-transformer bcrypt reflect-metadata express compression helmet
 ```
+
+![](images/clipboard-376269590.png)
 
 **Sugerencia de commit (issue):**
 
@@ -110,8 +110,6 @@ git commit -m "chore: install production dependencies for ca backend"
 ```
 
 #### 2.2 — Dependencias de desarrollo
-
-Tipados y sequelize-cli para herramientas de BD.
 
 ``` bash
 npm install -D @types/bcrypt @types/passport-jwt sequelize-cli
@@ -187,9 +185,13 @@ Integra `free:port` en `start:dev` / `start:debug`. Aplica el cambio con Node pa
 node <<'EOF_BACKEND_IA' 
 const fs = require('fs'); 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); 
-pkg.scripts = {   ...pkg.scripts,   'free:port': 'node scripts/free-port.js',   'start:dev': 'npm run free:port && nest start --watch',   'start:debug': 'npm run free:port && nest start --debug --watch', };
+
+pkg.scripts = {   ...pkg.scripts,   'free:port': 'node scripts/free-port.js',   'start:dev': 'npm run free:port && nest start --watch',   'start:debug': 'npm run free:port && nest start --debug --watch',
+};
+
 fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n'); 
-console.log('✅ package.json scripts actualizados'); EOF_BACKEND_IA
+console.log('✅ package.json scripts actualizados'); 
+EOF_BACKEND_IA
 ```
 
 **Sugerencia de commit (issue):**
@@ -210,7 +212,8 @@ npm run start:dev # Ctrl+C cuando veas el log de arranque curl -s http://localho
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "test: verify nest boots after dependency install"
+git add . 
+git commit -m "test: verify nest boots after dependency install"
 ```
 
 ------------------------------------------------------------------------
