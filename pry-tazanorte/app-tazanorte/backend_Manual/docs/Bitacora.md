@@ -115,6 +115,8 @@ git commit -m "chore: install production dependencies for ca backend"
 npm install -D @types/bcrypt @types/passport-jwt sequelize-cli
 ```
 
+![](images/clipboard-2347514430.png)
+
 **Sugerencia de commit (issue):**
 
 ``` bash
@@ -125,7 +127,7 @@ git commit -m "chore: install auth and sequelize-cli devDependencies"
 #### 2.3 — Script para liberar puerto (evita EADDRINUSE)
 
 ``` bash
-mkdir -p scripts cat > scripts/free-port.js <<'EOF_BACKEND_IA' 
+mkdir -p scripts cat > scripts/free-port.js <<'EOF' 
 /** 
 * Libera el puerto configurado en .env (PORT) antes de arrancar Nest. 
 * Evita EADDRINUSE cuando queda una instancia previa de start:dev. 
@@ -167,8 +169,10 @@ console.log(`ℹ️  Puerto ${port} disponible`);
 const port = readPortFromEnv(); 
 
 freePort(port); 
-EOF_BACKEND_IA
+EOF
 ```
+
+![](images/clipboard-1953683284.png)
 
 **Sugerencia de commit (issue):**
 
