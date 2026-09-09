@@ -186,7 +186,7 @@ git commit -m "chore: add scripts/free-port.js to avoid EADDRINUSE"
 Integra `free:port` en `start:dev` / `start:debug`. Aplica el cambio con Node para no editar JSON a mano.
 
 ``` bash
-node <<'EOF_BACKEND_IA' 
+node <<'EOF' 
 const fs = require('fs'); 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); 
 
@@ -195,8 +195,10 @@ pkg.scripts = {   ...pkg.scripts,   'free:port': 'node scripts/free-port.js',   
 
 fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n'); 
 console.log('✅ package.json scripts actualizados'); 
-EOF_BACKEND_IA
+EOF
 ```
+
+![](images/clipboard-4082980029.png)
 
 **Sugerencia de commit (issue):**
 
