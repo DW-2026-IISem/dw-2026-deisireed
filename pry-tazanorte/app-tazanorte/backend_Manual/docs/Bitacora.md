@@ -212,7 +212,8 @@ git commit -m "chore: wire free:port into nest start scripts"
 Debe levantar el Hello World de Nest en el puerto del `.env`.
 
 ``` bash
-npm run start:dev # Ctrl+C cuando veas el log de arranque curl -s http://localhost:3002 || true
+npm run start:dev # Ctrl+C cuando veas el log de arranque
+curl -s http://localhost:3002 || true
 ```
 
 **Sugerencia de commit (issue):**
@@ -221,6 +222,8 @@ npm run start:dev # Ctrl+C cuando veas el log de arranque curl -s http://localho
 git add . 
 git commit -m "test: verify nest boots after dependency install"
 ```
+
+![](images/clipboard-740590912.png)
 
 ------------------------------------------------------------------------
 
