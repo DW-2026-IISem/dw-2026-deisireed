@@ -1268,8 +1268,11 @@ mkdir -p src/common/filters cat > src/common/filters/sequelize-exception.filter.
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add sequelize-exception.filter.ts"
+git add .
+git commit -m "feat: add sequelize-exception.filter.ts"
 ```
+
+![](images/clipboard-2536871242.png)
 
 #### 6.20 — common/interceptors/response.interceptor.ts
 
