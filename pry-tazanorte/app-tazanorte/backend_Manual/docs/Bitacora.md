@@ -366,6 +366,8 @@ git add .
 git commit -m "chore: add typed env template and local .env for tecnogua_ia"
 ```
 
+![](images/clipboard-2254386654.png)
+
 #### 4.2 — Interface de entorno
 
 Tipos TypeScript de las variables de entorno (APP, DB, JWT) y enum de dialectos.
