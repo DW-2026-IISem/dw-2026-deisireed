@@ -1863,8 +1863,11 @@ mkdir -p src/features/business/clients/domain/validators cat > src/features/busi
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add domain validator client-phone.validator.ts"
+git add . 
+git commit -m "feat: add domain validator client-phone.validator.ts"
 ```
+
+![](images/clipboard-3804933452.png)
 
 #### 7.7 — features/business/clients/infrastructure/persistence/models/client.model.ts
 
