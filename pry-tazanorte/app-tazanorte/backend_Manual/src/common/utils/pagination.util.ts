@@ -1,30 +1,11 @@
-import {
-  DEFAULT_LIMIT,
-  DEFAULT_PAGE,
-  MAX_LIMIT,
-} from '../constants/pagination.constants.js';
-import { PaginatedResult } from '../interfaces/pagination.interface.js';
+export function calculatePagination(page: number = 1, limit: number = 10) {
+  const parsedPage = Math.max(1, page);
+  const parsedLimit = Math.max(1, limit);
+  const offset = (parsedPage - 1) * parsedLimit;
 
-export function normalizePagination(page?: number, limit?: number) {
-  const safePage = !page || page < 1 ? DEFAULT_PAGE : page;
-  const safeLimit = !limit || limit < 1 ? DEFAULT_LIMIT : Math.min(limit, MAX_LIMIT);
-  const offset = (safePage - 1) * safeLimit;
-  return { page: safePage, limit: safeLimit, offset };
-}
-
-export function buildPaginatedResult<T>(
-  items: T[],
-  total: number,
-  page: number,
-  limit: number,
-): PaginatedResult<T> {
   return {
-    items,
-    meta: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit) || 0,
-    },
+    page: parsedPage,
+    limit: parsedLimit,
+    offset,
   };
 }

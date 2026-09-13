@@ -1,51 +1,68 @@
 import {
-  AutoIncrement,
-  Column,
-  CreatedAt,
-  DataType,
-  HasMany,
-  Model,
-  PrimaryKey,
   Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  CreatedAt,
   UpdatedAt,
 } from 'sequelize-typescript';
 import { Status } from '../../../../../../common/enums/status.enum';
 
-@Table({ tableName: 'clients' })
+@Table({
+  tableName: 'clients',
+  timestamps: true,
+})
 export class ClientModel extends Model {
   @PrimaryKey
   @AutoIncrement
   @Column(DataType.INTEGER)
   declare id: number;
 
-  @Column({ type: DataType.STRING(150), allowNull: false })
-  declare name: string;
-
-  @Column({ type: DataType.STRING(255), allowNull: true })
-  declare address: string | null;
-
-  @Column({ type: DataType.STRING(30), allowNull: true })
-  declare phone: string | null;
-
-  @Column({ type: DataType.STRING(150), allowNull: true, unique: true })
-  declare email: string | null;
-
-  @Column({ type: DataType.STRING(255), allowNull: true })
-  declare password: string | null;
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+  })
+  name!: string;
 
   @Column({
-    type: DataType.ENUM(...Object.values(Status)),
+    type: DataType.STRING(150),
+    allowNull: false,
+    unique: true,
+  })
+  email!: string;
+
+  @Column({
+    type: DataType.STRING(20),
+    allowNull: true,
+  })
+  phone?: string;
+
+  @Column({
+    type: DataType.STRING(255),
+    allowNull: true,
+  })
+  address?: string;
+
+  @Column({
+    type: DataType.STRING(255),
+    allowNull: false,
+  })
+  password!: string;
+
+  @Column({
+    type: DataType.ENUM(...(Object.values(Status) as string[])),
     allowNull: false,
     defaultValue: Status.ACTIVE,
   })
-  declare status: Status;
+  status!: Status;
 
   @CreatedAt
+  @Column(DataType.DATE)
   declare createdAt: Date;
 
   @UpdatedAt
+  @Column(DataType.DATE)
   declare updatedAt: Date;
-
-  @HasMany(() => require('../../../../sales/infrastructure/persistence/models/sale.model').SaleModel)
-  declare sales: unknown[];
 }

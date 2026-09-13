@@ -9,13 +9,10 @@ import { DeleteClientUseCase } from './application/use-cases/delete-client.use-c
 import { GetClientUseCase } from './application/use-cases/get-client.use-case';
 import { ListClientsUseCase } from './application/use-cases/list-clients.use-case';
 import { ClientsController } from './presentation/http/controllers/clients.controller';
-import { HashingModule } from '../../../../infrastructure/security/hashing/hashing.module';
+import { HashingModule } from 'src/infrastructure/security/hashing/hashing.module';
 
 @Module({
-  imports: [
-    SequelizeModule.forFeature([ClientModel]),
-    HashingModule,
-  ],
+  imports: [SequelizeModule.forFeature([ClientModel]), HashingModule],
   controllers: [ClientsController],
   providers: [
     {
@@ -28,6 +25,6 @@ import { HashingModule } from '../../../../infrastructure/security/hashing/hashi
     GetClientUseCase,
     ListClientsUseCase,
   ],
-  exports: [CLIENT_REPOSITORY, GetClientUseCase],
+  exports: [CLIENT_REPOSITORY],
 })
 export class ClientsModule {}

@@ -1,8 +1,10 @@
 import { registerAs } from '@nestjs/config';
-import { resolveDialectCredentials } from '../environment/db-env.js';
-import { DatabaseDialect } from '../environment/env.interface.js';
 
-export const databaseConfig = registerAs('database', () => {
-  const dialect = (process.env.DB_DIALECT as DatabaseDialect) || 'mysql';
-  return resolveDialectCredentials(dialect);
-});
+export const databaseConfig = registerAs('database', () => ({
+  dialect: process.env.DB_DIALECT || 'mysql',
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT, 10) || 3306,
+  username: process.env.DB_USERNAME || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_DATABASE || 'tazanorte',
+}));

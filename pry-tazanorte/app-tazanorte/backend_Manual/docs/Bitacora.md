@@ -2298,9 +2298,10 @@ npm run start:dev
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "test: verify clients table and crud endpoints"
+git add . 
+git commit -m "test: verify clients table and crud endpoints"
 ```
 
-------------------------------------------------------------------------
+![](images/clipboard-1913849893.png)
 
-## 
+![](images/clipboard-3416916837.png)

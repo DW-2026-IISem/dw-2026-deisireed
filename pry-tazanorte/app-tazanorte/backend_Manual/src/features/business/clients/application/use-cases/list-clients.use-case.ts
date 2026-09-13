@@ -1,9 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { PaginatedResult } from '../../../../../common/interfaces/pagination.interface';
+import { Client } from '../../domain/entities/client.entity';
 import {
   CLIENT_REPOSITORY,
-  type IClientRepository,
+  IClientRepository,
 } from '../../domain/interfaces/client-repository.interface';
 import { ClientFilterDto } from '../dto/client-filter.dto';
+import { ClientResponseDto } from '../dto/client-response.dto';
 import { ClientMapper } from '../mappers/client.mapper';
 
 @Injectable()
@@ -13,11 +16,14 @@ export class ListClientsUseCase {
     private readonly clientRepository: IClientRepository,
   ) {}
 
-  async execute(filter: ClientFilterDto) {
+  async execute(
+    filter: ClientFilterDto,
+  ): Promise<PaginatedResult<ClientResponseDto>> {
     const result = await this.clientRepository.findAll(filter);
+
     return {
-      items: result.items.map((client) => ClientMapper.toResponse(client)),
-      meta: result.meta,
+      ...result,
+      items: result.items.map((client: Client) => ClientMapper.toResponse(client)),
     };
   }
 }
