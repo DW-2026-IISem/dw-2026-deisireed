@@ -1477,8 +1477,11 @@ mkdir -p src/common/interfaces cat > src/common/interfaces/pagination.interface.
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add pagination.interface.ts"
+git add . 
+git commit -m "feat: add pagination.interface.ts"
 ```
+
+![](images/clipboard-3043888462.png)
 
 #### 6.31 — common/interfaces/api-response.interface.ts
 
