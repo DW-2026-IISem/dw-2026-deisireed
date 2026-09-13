@@ -1021,8 +1021,11 @@ mkdir -p src/config/jwt cat > src/config/jwt/jwt.config.ts <<'EOF_BACKEND_IA' im
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add jwt.config.ts"
+git add .
+git commit -m "feat: add jwt.config.ts"
 ```
+
+![](images/clipboard-556447279.png)
 
 #### 6.7 — config/swagger/swagger.constants.ts
 
