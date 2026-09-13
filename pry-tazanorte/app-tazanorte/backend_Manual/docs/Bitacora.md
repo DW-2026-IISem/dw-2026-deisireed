@@ -1772,7 +1772,7 @@ git add .
 git commit -m "feat: add domain entity client.entity.ts"
 ```
 
-![](images/clipboard-4231070061.png)
+![](images/clipboard-4177377.png)
 
 #### 7.2 — features/business/clients/domain/exceptions/client-email-already-exists.exception.ts
 
@@ -1789,6 +1789,8 @@ mkdir -p src/features/business/clients/domain/exceptions cat > src/features/busi
 ``` bash
 git add . git commit -m "feat: add domain exception client-email-already-exists.exception.ts"
 ```
+
+![](images/clipboard-3131682913.png)
 
 #### 7.3 — features/business/clients/domain/exceptions/client-not-found.exception.ts
 
