@@ -2262,8 +2262,11 @@ mkdir -p src/infrastructure/database/seeders cat > src/infrastructure/database/s
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: run seedClients on bootstrap"
+git add . 
+git commit -m "chore: run seedClients on bootstrap"
 ```
+
+![](images/clipboard-2981010527.png)
 
 #### 7.28 — Actualizar app.module.ts
 
