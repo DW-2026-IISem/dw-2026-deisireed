@@ -1040,8 +1040,11 @@ mkdir -p src/config/swagger cat > src/config/swagger/swagger.constants.ts <<'EOF
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add swagger.constants.ts"
+git add . 
+git commit -m "feat: add swagger.constants.ts"
 ```
+
+![](images/clipboard-482243966.png)
 
 #### 6.8 — config/swagger/swagger.config.ts
 
