@@ -1,6 +1,6 @@
-import { Status } from '../../../../../common/enums/status.enum.js';
-import { isValidEmail } from '../validators/client-email.validator.js';
-import { isValidPhone } from '../validators/client-phone.validator.js';
+import { Status } from '../../../../../common/enums/status.enum';
+import { isValidEmail } from '../validators/client-email.validator';
+import { isValidPhone } from '../validators/client-phone.validator';
 
 export interface ClientProps {
   id?: number;
