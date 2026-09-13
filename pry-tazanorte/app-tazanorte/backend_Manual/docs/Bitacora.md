@@ -1192,8 +1192,11 @@ mkdir -p src/common/exceptions cat > src/common/exceptions/domain.exception.ts <
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add domain.exception.ts"
+git add . 
+git commit -m "feat: add domain.exception.ts"
 ```
+
+![](images/clipboard-2416429957.png)
 
 #### 6.16 — common/exceptions/entity-not-found.exception.ts
 
@@ -1208,8 +1211,11 @@ mkdir -p src/common/exceptions cat > src/common/exceptions/entity-not-found.exce
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add entity-not-found.exception.ts"
+git add . 
+git commit -m "feat: add entity-not-found.exception.ts"
 ```
+
+![](images/clipboard-3248268911.png)
 
 #### 6.17 — common/exceptions/validation.exception.ts
 
