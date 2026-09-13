@@ -1572,8 +1572,11 @@ mkdir -p src/common/utils cat > src/common/utils/date.util.ts <<'EOF_BACKEND_IA'
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add date.util.ts"
+git add .
+git commit -m "feat: add date.util.ts"
 ```
+
+![](images/clipboard-4272814114.png)
 
 #### 6.36 — common/utils/string.util.ts
 
