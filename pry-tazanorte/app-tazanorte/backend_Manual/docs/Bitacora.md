@@ -930,7 +930,7 @@ git add .
 git commit -m "feat: add app.constants.ts"
 ```
 
-![](images/clipboard-1953012556.png)
+![](images/clipboard-3740060247.png)
 
 #### 6.2 — config/app/app.config.ts
 
@@ -945,8 +945,11 @@ mkdir -p src/config/app cat > src/config/app/app.config.ts <<'EOF_BACKEND_IA' im
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add app.config.ts"
+git add . 
+git commit -m "feat: add app.config.ts"
 ```
+
+![](images/clipboard-3868613973.png)
 
 #### 6.3 — config/logger/logger.config.ts
 
