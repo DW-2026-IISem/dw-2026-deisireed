@@ -906,3 +906,718 @@ git add . git commit -m "test: verify sequelize authenticates against tecnogua_i
 ```
 
 ![](images/clipboard-3583533227.png)
+
+## FASE 6 — `05_BASE_APP_COMMON_SECURITY`
+
+### App config + Logger + Common + Security + bootstrap
+
+> **Objetivo de la fase:** Dejar la infraestructura transversal lista antes de la primera entidad de negocio. Aún sin Business/Auth en AppModule y sin guards globales.
+
+#### 6.1 — config/app/app.constants.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/config/app/app.constants.ts`
+
+``` bash
+mkdir -p src/config/app cat > src/config/app/app.constants.ts <<'EOF_BACKEND_IA' export const APP_CONFIG_NAME = 'app';  export const APP_DEFAULTS = {   PORT: 3002,   NODE_ENV: 'development', }; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . 
+git commit -m "feat: add app.constants.ts"
+```
+
+![](images/clipboard-1953012556.png)
+
+#### 6.2 — config/app/app.config.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/config/app/app.config.ts`
+
+``` bash
+mkdir -p src/config/app cat > src/config/app/app.config.ts <<'EOF_BACKEND_IA' import { registerAs } from '@nestjs/config'; import { APP_CONFIG_NAME, APP_DEFAULTS } from './app.constants'; import { Environment } from '../environment/env.interface';  export const appConfig = registerAs(APP_CONFIG_NAME, () => ({   port: parseInt(process.env.PORT || String(APP_DEFAULTS.PORT), 10),   nodeEnv: (process.env.NODE_ENV as Environment) || APP_DEFAULTS.NODE_ENV, })); EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add app.config.ts"
+```
+
+#### 6.3 — config/logger/logger.config.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/config/logger/logger.config.ts`
+
+``` bash
+mkdir -p src/config/logger cat > src/config/logger/logger.config.ts <<'EOF_BACKEND_IA' import { LogLevel } from '@nestjs/common';  export function getLoggerConfig(): { logLevels: LogLevel[] } {   const isDev = process.env.NODE_ENV === 'development';    return {     logLevels: isDev       ? ['log', 'error', 'warn', 'debug', 'verbose', 'fatal']       : ['log', 'error', 'warn'],   }; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add logger.config.ts"
+```
+
+#### 6.4 — config/logger/logger.module.ts
+
+Módulo Nest del feature: cablea providers, tokens DI y controller.
+
+**Archivo:** `src/config/logger/logger.module.ts`
+
+``` bash
+mkdir -p src/config/logger cat > src/config/logger/logger.module.ts <<'EOF_BACKEND_IA' import { Module, Global, Logger } from '@nestjs/common';  @Global() @Module({   providers: [Logger],   exports: [Logger], }) export class LoggerModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: wire nest module logger.module.ts"
+```
+
+#### 6.5 — config/jwt/jwt.constants.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/config/jwt/jwt.constants.ts`
+
+``` bash
+mkdir -p src/config/jwt cat > src/config/jwt/jwt.constants.ts <<'EOF_BACKEND_IA' export const JWT_CONFIG_NAME = 'jwt';  export const JWT_DEFAULTS = {   EXPIRES_IN: '1d',   REFRESH_EXPIRES_IN: '7d', }; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add jwt.constants.ts"
+```
+
+#### 6.6 — config/jwt/jwt.config.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/config/jwt/jwt.config.ts`
+
+``` bash
+mkdir -p src/config/jwt cat > src/config/jwt/jwt.config.ts <<'EOF_BACKEND_IA' import { registerAs } from '@nestjs/config'; import { JWT_CONFIG_NAME, JWT_DEFAULTS } from './jwt.constants';  export const jwtConfig = registerAs(JWT_CONFIG_NAME, () => ({   secret: process.env.JWT_SECRET || '',   expiresIn: process.env.JWT_EXPIRES_IN || JWT_DEFAULTS.EXPIRES_IN,   refreshSecret: process.env.JWT_REFRESH_SECRET || '',   refreshExpiresIn:     process.env.JWT_REFRESH_EXPIRES_IN || JWT_DEFAULTS.REFRESH_EXPIRES_IN, })); EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add jwt.config.ts"
+```
+
+#### 6.7 — config/swagger/swagger.constants.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/config/swagger/swagger.constants.ts`
+
+``` bash
+mkdir -p src/config/swagger cat > src/config/swagger/swagger.constants.ts <<'EOF_BACKEND_IA' export const SWAGGER_TITLE = 'Backend NestJS + Sequelize API'; export const SWAGGER_DESCRIPTION =   'API profesional con Clean Architecture / DDD, JWT y RBAC'; export const SWAGGER_VERSION = '1.0'; export const SWAGGER_PATH = 'api/docs'; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add swagger.constants.ts"
+```
+
+#### 6.8 — config/swagger/swagger.config.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/config/swagger/swagger.config.ts`
+
+``` bash
+mkdir -p src/config/swagger cat > src/config/swagger/swagger.config.ts <<'EOF_BACKEND_IA' import { INestApplication } from '@nestjs/common'; import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'; import {   SWAGGER_DESCRIPTION,   SWAGGER_PATH,   SWAGGER_TITLE,   SWAGGER_VERSION, } from './swagger.constants';  export function setupSwagger(app: INestApplication): void {   const config = new DocumentBuilder()     .setTitle(SWAGGER_TITLE)     .setDescription(SWAGGER_DESCRIPTION)     .setVersion(SWAGGER_VERSION)     .addBearerAuth(       {         type: 'http',         scheme: 'bearer',         bearerFormat: 'JWT',         name: 'Authorization',         in: 'header',       },       'access-token',     )     .build();    const document = SwaggerModule.createDocument(app, config);   SwaggerModule.setup(SWAGGER_PATH, app, document); } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add swagger.config.ts"
+```
+
+#### 6.9 — common/enums/status.enum.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/enums/status.enum.ts`
+
+``` bash
+mkdir -p src/common/enums cat > src/common/enums/status.enum.ts <<'EOF_BACKEND_IA' export enum Status {   ACTIVE = 'ACTIVE',   INACTIVE = 'INACTIVE', } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add status.enum.ts"
+```
+
+#### 6.10 — common/enums/http-method.enum.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/enums/http-method.enum.ts`
+
+``` bash
+mkdir -p src/common/enums cat > src/common/enums/http-method.enum.ts <<'EOF_BACKEND_IA' export enum HttpMethod {   GET = 'GET',   POST = 'POST',   PUT = 'PUT',   PATCH = 'PATCH',   DELETE = 'DELETE', } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add http-method.enum.ts"
+```
+
+#### 6.11 — common/enums/sort-order.enum.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/enums/sort-order.enum.ts`
+
+``` bash
+mkdir -p src/common/enums cat > src/common/enums/sort-order.enum.ts <<'EOF_BACKEND_IA' export enum SortOrder {   ASC = 'ASC',   DESC = 'DESC', } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add sort-order.enum.ts"
+```
+
+#### 6.12 — common/constants/app.constants.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/constants/app.constants.ts`
+
+``` bash
+mkdir -p src/common/constants cat > src/common/constants/app.constants.ts <<'EOF_BACKEND_IA' export const APP_NAME = 'backend_ia'; export const GLOBAL_PREFIX = 'api'; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add app.constants.ts"
+```
+
+#### 6.13 — common/constants/pagination.constants.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/constants/pagination.constants.ts`
+
+``` bash
+mkdir -p src/common/constants cat > src/common/constants/pagination.constants.ts <<'EOF_BACKEND_IA' export const DEFAULT_PAGE = 1; export const DEFAULT_LIMIT = 10; export const MAX_LIMIT = 100; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add pagination.constants.ts"
+```
+
+#### 6.14 — common/exceptions/application.exception.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/exceptions/application.exception.ts`
+
+``` bash
+mkdir -p src/common/exceptions cat > src/common/exceptions/application.exception.ts <<'EOF_BACKEND_IA' export class ApplicationException extends Error {   public readonly timestamp: string;    constructor(     public readonly message: string,     public readonly statusCode: number = 500,   ) {     super(message);     this.timestamp = new Date().toISOString();     Error.captureStackTrace(this, this.constructor);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add application.exception.ts"
+```
+
+#### 6.15 — common/exceptions/domain.exception.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/exceptions/domain.exception.ts`
+
+``` bash
+mkdir -p src/common/exceptions cat > src/common/exceptions/domain.exception.ts <<'EOF_BACKEND_IA' import { ApplicationException } from './application.exception';  export class DomainException extends ApplicationException {   constructor(message: string) {     super(message, 400);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add domain.exception.ts"
+```
+
+#### 6.16 — common/exceptions/entity-not-found.exception.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/exceptions/entity-not-found.exception.ts`
+
+``` bash
+mkdir -p src/common/exceptions cat > src/common/exceptions/entity-not-found.exception.ts <<'EOF_BACKEND_IA' import { ApplicationException } from './application.exception';  export class EntityNotFoundException extends ApplicationException {   constructor(entityName: string, identifier: string | number) {     super(`${entityName} con ID ${identifier} no encontrado`, 404);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add entity-not-found.exception.ts"
+```
+
+#### 6.17 — common/exceptions/validation.exception.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/exceptions/validation.exception.ts`
+
+``` bash
+mkdir -p src/common/exceptions cat > src/common/exceptions/validation.exception.ts <<'EOF_BACKEND_IA' import { ApplicationException } from './application.exception';  export class ValidationException extends ApplicationException {   constructor(message: string = 'Error de validación') {     super(message, 422);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add validation.exception.ts"
+```
+
+#### 6.18 — common/filters/global-exception.filter.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/filters/global-exception.filter.ts`
+
+``` bash
+mkdir -p src/common/filters cat > src/common/filters/global-exception.filter.ts <<'EOF_BACKEND_IA' import {   ExceptionFilter,   Catch,   ArgumentsHost,   HttpException,   HttpStatus, } from '@nestjs/common'; import { Request, Response } from 'express'; import { ApplicationException } from '../exceptions/application.exception';  @Catch() export class GlobalExceptionFilter implements ExceptionFilter {   catch(exception: unknown, host: ArgumentsHost): void {     const ctx = host.switchToHttp();     const response = ctx.getResponse<Response>();     const request = ctx.getRequest<Request>();      let status = HttpStatus.INTERNAL_SERVER_ERROR;     let message: string | string[] = 'Error interno del servidor';      if (exception instanceof ApplicationException) {       status = exception.statusCode;       message = exception.message;     } else if (exception instanceof HttpException) {       status = exception.getStatus();       const res = exception.getResponse();       message = typeof res === 'string' ? res : (res as any).message;     }      response.status(status).json({       statusCode: status,       message,       timestamp: new Date().toISOString(),       path: request.url,     });   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add global-exception.filter.ts"
+```
+
+#### 6.19 — common/filters/sequelize-exception.filter.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/filters/sequelize-exception.filter.ts`
+
+``` bash
+mkdir -p src/common/filters cat > src/common/filters/sequelize-exception.filter.ts <<'EOF_BACKEND_IA' import { ExceptionFilter, Catch, ArgumentsHost } from '@nestjs/common'; import { Response } from 'express';  @Catch() export class SequelizeExceptionFilter implements ExceptionFilter {   catch(exception: any, host: ArgumentsHost): void {     const ctx = host.switchToHttp();     const response = ctx.getResponse<Response>();      const sequelizeErrors = [       'SequelizeUniqueConstraintError',       'SequelizeForeignKeyConstraintError',       'SequelizeConnectionError',       'SequelizeValidationError',       'SequelizeDatabaseError',     ];      if (!exception?.name || !sequelizeErrors.includes(exception.name)) {       throw exception;     }      let status = 500;     let message = 'Error de base de datos';      if (exception.name === 'SequelizeUniqueConstraintError') {       status = 409;       message = 'El recurso ya existe (violación de unicidad)';     } else if (exception.name === 'SequelizeForeignKeyConstraintError') {       status = 400;       message = 'Violación de clave foránea';     } else if (exception.name === 'SequelizeConnectionError') {       status = 503;       message = 'No se pudo conectar a la base de datos';     } else if (exception.name === 'SequelizeValidationError') {       status = 422;       message = exception.message || 'Error de validación en base de datos';     }      response.status(status).json({       statusCode: status,       message,       timestamp: new Date().toISOString(),     });   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add sequelize-exception.filter.ts"
+```
+
+#### 6.20 — common/interceptors/response.interceptor.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/interceptors/response.interceptor.ts`
+
+``` bash
+mkdir -p src/common/interceptors cat > src/common/interceptors/response.interceptor.ts <<'EOF_BACKEND_IA' import {   Injectable,   NestInterceptor,   ExecutionContext,   CallHandler, } from '@nestjs/common'; import { Observable } from 'rxjs'; import { map } from 'rxjs/operators';  export interface ApiResponse<T> {   statusCode: number;   message: string;   data: T;   timestamp: string; }  @Injectable() export class ResponseInterceptor<T>   implements NestInterceptor<T, ApiResponse<T>> {   intercept(     context: ExecutionContext,     next: CallHandler,   ): Observable<ApiResponse<T>> {     const response = context.switchToHttp().getResponse();     const statusCode = response.statusCode;      return next.handle().pipe(       map((data) => ({         statusCode,         message: 'Operación exitosa',         data,         timestamp: new Date().toISOString(),       })),     );   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add response.interceptor.ts"
+```
+
+#### 6.21 — common/interceptors/logging.interceptor.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/interceptors/logging.interceptor.ts`
+
+``` bash
+mkdir -p src/common/interceptors cat > src/common/interceptors/logging.interceptor.ts <<'EOF_BACKEND_IA' import {   Injectable,   NestInterceptor,   ExecutionContext,   CallHandler,   Logger, } from '@nestjs/common'; import { Observable } from 'rxjs'; import { tap } from 'rxjs/operators';  @Injectable() export class LoggingInterceptor implements NestInterceptor {   private readonly logger = new Logger('HTTP');    intercept(context: ExecutionContext, next: CallHandler): Observable<any> {     const req = context.switchToHttp().getRequest();     const { method, url } = req;     const now = Date.now();      return next.handle().pipe(       tap(() => {         const res = context.switchToHttp().getResponse();         const delay = Date.now() - now;         this.logger.log(`${method} ${url} ${res.statusCode} - ${delay}ms`);       }),     );   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add logging.interceptor.ts"
+```
+
+#### 6.22 — common/interceptors/timeout.interceptor.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/interceptors/timeout.interceptor.ts`
+
+``` bash
+mkdir -p src/common/interceptors cat > src/common/interceptors/timeout.interceptor.ts <<'EOF_BACKEND_IA' import {   Injectable,   NestInterceptor,   ExecutionContext,   CallHandler,   RequestTimeoutException, } from '@nestjs/common'; import { Observable, throwError, TimeoutError } from 'rxjs'; import { catchError, timeout } from 'rxjs/operators';  @Injectable() export class TimeoutInterceptor implements NestInterceptor {   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {     return next.handle().pipe(       timeout(30000),       catchError((err) => {         if (err instanceof TimeoutError) {           return throwError(() => new RequestTimeoutException());         }         return throwError(() => err);       }),     );   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add timeout.interceptor.ts"
+```
+
+#### 6.23 — common/pipes/validation.pipe.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/pipes/validation.pipe.ts`
+
+``` bash
+mkdir -p src/common/pipes cat > src/common/pipes/validation.pipe.ts <<'EOF_BACKEND_IA' import {   PipeTransform,   Injectable,   ArgumentMetadata,   BadRequestException, } from '@nestjs/common'; import { validate } from 'class-validator'; import { plainToInstance } from 'class-transformer';  @Injectable() export class CustomValidationPipe implements PipeTransform<any> {   async transform(value: any, { metatype }: ArgumentMetadata) {     if (!metatype || !this.toValidate(metatype)) {       return value;     }      const object = plainToInstance(metatype, value);     const errors = await validate(object);      if (errors.length > 0) {       const messages = errors.map(         (err) =>           `${err.property}: ${Object.values(err.constraints || {}).join(', ')}`,       );       throw new BadRequestException(messages);     }      return object;   }    private toValidate(metatype: any): boolean {     const types = [String, Boolean, Number, Array, Object];     return !types.includes(metatype);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add validation.pipe.ts"
+```
+
+#### 6.24 — common/pipes/parse-positive-int.pipe.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/pipes/parse-positive-int.pipe.ts`
+
+``` bash
+mkdir -p src/common/pipes cat > src/common/pipes/parse-positive-int.pipe.ts <<'EOF_BACKEND_IA' import {   PipeTransform,   Injectable,   BadRequestException, } from '@nestjs/common';  @Injectable() export class ParsePositiveIntPipe implements PipeTransform<string, number> {   transform(value: string): number {     const parsed = parseInt(value, 10);      if (isNaN(parsed) || parsed <= 0) {       throw new BadRequestException(         `El valor '${value}' no es un entero positivo`,       );     }      return parsed;   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add parse-positive-int.pipe.ts"
+```
+
+#### 6.25 — common/decorators/public.decorator.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/decorators/public.decorator.ts`
+
+``` bash
+mkdir -p src/common/decorators cat > src/common/decorators/public.decorator.ts <<'EOF_BACKEND_IA' import { SetMetadata } from '@nestjs/common';  export const IS_PUBLIC_KEY = 'isPublic'; export const Public = () => SetMetadata(IS_PUBLIC_KEY, true); EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add public.decorator.ts"
+```
+
+#### 6.26 — common/decorators/roles.decorator.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/decorators/roles.decorator.ts`
+
+``` bash
+mkdir -p src/common/decorators cat > src/common/decorators/roles.decorator.ts <<'EOF_BACKEND_IA' import { SetMetadata } from '@nestjs/common';  export const ROLES_KEY = 'roles'; export const Roles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles); EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add roles.decorator.ts"
+```
+
+#### 6.27 — common/decorators/current-user.decorator.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/decorators/current-user.decorator.ts`
+
+``` bash
+mkdir -p src/common/decorators cat > src/common/decorators/current-user.decorator.ts <<'EOF_BACKEND_IA' import { createParamDecorator, ExecutionContext } from '@nestjs/common';  export const CurrentUser = createParamDecorator(   (data: string | undefined, ctx: ExecutionContext) => {     const request = ctx.switchToHttp().getRequest();     const user = request.user;     return data ? user?.[data] : user;   }, ); EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add current-user.decorator.ts"
+```
+
+#### 6.28 — common/decorators/resource.decorator.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/decorators/resource.decorator.ts`
+
+``` bash
+mkdir -p src/common/decorators cat > src/common/decorators/resource.decorator.ts <<'EOF_BACKEND_IA' import { SetMetadata } from '@nestjs/common';  export const RESOURCE_KEY = 'resource'; export const ResourceMeta = (path: string, method: string) =>   SetMetadata(RESOURCE_KEY, { path, method }); EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add resource.decorator.ts"
+```
+
+#### 6.29 — common/interfaces/authenticated-user.interface.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/interfaces/authenticated-user.interface.ts`
+
+``` bash
+mkdir -p src/common/interfaces cat > src/common/interfaces/authenticated-user.interface.ts <<'EOF_BACKEND_IA' export interface AuthenticatedUser {   id: number;   email: string;   username: string;   roles: string[]; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add authenticated-user.interface.ts"
+```
+
+#### 6.30 — common/interfaces/pagination.interface.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/interfaces/pagination.interface.ts`
+
+``` bash
+mkdir -p src/common/interfaces cat > src/common/interfaces/pagination.interface.ts <<'EOF_BACKEND_IA' export interface PaginationMeta {   page: number;   limit: number;   total: number;   totalPages: number; }  export interface PaginatedResult<T> {   items: T[];   meta: PaginationMeta; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add pagination.interface.ts"
+```
+
+#### 6.31 — common/interfaces/api-response.interface.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/interfaces/api-response.interface.ts`
+
+``` bash
+mkdir -p src/common/interfaces cat > src/common/interfaces/api-response.interface.ts <<'EOF_BACKEND_IA' export interface ApiResponseBody<T> {   statusCode: number;   message: string;   data: T;   timestamp: string; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add api-response.interface.ts"
+```
+
+#### 6.32 — common/types/nullable.type.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/types/nullable.type.ts`
+
+``` bash
+mkdir -p src/common/types cat > src/common/types/nullable.type.ts <<'EOF_BACKEND_IA' export type Nullable<T> = T | null; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add nullable.type.ts"
+```
+
+#### 6.33 — common/types/optional.type.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/types/optional.type.ts`
+
+``` bash
+mkdir -p src/common/types cat > src/common/types/optional.type.ts <<'EOF_BACKEND_IA' export type Optional<T> = T | undefined; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add optional.type.ts"
+```
+
+#### 6.34 — common/utils/pagination.util.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/utils/pagination.util.ts`
+
+``` bash
+mkdir -p src/common/utils cat > src/common/utils/pagination.util.ts <<'EOF_BACKEND_IA' import {   DEFAULT_LIMIT,   DEFAULT_PAGE,   MAX_LIMIT, } from '../constants/pagination.constants'; import { PaginatedResult } from '../interfaces/pagination.interface';  export function normalizePagination(page?: number, limit?: number) {   const safePage = !page || page < 1 ? DEFAULT_PAGE : page;   const safeLimit = !limit || limit < 1 ? DEFAULT_LIMIT : Math.min(limit, MAX_LIMIT);   const offset = (safePage - 1) * safeLimit;   return { page: safePage, limit: safeLimit, offset }; }  export function buildPaginatedResult<T>(   items: T[],   total: number,   page: number,   limit: number, ): PaginatedResult<T> {   return {     items,     meta: {       page,       limit,       total,       totalPages: Math.ceil(total / limit) || 0,     },   }; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add pagination.util.ts"
+```
+
+#### 6.35 — common/utils/date.util.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/utils/date.util.ts`
+
+``` bash
+mkdir -p src/common/utils cat > src/common/utils/date.util.ts <<'EOF_BACKEND_IA' export function addDays(date: Date, days: number): Date {   const result = new Date(date);   result.setDate(result.getDate() + days);   return result; }  export function parseDurationToMs(duration: string): number {   const match = /^(\d+)([smhd])$/.exec(duration);   if (!match) {     return 24 * 60 * 60 * 1000;   }    const value = parseInt(match[1], 10);   const unit = match[2];    switch (unit) {     case 's':       return value * 1000;     case 'm':       return value * 60 * 1000;     case 'h':       return value * 60 * 60 * 1000;     case 'd':       return value * 24 * 60 * 60 * 1000;     default:       return 24 * 60 * 60 * 1000;   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add date.util.ts"
+```
+
+#### 6.36 — common/utils/string.util.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/common/utils/string.util.ts`
+
+``` bash
+mkdir -p src/common/utils cat > src/common/utils/string.util.ts <<'EOF_BACKEND_IA' export function normalizeEmail(email: string): string {   return email.trim().toLowerCase(); }  export function isBlank(value?: string | null): boolean {   return !value || value.trim().length === 0; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add string.util.ts"
+```
+
+#### 6.37 — infrastructure/security/hashing/password-hasher.interface.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/infrastructure/security/hashing/password-hasher.interface.ts`
+
+``` bash
+mkdir -p src/infrastructure/security/hashing cat > src/infrastructure/security/hashing/password-hasher.interface.ts <<'EOF_BACKEND_IA' export const PASSWORD_HASHER = 'PASSWORD_HASHER';  export interface IPasswordHasher {   hash(plain: string): Promise<string>;   compare(plain: string, hashed: string): Promise<boolean>; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add password-hasher.interface.ts"
+```
+
+#### 6.38 — infrastructure/security/hashing/bcrypt-password-hasher.service.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/infrastructure/security/hashing/bcrypt-password-hasher.service.ts`
+
+``` bash
+mkdir -p src/infrastructure/security/hashing cat > src/infrastructure/security/hashing/bcrypt-password-hasher.service.ts <<'EOF_BACKEND_IA' import { Injectable } from '@nestjs/common'; import * as bcrypt from 'bcrypt'; import { IPasswordHasher } from './password-hasher.interface';  @Injectable() export class BcryptPasswordHasherService implements IPasswordHasher {   private readonly rounds = 10;    async hash(plain: string): Promise<string> {     return bcrypt.hash(plain, this.rounds);   }    async compare(plain: string, hashed: string): Promise<boolean> {     return bcrypt.compare(plain, hashed);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add bcrypt-password-hasher.service.ts"
+```
+
+#### 6.39 — infrastructure/security/tokens/token.interface.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/infrastructure/security/tokens/token.interface.ts`
+
+``` bash
+mkdir -p src/infrastructure/security/tokens cat > src/infrastructure/security/tokens/token.interface.ts <<'EOF_BACKEND_IA' export const TOKEN_SERVICE = 'TOKEN_SERVICE';  export interface TokenPayload {   sub: number;   email: string;   username: string;   roles: string[]; }  export interface IssuedTokens {   accessToken: string;   refreshToken: string;   expiresIn: string; }  export interface ITokenService {   signAccessToken(payload: TokenPayload): Promise<string>;   signRefreshToken(payload: TokenPayload): Promise<string>;   verifyAccessToken(token: string): Promise<TokenPayload>;   verifyRefreshToken(token: string): Promise<TokenPayload>;   issueTokens(payload: TokenPayload): Promise<IssuedTokens>; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add token.interface.ts"
+```
+
+#### 6.40 — infrastructure/security/tokens/token.service.ts
+
+Archivo del feature en Clean Architecture.
+
+**Archivo:** `src/infrastructure/security/tokens/token.service.ts`
+
+``` bash
+mkdir -p src/infrastructure/security/tokens cat > src/infrastructure/security/tokens/token.service.ts <<'EOF_BACKEND_IA' import { Injectable } from '@nestjs/common'; import { ConfigService } from '@nestjs/config'; import { JwtService } from '@nestjs/jwt'; import {   ITokenService,   IssuedTokens,   TokenPayload, } from './token.interface';  @Injectable() export class TokenService implements ITokenService {   constructor(     private readonly jwtService: JwtService,     private readonly configService: ConfigService,   ) {}    async signAccessToken(payload: TokenPayload): Promise<string> {     return this.jwtService.signAsync(payload, {       secret: this.configService.get<string>('environment.jwt.secret'),       expiresIn: this.configService.get<string>('environment.jwt.expiresIn') as any,     });   }    async signRefreshToken(payload: TokenPayload): Promise<string> {     return this.jwtService.signAsync(payload, {       secret: this.configService.get<string>('environment.jwt.refreshSecret'),       expiresIn: this.configService.get<string>(         'environment.jwt.refreshExpiresIn',       ) as any,     });   }    async verifyAccessToken(token: string): Promise<TokenPayload> {     return this.jwtService.verifyAsync<TokenPayload>(token, {       secret: this.configService.get<string>('environment.jwt.secret'),     });   }    async verifyRefreshToken(token: string): Promise<TokenPayload> {     return this.jwtService.verifyAsync<TokenPayload>(token, {       secret: this.configService.get<string>('environment.jwt.refreshSecret'),     });   }    async issueTokens(payload: TokenPayload): Promise<IssuedTokens> {     const [accessToken, refreshToken] = await Promise.all([       this.signAccessToken(payload),       this.signRefreshToken(payload),     ]);      return {       accessToken,       refreshToken,       expiresIn:         this.configService.get<string>('environment.jwt.expiresIn') || '1d',     };   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add token.service.ts"
+```
+
+#### 6.41 — infrastructure/security/security.module.ts
+
+Módulo Nest del feature: cablea providers, tokens DI y controller.
+
+**Archivo:** `src/infrastructure/security/security.module.ts`
+
+``` bash
+mkdir -p src/infrastructure/security cat > src/infrastructure/security/security.module.ts <<'EOF_BACKEND_IA' import { Global, Module } from '@nestjs/common'; import { ConfigModule, ConfigService } from '@nestjs/config'; import { JwtModule } from '@nestjs/jwt'; import { PASSWORD_HASHER } from './hashing/password-hasher.interface'; import { BcryptPasswordHasherService } from './hashing/bcrypt-password-hasher.service'; import { TOKEN_SERVICE } from './tokens/token.interface'; import { TokenService } from './tokens/token.service';  @Global() @Module({   imports: [     JwtModule.registerAsync({       imports: [ConfigModule],       inject: [ConfigService],       useFactory: (configService: ConfigService) => ({         secret: configService.get<string>('environment.jwt.secret') ?? '',         signOptions: {           expiresIn: (configService.get<string>('environment.jwt.expiresIn') ??             '1d') as any,         },       }),     }),   ],   providers: [     BcryptPasswordHasherService,     {       provide: PASSWORD_HASHER,       useExisting: BcryptPasswordHasherService,     },     TokenService,     {       provide: TOKEN_SERVICE,       useExisting: TokenService,     },   ],   exports: [     JwtModule,     BcryptPasswordHasherService,     PASSWORD_HASHER,     TokenService,     TOKEN_SERVICE,   ], }) export class SecurityModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: wire nest module security.module.ts"
+```
+
+#### 6.42 — Actualizar main.ts (bootstrap completo)
+
+Prefix global, filters, interceptors, pipes, Swagger y manejo amigable de EADDRINUSE.
+
+**Archivo:** `src/main.ts`
+
+``` bash
+mkdir -p src cat > src/main.ts <<'EOF_BACKEND_IA' import { NestFactory } from '@nestjs/core'; import { ConfigService } from '@nestjs/config'; import { AppModule } from './app.module'; import { getLoggerConfig } from './config/logger/logger.config'; import { GlobalExceptionFilter } from './common/filters/global-exception.filter'; import { ResponseInterceptor } from './common/interceptors/response.interceptor'; import { LoggingInterceptor } from './common/interceptors/logging.interceptor'; import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor'; import { CustomValidationPipe } from './common/pipes/validation.pipe'; import { setupSwagger } from './config/swagger/swagger.config'; import { GLOBAL_PREFIX } from './common/constants/app.constants';  async function bootstrap() {   const app = await NestFactory.create(AppModule, {     logger: getLoggerConfig().logLevels,   });    const configService = app.get(ConfigService);   const port = configService.get<number>('app.port', 3002);    app.setGlobalPrefix(GLOBAL_PREFIX);    app.useGlobalFilters(new GlobalExceptionFilter());    app.useGlobalInterceptors(     new ResponseInterceptor(),     new LoggingInterceptor(),     new TimeoutInterceptor(),   );    app.useGlobalPipes(new CustomValidationPipe());    setupSwagger(app);    try {     await app.listen(port);     console.log(`🚀 Application running on: http://localhost:${port}`);     console.log(`📘 Swagger: http://localhost:${port}/api/docs`);   } catch (error: any) {     if (error?.code === 'EADDRINUSE') {       console.error(         `❌ El puerto ${port} ya está en uso (EADDRINUSE).\n` +           `   Solución rápida:\n` +           `   1) npm run free:port\n` +           `   2) npm run start:dev\n` +           `   O cambia PORT en el archivo .env`,       );       await app.close();       process.exit(1);     }     throw error;   } } bootstrap(); EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: harden main.ts bootstrap with swagger and global pipes"
+```
+
+#### 6.43 — Actualizar app.module.ts (base sin features ni guards)
+
+Cablea Config + Sequelize + Security + Logger. Business/Auth y guards llegan en fases posteriores.
+
+**Archivo:** `src/app.module.ts`
+
+``` bash
+mkdir -p src cat > src/app.module.ts <<'EOF_BACKEND_IA' import { Module } from '@nestjs/common'; import { ConfigModule } from '@nestjs/config'; import { envConfig } from './config/environment/env.config'; import { appConfig } from './config/app/app.config'; import { jwtConfig } from './config/jwt/jwt.config'; import { LoggerModule } from './config/logger/logger.module'; import { SequelizeDatabaseModule } from './infrastructure/database/sequelize/sequelize.module'; import { SecurityModule } from './infrastructure/security/security.module'; import { AppController } from './app.controller'; import { AppService } from './app.service';  @Module({   imports: [     ConfigModule.forRoot({       isGlobal: true,       load: [envConfig, appConfig, jwtConfig],       envFilePath: '.env',     }),     SequelizeDatabaseModule,     SecurityModule,     LoggerModule,   ],   controllers: [AppController],   providers: [     AppService,   ], }) export class AppModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: wire AppModule with config database security logger"
+```
+
+#### 6.44 — Verificar bootstrap transversal
+
+La app debe arrancar, mostrar Swagger en `/api/docs` y conectar a BD. Todavía no hay endpoints de negocio.
+
+``` bash
+npm run start:dev # Abre http://localhost:3002/api/docs # Ctrl+C
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "test: verify base infrastructure bootstrap"
+```
+
+------------------------------------------------------------------------
+
+## 
