@@ -839,7 +839,7 @@ git add . git commit -m "feat: add getSequelizeOptions multi-dialect"
 
 #### 5.7 — Factory Sequelize (sin modelos aún)
 
-Crea la instancia Sequelize. `ALL_MODELS` empieza vacío: se llena al crear cada entidad.
+Crea la instancia Sequelize. `ALL_MODELS` empieza vacío: se llena al crear cada entidad.cd
 
 **Archivo:** `src/infrastructure/database/sequelize/sequelize.factory.ts`
 
@@ -870,6 +870,8 @@ mkdir -p src/infrastructure/database/seeders cat > src/infrastructure/database/s
 ``` bash
 git add . git commit -m "feat: add DatabaseSeederService scaffold"
 ```
+
+![](images/clipboard-2569300173.png)
 
 #### 5.9 — Módulo global Sequelize
 
