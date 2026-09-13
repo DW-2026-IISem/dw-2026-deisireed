@@ -1515,8 +1515,11 @@ mkdir -p src/common/types cat > src/common/types/nullable.type.ts <<'EOF_BACKEND
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add nullable.type.ts"
+git add .
+git commit -m "feat: add nullable.type.ts"
 ```
+
+![](images/clipboard-1062853379.png)
 
 #### 6.33 — common/types/optional.type.ts
 
