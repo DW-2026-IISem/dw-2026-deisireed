@@ -776,8 +776,11 @@ mkdir -p src/config/database cat > src/config/database/database.config.ts <<'EOF
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add database.config registerAs"
+git add . 
+git commit -m "feat: add database.config registerAs"
 ```
+
+![](images/clipboard-3589379354.png)
 
 #### 5.4 — database.module.ts / providers
 
