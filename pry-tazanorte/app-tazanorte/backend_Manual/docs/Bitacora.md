@@ -1496,8 +1496,11 @@ mkdir -p src/common/interfaces cat > src/common/interfaces/api-response.interfac
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add api-response.interface.ts"
+git add .
+git commit -m "feat: add api-response.interface.ts"
 ```
+
+![](images/clipboard-1112283866.png)
 
 #### 6.32 — common/types/nullable.type.ts
 
