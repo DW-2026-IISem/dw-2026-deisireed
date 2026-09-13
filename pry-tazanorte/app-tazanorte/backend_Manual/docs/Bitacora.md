@@ -1439,8 +1439,11 @@ mkdir -p src/common/decorators cat > src/common/decorators/resource.decorator.ts
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add resource.decorator.ts"
+git add . 
+git commit -m "feat: add resource.decorator.ts"
 ```
+
+![](images/clipboard-4140835809.png)
 
 #### 6.29 — common/interfaces/authenticated-user.interface.ts
 
