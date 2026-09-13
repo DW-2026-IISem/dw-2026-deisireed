@@ -1458,8 +1458,11 @@ mkdir -p src/common/interfaces cat > src/common/interfaces/authenticated-user.in
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add authenticated-user.interface.ts"
+git add . 
+git commit -m "feat: add authenticated-user.interface.ts"
 ```
+
+![](images/clipboard-1577656895.png)
 
 #### 6.30 — common/interfaces/pagination.interface.ts
 
