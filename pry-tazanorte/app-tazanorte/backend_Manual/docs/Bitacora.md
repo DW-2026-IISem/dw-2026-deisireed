@@ -1901,8 +1901,11 @@ mkdir -p src/features/business/clients/infrastructure/persistence/repositories c
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add sequelize repository client.repository.ts"
+git add . 
+git commit -m "feat: add sequelize repository client.repository.ts"
 ```
+
+![](images/clipboard-1953989648.png)
 
 #### 7.9 — features/business/clients/infrastructure/persistence/migrations/create-clients-table.migration.ts
 
