@@ -1306,8 +1306,11 @@ mkdir -p src/common/interceptors cat > src/common/interceptors/logging.intercept
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add logging.interceptor.ts"
+git add . 
+git commit -m "feat: add logging.interceptor.ts"
 ```
+
+![](images/clipboard-4019185363.png)
 
 #### 6.22 — common/interceptors/timeout.interceptor.ts
 
