@@ -1920,8 +1920,11 @@ mkdir -p src/features/business/clients/infrastructure/persistence/migrations cat
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: add migration create-clients-table.migration.ts"
+git add .
+git commit -m "chore: add migration create-clients-table.migration.ts"
 ```
+
+![](images/clipboard-1518781905.png)
 
 #### 7.10 — features/business/clients/infrastructure/persistence/seeders/clients.seeder.ts
 
