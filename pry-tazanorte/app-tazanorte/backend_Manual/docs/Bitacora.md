@@ -1363,8 +1363,11 @@ mkdir -p src/common/pipes cat > src/common/pipes/parse-positive-int.pipe.ts <<'E
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add parse-positive-int.pipe.ts"
+git add . 
+git commit -m "feat: add parse-positive-int.pipe.ts"
 ```
+
+![](images/clipboard-2446248150.png)
 
 #### 6.25 — common/decorators/public.decorator.ts
 
