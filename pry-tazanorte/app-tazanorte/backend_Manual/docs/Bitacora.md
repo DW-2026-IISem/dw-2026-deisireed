@@ -983,8 +983,11 @@ mkdir -p src/config/logger cat > src/config/logger/logger.module.ts <<'EOF_BACKE
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: wire nest module logger.module.ts"
+git add .
+git commit -m "feat: wire nest module logger.module.ts"
 ```
+
+![](images/clipboard-1766181362.png)
 
 #### 6.5 — config/jwt/jwt.constants.ts
 
