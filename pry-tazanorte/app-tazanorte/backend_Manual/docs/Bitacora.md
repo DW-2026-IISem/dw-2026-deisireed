@@ -2205,8 +2205,11 @@ mkdir -p src/features/business/clients cat > src/features/business/clients/clien
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: wire nest module clients.module.ts"
+git add . 
+git commit -m "feat: wire nest module clients.module.ts"
 ```
+
+![](images/clipboard-980553062.png)
 
 #### 7.25 — Actualizar sequelize.factory.ts (registrar modelos)
 
