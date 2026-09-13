@@ -964,8 +964,11 @@ mkdir -p src/config/logger cat > src/config/logger/logger.config.ts <<'EOF_BACKE
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add logger.config.ts"
+git add .
+git commit -m "feat: add logger.config.ts"
 ```
+
+![](images/clipboard-385631946.png)
 
 #### 6.4 — config/logger/logger.module.ts
 
