@@ -1787,7 +1787,8 @@ mkdir -p src/features/business/clients/domain/exceptions cat > src/features/busi
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add domain exception client-email-already-exists.exception.ts"
+git add .
+git commit -m "feat: add domain exception client-email-already-exists.exception.ts"
 ```
 
 ![](images/clipboard-3131682913.png)
@@ -1805,8 +1806,11 @@ mkdir -p src/features/business/clients/domain/exceptions cat > src/features/busi
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add domain exception client-not-found.exception.ts"
+git add .
+git commit -m "feat: add domain exception client-not-found.exception.ts"
 ```
+
+![](images/clipboard-2772845313.png)
 
 #### 7.4 — features/business/clients/domain/interfaces/client-repository.interface.ts
 
