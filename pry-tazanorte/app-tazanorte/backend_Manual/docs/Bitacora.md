@@ -1705,8 +1705,11 @@ mkdir -p src cat > src/main.ts <<'EOF_BACKEND_IA' import { NestFactory } from '@
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: harden main.ts bootstrap with swagger and global pipes"
+git add . 
+git commit -m "feat: harden main.ts bootstrap with swagger and global pipes"
 ```
+
+![](images/clipboard-2527150848.png)
 
 #### 6.43 — Actualizar app.module.ts (base sin features ni guards)
 
@@ -1721,8 +1724,11 @@ mkdir -p src cat > src/app.module.ts <<'EOF_BACKEND_IA' import { Module } from '
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: wire AppModule with config database security logger"
+git add . 
+git commit -m "feat: wire AppModule with config database security logger"
 ```
+
+![](images/clipboard-400369696.png)
 
 #### 6.44 — Verificar bootstrap transversal
 
