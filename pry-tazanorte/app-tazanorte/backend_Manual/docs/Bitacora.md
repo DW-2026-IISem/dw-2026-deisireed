@@ -1648,8 +1648,11 @@ mkdir -p src/infrastructure/security/tokens cat > src/infrastructure/security/to
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add token.interface.ts"
+git add . 
+git commit -m "feat: add token.interface.ts"
 ```
+
+![](images/clipboard-1248497490.png)
 
 #### 6.40 — infrastructure/security/tokens/token.service.ts
 
