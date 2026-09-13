@@ -795,8 +795,11 @@ mkdir -p src/config/database cat > src/config/database/database.module.ts <<'EOF
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add DatabaseConfigModule"
+git add . 
+git commit -m "feat: add DatabaseConfigModule"
 ```
+
+![](images/clipboard-1871253339.png)
 
 #### 5.5 — database.providers.ts
 
