@@ -1882,10 +1882,13 @@ mkdir -p src/features/business/clients/infrastructure/persistence/models cat > s
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add sequelize model client.model.ts"
+git add .
+git commit -m "feat: add sequelize model client.model.ts"
 ```
 
-#### 7.8 — features/business/clients/infrastructure/persistence/repositories/client.repository.ts
+![](images/clipboard-3984996440.png)
+
+#### 7.8 —features/business/clients/infrastructure/persistence/repositories/client.repository.ts
 
 Adaptador del repositorio: implementa el puerto de dominio con Sequelize.
 
