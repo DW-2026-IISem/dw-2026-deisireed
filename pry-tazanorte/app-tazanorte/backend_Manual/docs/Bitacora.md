@@ -1325,8 +1325,11 @@ mkdir -p src/common/interceptors cat > src/common/interceptors/timeout.intercept
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add timeout.interceptor.ts"
+git add . 
+git commit -m "feat: add timeout.interceptor.ts"
 ```
+
+![](images/clipboard-182087436.png)
 
 #### 6.23 — common/pipes/validation.pipe.ts
 
