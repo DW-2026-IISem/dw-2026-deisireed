@@ -1629,8 +1629,11 @@ mkdir -p src/infrastructure/security/hashing cat > src/infrastructure/security/h
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add bcrypt-password-hasher.service.ts"
+git add .
+git commit -m "feat: add bcrypt-password-hasher.service.ts"
 ```
+
+![](images/clipboard-2847704696.png)
 
 #### 6.39 — infrastructure/security/tokens/token.interface.ts
 
