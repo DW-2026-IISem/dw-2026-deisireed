@@ -835,6 +835,8 @@ mkdir -p src/infrastructure/database/sequelize cat > src/infrastructure/database
 git add . git commit -m "feat: add getSequelizeOptions multi-dialect"
 ```
 
+![](images/clipboard-37478437.png)
+
 #### 5.7 — Factory Sequelize (sin modelos aún)
 
 Crea la instancia Sequelize. `ALL_MODELS` empieza vacío: se llena al crear cada entidad.
