@@ -1230,8 +1230,11 @@ mkdir -p src/common/exceptions cat > src/common/exceptions/validation.exception.
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add validation.exception.ts"
+git add . 
+git commit -m "feat: add validation.exception.ts"
 ```
+
+![](images/clipboard-2748313044.png)
 
 #### 6.18 — common/filters/global-exception.filter.ts
 
