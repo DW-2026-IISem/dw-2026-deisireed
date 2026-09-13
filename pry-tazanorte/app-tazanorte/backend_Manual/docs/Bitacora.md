@@ -1741,9 +1741,8 @@ npm run start:dev # Abre http://localhost:3002/api/docs # Ctrl+C
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "test: verify base infrastructure bootstrap"
+git add . 
+git commit -m "test: verify base infrastructure bootstrap"
 ```
 
-------------------------------------------------------------------------
-
-## 
+![](images/clipboard-4054760131.png)
