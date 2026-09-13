@@ -2148,8 +2148,11 @@ mkdir -p src/features/business/clients/presentation/http/serializers cat > src/f
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add serializer client.serializer.ts"
+git add . 
+git commit -m "feat: add serializer client.serializer.ts"
 ```
+
+![](images/clipboard-3477199845.png)
 
 #### 7.22 — features/business/clients/presentation/http/controllers/clients.controller.ts
 
