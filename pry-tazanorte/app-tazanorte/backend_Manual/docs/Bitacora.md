@@ -1078,8 +1078,11 @@ mkdir -p src/common/enums cat > src/common/enums/status.enum.ts <<'EOF_BACKEND_I
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add status.enum.ts"
+git add . 
+git commit -m "feat: add status.enum.ts"
 ```
+
+![](images/clipboard-933225353.png)
 
 #### 6.10 — common/enums/http-method.enum.ts
 
