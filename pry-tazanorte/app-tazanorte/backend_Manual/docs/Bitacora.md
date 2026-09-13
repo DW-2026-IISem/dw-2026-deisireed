@@ -1553,8 +1553,11 @@ mkdir -p src/common/utils cat > src/common/utils/pagination.util.ts <<'EOF_BACKE
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add pagination.util.ts"
+git add .
+git commit -m "feat: add pagination.util.ts"
 ```
+
+![](images/clipboard-4167413554.png)
 
 #### 6.35 — common/utils/date.util.ts
 
