@@ -717,3 +717,175 @@ git commit -m "feat: register environment config factory"
 ```
 
 ![](images/clipboard-278516439.png)
+
+## FASE 5 — `04_BASE_DATABASE_SEQUELIZE`
+
+### Base de datos multi-dialecto (Sequelize)
+
+> **Objetivo de la fase:** Conectar Sequelize al motor de `DB_DIALECT` usando el bloque `DB_MYSQL_*` / `DB_POSTGRES_*` / `DB_MSSQL_*` / `DB_ORACLE_*`. Aún sin features (ALL_MODELS vacío).
+
+#### 5.1 — Constante SEQUELIZE_TOKEN
+
+Token DI para inyectar la instancia Sequelize en repositorios.
+
+**Archivo:** `src/common/constants/database.constants.ts`
+
+``` bash
+mkdir -p src/common/constants cat > src/common/constants/database.constants.ts <<'EOF' export const SEQUELIZE_TOKEN = 'SEQUELIZE'; 
+EOF
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . 
+git commit -m "feat: add SEQUELIZE_TOKEN constant"
+```
+
+![](images/clipboard-2375133696.png)
+
+#### 5.2 — Tipos auxiliares de database config
+
+Tipos auxiliares del bloque config/database (legado/compat).
+
+**Archivo:** `src/config/database/database.types.ts`
+
+``` bash
+mkdir -p src/config/database cat > src/config/database/database.types.ts <<'EOF_BACKEND_IA' import { Options as SequelizeOptions } from 'sequelize';  export type DialectOptions =   | { dialect: 'mysql'; options?: SequelizeOptions }   | { dialect: 'postgres'; options?: SequelizeOptions }   | { dialect: 'mssql'; options?: SequelizeOptions }   | { dialect: 'oracle'; options?: SequelizeOptions }; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "chore: add database.types helpers"
+```
+
+#### 5.3 — database.config.ts
+
+Factory registerAs opcional para namespace `database` (complementa environment).
+
+**Archivo:** `src/config/database/database.config.ts`
+
+``` bash
+mkdir -p src/config/database cat > src/config/database/database.config.ts <<'EOF_BACKEND_IA' import { registerAs } from '@nestjs/config'; import { resolveDialectCredentials } from '../environment/db-env'; import { DatabaseDialect } from '../environment/env.interface';  export const DATABASE_CONFIG_NAME = 'database';  const dialectModuleMap: Record<DatabaseDialect, string> = {   [DatabaseDialect.MySQL]: 'mysql2',   [DatabaseDialect.Postgres]: 'pg',   [DatabaseDialect.MSSQL]: 'tedious',   [DatabaseDialect.Oracle]: 'oracledb', };  export const databaseConfig = registerAs(DATABASE_CONFIG_NAME, () => {   const dialect =     (process.env.DB_DIALECT as DatabaseDialect) || DatabaseDialect.MySQL;   const credentials = resolveDialectCredentials({     DB_DIALECT: dialect,     ...process.env,   });    return {     ...credentials,     dialectModulePath: dialectModuleMap[dialect],     autoLoadModels: true,     synchronize: process.env.NODE_ENV !== 'production',     logging: process.env.NODE_ENV === 'development' ? console.log : false,   }; }); EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add database.config registerAs"
+```
+
+#### 5.4 — database.module.ts / providers
+
+Módulo de configuración de BD (forFeature). Los providers quedan vacíos a propósito.
+
+**Archivo:** `src/config/database/database.module.ts`
+
+``` bash
+mkdir -p src/config/database cat > src/config/database/database.module.ts <<'EOF_BACKEND_IA' import { Module } from '@nestjs/common'; import { ConfigModule } from '@nestjs/config'; import { databaseConfig } from './database.config';  @Module({   imports: [ConfigModule.forFeature(databaseConfig)],   exports: [ConfigModule], }) export class DatabaseConfigModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add DatabaseConfigModule"
+```
+
+#### 5.5 — database.providers.ts
+
+Placeholder de providers de config/database.
+
+**Archivo:** `src/config/database/database.providers.ts`
+
+``` bash
+mkdir -p src/config/database cat > src/config/database/database.providers.ts <<'EOF_BACKEND_IA' export const DATABASE_PROVIDERS = []; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "chore: add empty DATABASE_PROVIDERS"
+```
+
+#### 5.6 — Opciones Sequelize por dialecto
+
+Arma host/port/user/password/logging con el bloque del motor seleccionado por DB_DIALECT.
+
+**Archivo:** `src/infrastructure/database/sequelize/sequelize.options.ts`
+
+``` bash
+mkdir -p src/infrastructure/database/sequelize cat > src/infrastructure/database/sequelize/sequelize.options.ts <<'EOF_BACKEND_IA' import { SequelizeOptions } from 'sequelize-typescript'; import { resolveDialectCredentials } from '../../../config/environment/db-env'; import { DatabaseDialect } from '../../../config/environment/env.interface';  export function getSequelizeOptions(   dialect: DatabaseDialect, ): Partial<SequelizeOptions> {   const credentials = resolveDialectCredentials({     DB_DIALECT: dialect,     ...process.env,   });    const base: SequelizeOptions = {     dialect: dialect as SequelizeOptions['dialect'],     host: credentials.host,     port: credentials.port,     username: credentials.username,     password: credentials.password,     database: credentials.database,     logging: process.env.NODE_ENV === 'development' ? console.log : false,     define: {       underscored: false,       freezeTableName: true,     },   };    switch (dialect) {     case DatabaseDialect.MSSQL:       return {         ...base,         dialectOptions: {           options: {             encrypt: true,             trustServerCertificate: true,           },         },       };     case DatabaseDialect.Oracle:       return {         ...base,         dialectOptions: {           connectString: credentials.connectString,         },       };     default:       return base;   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add getSequelizeOptions multi-dialect"
+```
+
+#### 5.7 — Factory Sequelize (sin modelos aún)
+
+Crea la instancia Sequelize. `ALL_MODELS` empieza vacío: se llena al crear cada entidad.
+
+**Archivo:** `src/infrastructure/database/sequelize/sequelize.factory.ts`
+
+``` bash
+mkdir -p src/infrastructure/database/sequelize cat > src/infrastructure/database/sequelize/sequelize.factory.ts <<'EOF_BACKEND_IA' import { Sequelize } from 'sequelize-typescript'; import { DatabaseDialect } from '../../../config/environment/env.interface'; import { getSequelizeOptions } from './sequelize.options';   export const ALL_MODELS = [   // (aún sin modelos — se agregan por feature) ];  export async function createSequelizeInstance(   dialect: DatabaseDialect, ): Promise<Sequelize> {   const options = getSequelizeOptions(dialect);    let dialectModule: any;    switch (dialect) {     case DatabaseDialect.MySQL:       dialectModule = require('mysql2');       break;     case DatabaseDialect.Postgres:       dialectModule = require('pg');       break;     case DatabaseDialect.MSSQL:       dialectModule = require('tedious');       break;     case DatabaseDialect.Oracle:       dialectModule = require('oracledb');       break;     default:       throw new Error(`Dialecto no soportado: ${dialect}`);   }    const sequelize = new Sequelize({     ...options,     dialectModule,     models: ALL_MODELS,   } as any);    try {     await sequelize.authenticate();     console.log(`✅ Conexión exitosa a ${dialect.toUpperCase()}`);   } catch (error: any) {     console.error(       `❌ Error conectando a ${dialect.toUpperCase()}:`,       error.message,     );     throw error;   }    if (process.env.NODE_ENV !== 'production') {     await sequelize.sync({ alter: false });     console.log('✅ Tablas sincronizadas');   }    return sequelize; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add createSequelizeInstance with empty ALL_MODELS"
+```
+
+#### 5.8 — DatabaseSeederService (sin seeders aún)
+
+Hook OnModuleInit para seeders. Todavía no llama a ningún seeder de feature.
+
+**Archivo:** `src/infrastructure/database/seeders/database-seeder.service.ts`
+
+``` bash
+mkdir -p src/infrastructure/database/seeders cat > src/infrastructure/database/seeders/database-seeder.service.ts <<'EOF_BACKEND_IA' import { Injectable, Logger, OnModuleInit } from '@nestjs/common';   /**  * Ejecuta seeders en orden de dependencias.  * Solo en entornos no productivos.  */ @Injectable() export class DatabaseSeederService implements OnModuleInit {   private readonly logger = new Logger(DatabaseSeederService.name);    async onModuleInit(): Promise<void> {     if (process.env.NODE_ENV === 'production') {       return;     }      try {       // sin seeders aún       this.logger.log('✅ Seeders ejecutados');     } catch (error: any) {       this.logger.error(`❌ Error en seeders: ${error.message}`, error.stack);       throw error;     }   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add DatabaseSeederService scaffold"
+```
+
+#### 5.9 — Módulo global Sequelize
+
+Módulo `@Global()` que provee `SEQUELIZE_TOKEN` + ejecuta seeders.
+
+**Archivo:** `src/infrastructure/database/sequelize/sequelize.module.ts`
+
+``` bash
+mkdir -p src/infrastructure/database/sequelize cat > src/infrastructure/database/sequelize/sequelize.module.ts <<'EOF_BACKEND_IA' import { Module, Global } from '@nestjs/common'; import { ConfigService } from '@nestjs/config'; import { Sequelize } from 'sequelize-typescript'; import { DatabaseDialect } from '../../../config/environment/env.interface'; import { SEQUELIZE_TOKEN } from '../../../common/constants/database.constants'; import { createSequelizeInstance } from './sequelize.factory'; import { DatabaseSeederService } from '../seeders/database-seeder.service';  @Global() @Module({   providers: [     {       provide: SEQUELIZE_TOKEN,       useFactory: async (configService: ConfigService): Promise<Sequelize> => {         const dialect = configService.get<DatabaseDialect>(           'environment.database.dialect',           DatabaseDialect.MySQL,         );         return createSequelizeInstance(dialect);       },       inject: [ConfigService],     },     DatabaseSeederService,   ],   exports: [SEQUELIZE_TOKEN], }) export class SequelizeDatabaseModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add global SequelizeDatabaseModule"
+```
+
+#### 5.10 — Verificar conexión a BD
+
+Crea la BD vacía `tecnogua_ia` en el motor que indica `DB_DIALECT`. Aún no hay tablas de negocio. Si falla el authenticate, corrige el **bloque de ese motor** en `.env` (no el de otro).
+
+``` bash
+# mysql: # mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS tecnogua_ia;" # postgres: # createdb tecnogua_ia # mssql (sqlcmd): # sqlcmd -S localhost -U sa -Q "CREATE DATABASE tecnogua_ia;" # oracle: crea el schema/PDB que apunte DB_ORACLE_CONNECT_STRING npm run start:dev # Busca: ✅ Conexión exitosa a MYSQL (o POSTGRES / MSSQL / ORACLE según DB_DIALECT) # Ctrl+C
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "test: verify sequelize authenticates against tecnogua_ia"
+```
+
+------------------------------------------------------------------------
+
+## 
