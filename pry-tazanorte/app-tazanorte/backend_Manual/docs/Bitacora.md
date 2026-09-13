@@ -1287,8 +1287,11 @@ mkdir -p src/common/interceptors cat > src/common/interceptors/response.intercep
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add response.interceptor.ts"
+git add .
+git commit -m "feat: add response.interceptor.ts"
 ```
+
+![](images/clipboard-1057163924.png)
 
 #### 6.21 — common/interceptors/logging.interceptor.ts
 
