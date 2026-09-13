@@ -1154,8 +1154,11 @@ mkdir -p src/common/constants cat > src/common/constants/pagination.constants.ts
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add pagination.constants.ts"
+git add .
+git commit -m "feat: add pagination.constants.ts"
 ```
+
+![](images/clipboard-424287344.png)
 
 #### 6.14 — common/exceptions/application.exception.ts
 
