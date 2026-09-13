@@ -2072,8 +2072,11 @@ mkdir -p src/features/business/clients/application/use-cases cat > src/features/
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add use case delete-client.use-case.ts"
+git add . 
+git commit -m "feat: add use case delete-client.use-case.ts"
 ```
+
+![](images/clipboard-2468517828.png)
 
 #### 7.18 — features/business/clients/application/use-cases/get-client.use-case.ts
 
