@@ -1173,8 +1173,11 @@ mkdir -p src/common/exceptions cat > src/common/exceptions/application.exception
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add application.exception.ts"
+git add .
+git commit -m "feat: add application.exception.ts"
 ```
+
+![](images/clipboard-1580938327.png)
 
 #### 6.15 — common/exceptions/domain.exception.ts
 
