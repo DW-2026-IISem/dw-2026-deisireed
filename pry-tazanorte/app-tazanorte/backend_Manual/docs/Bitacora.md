@@ -1401,8 +1401,11 @@ mkdir -p src/common/decorators cat > src/common/decorators/roles.decorator.ts <<
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add roles.decorator.ts"
+git add .
+git commit -m "feat: add roles.decorator.ts"
 ```
+
+![](images/clipboard-2085099075.png)
 
 #### 6.27 — common/decorators/current-user.decorator.ts
 
