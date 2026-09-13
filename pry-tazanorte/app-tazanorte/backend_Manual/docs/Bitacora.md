@@ -1844,8 +1844,11 @@ mkdir -p src/features/business/clients/domain/validators cat > src/features/busi
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add domain validator client-email.validator.ts"
+git add .
+git commit -m "feat: add domain validator client-email.validator.ts"
 ```
+
+![](images/clipboard-3630393166.png)
 
 #### 7.6 — features/business/clients/domain/validators/client-phone.validator.ts
 
