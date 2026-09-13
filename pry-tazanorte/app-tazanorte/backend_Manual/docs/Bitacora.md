@@ -1939,8 +1939,11 @@ mkdir -p src/features/business/clients/infrastructure/persistence/seeders cat > 
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: add seeder clients.seeder.ts"
+git add . 
+git commit -m "chore: add seeder clients.seeder.ts"
 ```
+
+![](images/clipboard-1134182106.png)
 
 #### 7.11 — features/business/clients/application/dto/client-filter.dto.ts
 
