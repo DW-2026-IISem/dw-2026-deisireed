@@ -1591,10 +1591,11 @@ mkdir -p src/common/utils cat > src/common/utils/string.util.ts <<'EOF_BACKEND_I
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add string.util.ts"
+git add . 
+git commit -m "feat: add string.util.ts"
 ```
 
-#### 6.37 — infrastructure/security/hashing/password-hasher.interface.ts
+#### ![](images/clipboard-3943092542.png)6.37 — infrastructure/security/hashing/password-hasher.interface.ts
 
 Archivo del feature en Clean Architecture.
 
