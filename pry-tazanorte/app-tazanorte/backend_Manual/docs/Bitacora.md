@@ -438,6 +438,8 @@ git add .
 git commit -m "feat: add environment interfaces and DatabaseDialect enum"
 ```
 
+![](images/clipboard-1542277342.png)
+
 #### 4.3 — Validación de entorno con class-validator
 
 Si falta JWT_SECRET o DB_DIALECT es inválido, o el bloque del motor activo está vacío, el boot falla con mensaje claro.
@@ -626,6 +628,8 @@ EOF
 git add .
 git commit -m "feat: validate environment variables with class-validator"
 ```
+
+![](images/clipboard-911836982.png)
 
 #### 4.4 — Resolver de credenciales por motor
 
