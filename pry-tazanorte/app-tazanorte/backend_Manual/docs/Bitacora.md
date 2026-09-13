@@ -1097,8 +1097,11 @@ mkdir -p src/common/enums cat > src/common/enums/http-method.enum.ts <<'EOF_BACK
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add http-method.enum.ts"
+git add . 
+git commit -m "feat: add http-method.enum.ts"
 ```
+
+![](images/clipboard-4025152262.png)
 
 #### 6.11 — common/enums/sort-order.enum.ts
 
