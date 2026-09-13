@@ -1116,8 +1116,11 @@ mkdir -p src/common/enums cat > src/common/enums/sort-order.enum.ts <<'EOF_BACKE
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add sort-order.enum.ts"
+git add . 
+git commit -m "feat: add sort-order.enum.ts"
 ```
+
+![](images/clipboard-1110097544.png)
 
 #### 6.12 — common/constants/app.constants.ts
 
