@@ -757,8 +757,11 @@ mkdir -p src/config/database cat > src/config/database/database.types.ts <<'EOF_
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: add database.types helpers"
+git add . 
+git commit -m "chore: add database.types helpers"
 ```
+
+![](images/clipboard-385288093.png)
 
 #### 5.3 — database.config.ts
 
