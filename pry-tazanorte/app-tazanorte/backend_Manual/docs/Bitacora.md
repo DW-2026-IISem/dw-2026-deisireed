@@ -1686,8 +1686,11 @@ mkdir -p src/infrastructure/security cat > src/infrastructure/security/security.
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: wire nest module security.module.ts"
+git add . 
+git commit -m "feat: wire nest module security.module.ts"
 ```
+
+![](images/clipboard-945477671.png)
 
 #### 6.42 — Actualizar main.ts (bootstrap completo)
 
