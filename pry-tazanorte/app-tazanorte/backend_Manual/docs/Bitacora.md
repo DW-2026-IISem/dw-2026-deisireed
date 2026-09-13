@@ -905,6 +905,4 @@ Crea la BD vacía `tecnogua_ia` en el motor que indica `DB_DIALECT`. Aún no hay
 git add . git commit -m "test: verify sequelize authenticates against tecnogua_ia"
 ```
 
-------------------------------------------------------------------------
-
-## 
+![](images/clipboard-3583533227.png)

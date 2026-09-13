@@ -1,9 +1,3 @@
-export enum Environment {
-  Development = 'development',
-  Production = 'production',
-  Test = 'test',
-}
-
 export enum DatabaseDialect {
   MySQL = 'mysql',
   Postgres = 'postgres',
@@ -11,30 +5,18 @@ export enum DatabaseDialect {
   Oracle = 'oracle',
 }
 
-export interface AppConfig {
-  port: number;
-  nodeEnv: Environment;
-}
-
 export interface DatabaseConfig {
   dialect: DatabaseDialect;
-  host: string;
-  port: number;
-  username: string;
-  password: string;
-  database: string;
+  host?: string;
+  port?: number;
+  username?: string;
+  password?: string;
+  database?: string;
   connectString?: string;
 }
 
-export interface JwtConfig {
-  secret: string;
-  expiresIn: string;
-  refreshSecret: string;
-  refreshExpiresIn: string;
-}
-
-export interface EnvironmentConfig {
-  app: AppConfig;
+export interface Environment {
+  port: number;
+  nodeEnv: string;
   database: DatabaseConfig;
-  jwt: JwtConfig;
 }

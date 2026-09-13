@@ -1,48 +1,38 @@
-import { SequelizeOptions } from 'sequelize-typescript';
-import { resolveDialectCredentials } from '../../../config/environment/db-env';
-import { DatabaseDialect } from '../../../config/environment/env.interface';
+import { Options } from 'sequelize';
+import { resolveDialectCredentials } from '../../../config/environment/db-env.js';
+import { DatabaseDialect } from '../../../config/environment/env.interface.js';
 
-export function getSequelizeOptions(
-  dialect: DatabaseDialect,
-): Partial<SequelizeOptions> {
-  const credentials = resolveDialectCredentials({
-    DB_DIALECT: dialect,
-    ...process.env,
-  });
+export const getSequelizeOptions = (dialect: DatabaseDialect): Options => {
+  const credentials = resolveDialectCredentials(dialect);
 
-  const base: SequelizeOptions = {
-    dialect: dialect as SequelizeOptions['dialect'],
+  const baseOptions: Options = {
+    dialect: credentials.dialect as any,
     host: credentials.host,
     port: credentials.port,
     username: credentials.username,
     password: credentials.password,
     database: credentials.database,
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
-    define: {
-      underscored: false,
-      freezeTableName: true,
-    },
+    logging: false,
   };
 
   switch (dialect) {
     case DatabaseDialect.MSSQL:
       return {
-        ...base,
+        ...baseOptions,
         dialectOptions: {
-          options: {
-            encrypt: true,
-            trustServerCertificate: true,
-          },
+          options: { encrypt: false },
         },
       };
+
     case DatabaseDialect.Oracle:
       return {
-        ...base,
+        ...baseOptions,
         dialectOptions: {
           connectString: credentials.connectString,
         },
       };
+
     default:
-      return base;
+      return baseOptions;
   }
-}
+};

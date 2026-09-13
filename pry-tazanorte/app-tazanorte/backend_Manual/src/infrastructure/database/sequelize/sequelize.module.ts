@@ -1,27 +1,24 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Sequelize } from 'sequelize-typescript';
-import { DatabaseDialect } from '../../../config/environment/env.interface';
-import { SEQUELIZE_TOKEN } from '../../../common/constants/database.constants';
-import { createSequelizeInstance } from './sequelize.factory';
-import { DatabaseSeederService } from '../seeders/database-seeder.service';
+import { createSequelizeInstance } from './sequelize.factory.js';
+import { DatabaseDialect } from '../../../config/environment/env.interface.js';
 
 @Global()
 @Module({
   providers: [
     {
-      provide: SEQUELIZE_TOKEN,
-      useFactory: async (configService: ConfigService): Promise<Sequelize> => {
-        const dialect = configService.get<DatabaseDialect>(
-          'environment.database.dialect',
-          DatabaseDialect.MySQL,
-        );
+      provide: 'SEQUELIZE',
+      useFactory: (configService: ConfigService) => {
+        const dialect =
+          configService.get<DatabaseDialect>('DB_DIALECT') ||
+          (process.env.DB_DIALECT as DatabaseDialect) ||
+          DatabaseDialect.MySQL;
+
         return createSequelizeInstance(dialect);
       },
       inject: [ConfigService],
     },
-    DatabaseSeederService,
   ],
-  exports: [SEQUELIZE_TOKEN],
+  exports: ['SEQUELIZE'],
 })
 export class SequelizeDatabaseModule {}
