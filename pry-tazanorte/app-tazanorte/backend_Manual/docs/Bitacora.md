@@ -1344,8 +1344,11 @@ mkdir -p src/common/pipes cat > src/common/pipes/validation.pipe.ts <<'EOF_BACKE
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add validation.pipe.ts"
+git add .
+git commit -m "feat: add validation.pipe.ts"
 ```
+
+![](images/clipboard-3725492087.png)
 
 #### 6.24 — common/pipes/parse-positive-int.pipe.ts
 
