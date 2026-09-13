@@ -853,6 +853,8 @@ mkdir -p src/infrastructure/database/sequelize cat > src/infrastructure/database
 git add . git commit -m "feat: add createSequelizeInstance with empty ALL_MODELS"
 ```
 
+![](images/clipboard-921228857.png)
+
 #### 5.8 — DatabaseSeederService (sin seeders aún)
 
 Hook OnModuleInit para seeders. Todavía no llama a ningún seeder de feature.
