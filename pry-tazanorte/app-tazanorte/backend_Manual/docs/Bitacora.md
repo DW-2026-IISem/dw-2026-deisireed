@@ -1420,8 +1420,11 @@ mkdir -p src/common/decorators cat > src/common/decorators/current-user.decorato
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add current-user.decorator.ts"
+git add .
+git commit -m "feat: add current-user.decorator.ts"
 ```
+
+![](images/clipboard-180602613.png)
 
 #### 6.28 — common/decorators/resource.decorator.ts
 
