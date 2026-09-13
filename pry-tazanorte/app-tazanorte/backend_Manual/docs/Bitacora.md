@@ -1249,8 +1249,11 @@ mkdir -p src/common/filters cat > src/common/filters/global-exception.filter.ts 
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add global-exception.filter.ts"
+git add .
+git commit -m "feat: add global-exception.filter.ts"
 ```
+
+![](images/clipboard-748506502.png)
 
 #### 6.19 — common/filters/sequelize-exception.filter.ts
 
