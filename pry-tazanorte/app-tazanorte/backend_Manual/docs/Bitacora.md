@@ -1825,8 +1825,11 @@ mkdir -p src/features/business/clients/domain/interfaces cat > src/features/busi
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add repository port client-repository.interface.ts"
+git add .
+git commit -m "feat: add repository port client-repository.interface.ts"
 ```
+
+![](images/clipboard-3835137838.png)
 
 #### 7.5 — features/business/clients/domain/validators/client-email.validator.ts
 
