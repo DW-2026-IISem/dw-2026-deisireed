@@ -817,6 +817,8 @@ mkdir -p src/config/database cat > src/config/database/database.providers.ts <<'
 git add . git commit -m "chore: add empty DATABASE_PROVIDERS"
 ```
 
+![](images/clipboard-758506508.png)
+
 #### 5.6 — Opciones Sequelize por dialecto
 
 Arma host/port/user/password/logging con el bloque del motor seleccionado por DB_DIALECT.
