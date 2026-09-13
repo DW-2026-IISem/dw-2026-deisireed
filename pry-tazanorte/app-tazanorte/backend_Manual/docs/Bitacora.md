@@ -2186,8 +2186,11 @@ mkdir -p src/features/business/clients cat > src/features/business/clients/index
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: add barrel export clients"
+git add . 
+git commit -m "chore: add barrel export clients"
 ```
+
+![](images/clipboard-247875736.png)
 
 #### 7.24 — features/business/clients/clients.module.ts
 
