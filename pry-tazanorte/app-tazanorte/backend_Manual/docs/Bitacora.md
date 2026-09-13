@@ -1002,8 +1002,11 @@ mkdir -p src/config/jwt cat > src/config/jwt/jwt.constants.ts <<'EOF_BACKEND_IA'
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add jwt.constants.ts"
+git add . 
+git commit -m "feat: add jwt.constants.ts"
 ```
+
+![](images/clipboard-2662391685.png)
 
 #### 6.6 — config/jwt/jwt.config.ts
 
