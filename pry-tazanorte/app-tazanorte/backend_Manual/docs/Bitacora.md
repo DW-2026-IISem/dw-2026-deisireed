@@ -1746,3 +1746,5 @@ git commit -m "test: verify base infrastructure bootstrap"
 ```
 
 ![](images/clipboard-4054760131.png)
+
+![](images/clipboard-1121335473.png)
