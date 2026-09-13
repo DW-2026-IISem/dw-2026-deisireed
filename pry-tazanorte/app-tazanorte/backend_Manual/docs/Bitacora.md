@@ -2015,8 +2015,11 @@ mkdir -p src/features/business/clients/application/dto cat > src/features/busine
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add dto update-client.dto.ts"
+git add .
+git commit -m "feat: add dto update-client.dto.ts"
 ```
+
+![](images/clipboard-2012430798.png)
 
 #### 7.15 — features/business/clients/application/mappers/client.mapper.ts
 
