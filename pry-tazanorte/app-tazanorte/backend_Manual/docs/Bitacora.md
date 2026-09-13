@@ -1059,8 +1059,11 @@ mkdir -p src/config/swagger cat > src/config/swagger/swagger.config.ts <<'EOF_BA
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add swagger.config.ts"
+git add . 
+git commit -m "feat: add swagger.config.ts"
 ```
+
+![](images/clipboard-2292337620.png)
 
 #### 6.9 — common/enums/status.enum.ts
 
