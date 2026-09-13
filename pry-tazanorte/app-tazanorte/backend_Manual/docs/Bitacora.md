@@ -1977,8 +1977,11 @@ mkdir -p src/features/business/clients/application/dto cat > src/features/busine
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add dto client-response.dto.ts"
+git add . 
+git commit -m "feat: add dto client-response.dto.ts"
 ```
+
+![](images/clipboard-367670659.png)
 
 #### 7.13 — features/business/clients/application/dto/create-client.dto.ts
 
