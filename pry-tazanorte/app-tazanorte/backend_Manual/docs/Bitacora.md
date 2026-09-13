@@ -697,7 +697,9 @@ git add .
 git commit -m "feat: resolve database credentials per dialect"
 ```
 
-#### ![](images/clipboard-3936828245.png)4.5 — Factory registerAs de entorno
+#### ![](images/clipboard-3936828245.png)
+
+#### 4.5 — Factory registerAs de entorno
 
 Expone `environment.*` vía ConfigService (`registerAs`).
 
