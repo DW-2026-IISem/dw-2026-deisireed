@@ -1534,8 +1534,11 @@ mkdir -p src/common/types cat > src/common/types/optional.type.ts <<'EOF_BACKEND
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add optional.type.ts"
+git add . 
+git commit -m "feat: add optional.type.ts"
 ```
+
+![](images/clipboard-1397324591.png)
 
 #### 6.34 — common/utils/pagination.util.ts
 
