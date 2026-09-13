@@ -693,10 +693,11 @@ return value?.trim() ?? ''; }  export function resolveDialectCredentials(   env:
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: resolve database credentials per dialect"
+git add . 
+git commit -m "feat: resolve database credentials per dialect"
 ```
 
-#### 4.5 — Factory registerAs de entorno
+#### ![](images/clipboard-3936828245.png)4.5 — Factory registerAs de entorno
 
 Expone `environment.*` vía ConfigService (`registerAs`).
 
@@ -709,9 +710,8 @@ mkdir -p src/config/environment cat > src/config/environment/env.config.ts <<'EO
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: register environment config factory"
+git add . 
+git commit -m "feat: register environment config factory"
 ```
 
-------------------------------------------------------------------------
-
-## 
+![](images/clipboard-278516439.png)
