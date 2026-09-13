@@ -889,6 +889,8 @@ mkdir -p src/infrastructure/database/sequelize cat > src/infrastructure/database
 git add . git commit -m "feat: add global SequelizeDatabaseModule"
 ```
 
+![](images/clipboard-1101021997.png)
+
 #### 5.10 — Verificar conexión a BD
 
 Crea la BD vacía `tecnogua_ia` en el motor que indica `DB_DIALECT`. Aún no hay tablas de negocio. Si falla el authenticate, corrige el **bloque de ese motor** en `.env` (no el de otro).
