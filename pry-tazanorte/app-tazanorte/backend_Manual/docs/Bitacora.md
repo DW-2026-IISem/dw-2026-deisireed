@@ -2281,8 +2281,11 @@ mkdir -p src cat > src/app.module.ts <<'EOF_BACKEND_IA' import { Module } from '
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: import BusinessModule into AppModule"
+git add .
+git commit -m "feat: import BusinessModule into AppModule"
 ```
+
+![](images/clipboard-3427491714.png)
 
 #### 7.29 — Verificar tabla física `clients` y API
 
