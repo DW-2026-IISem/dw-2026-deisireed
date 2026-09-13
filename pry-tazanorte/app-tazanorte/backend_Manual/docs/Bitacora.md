@@ -2167,8 +2167,11 @@ mkdir -p src/features/business/clients/presentation/http/controllers cat > src/f
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add controller clients.controller.ts"
+git add .
+git commit -m "feat: add controller clients.controller.ts"
 ```
+
+![](images/clipboard-666137437.png)
 
 #### 7.23 — features/business/clients/index.ts
 
