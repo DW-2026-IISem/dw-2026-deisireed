@@ -2243,8 +2243,11 @@ mkdir -p src/features/business cat > src/features/business/business.module.ts <<
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: export ClientsModule from BusinessModule"
+git add . 
+git commit -m "feat: export ClientsModule from BusinessModule"
 ```
+
+![](images/clipboard-2775360929.png)
 
 #### 7.27 — Actualizar database-seeder.service.ts
 
