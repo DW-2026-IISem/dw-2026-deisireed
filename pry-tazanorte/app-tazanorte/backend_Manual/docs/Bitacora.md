@@ -1135,8 +1135,11 @@ mkdir -p src/common/constants cat > src/common/constants/app.constants.ts <<'EOF
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add app.constants.ts"
+git add .
+git commit -m "feat: add app.constants.ts"
 ```
+
+![](images/clipboard-3609460972.png)
 
 #### 6.13 — common/constants/pagination.constants.ts
 
