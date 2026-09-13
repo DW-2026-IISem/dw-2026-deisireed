@@ -2034,8 +2034,11 @@ mkdir -p src/features/business/clients/application/mappers cat > src/features/bu
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add mapper client.mapper.ts"
+git add .
+git commit -m "feat: add mapper client.mapper.ts"
 ```
+
+![](images/clipboard-2240731779.png)
 
 #### 7.16 — features/business/clients/application/use-cases/create-client.use-case.ts
 
