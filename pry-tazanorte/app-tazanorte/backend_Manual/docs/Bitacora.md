@@ -2489,7 +2489,7 @@ git commit -m "feat: add dto product-type-filter.dto.ts"
 
 ![](images/clipboard-4038457321.png)
 
-#### 8.10 — features/business/product-types/application/dto/product-type-response.dto.ts
+#### 8.10 — features/business/catalog/domain/interfaces
 
 DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
@@ -2502,10 +2502,13 @@ mkdir -p src/features/business/product-types/application/dto cat > src/features/
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add dto product-type-response.dto.ts"
+git add .
+git commit -m "feat: add dto product-type-response.dto.ts"
 ```
 
-#### 8.11 — features/business/product-types/application/dto/update-product-type.dto.ts
+![](images/clipboard-2028282786.png)
+
+#### 8.11 — /features/business/catalog/domain/interfaces
 
 DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
@@ -2518,10 +2521,11 @@ mkdir -p src/features/business/product-types/application/dto cat > src/features/
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add dto update-product-type.dto.ts"
+git add .
+git commit -m "feat: add dto update-product-type.dto.ts"
 ```
 
-#### 8.12 — features/business/product-types/application/mappers/product-type.mapper.ts
+#### 8.12 —  /features/business/catalog/domain/interfaces
 
 Mapper entre entidad de dominio y DTO de respuesta.
 
@@ -2537,7 +2541,7 @@ mkdir -p src/features/business/product-types/application/mappers cat > src/featu
 git add . git commit -m "feat: add mapper product-type.mapper.ts"
 ```
 
-#### 8.13 — features/business/product-types/application/use-cases/create-product-type.use-case.ts
+#### 8.13 — /features/business/catalog/domain/interfaces
 
 Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
 
