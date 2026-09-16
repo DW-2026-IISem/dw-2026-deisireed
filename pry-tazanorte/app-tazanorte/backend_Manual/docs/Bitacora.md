@@ -2677,7 +2677,9 @@ git add .
 git commit -m "feat: add controller product-types.controller.ts"
 ```
 
-#### ![](images/clipboard-1770362003.png) 8.20 — features/business/product-types/index.ts
+#### ![](images/clipboard-1770362003.png)
+
+####  8.20 — features/business/product-types/index.ts
 
 Barrel export del feature para imports limpios.
 
@@ -2709,8 +2711,11 @@ mkdir -p src/features/business/product-types cat > src/features/business/product
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: wire nest module product-types.module.ts"
+git add . 
+git commit -m "feat: wire nest module product-types.module.ts"
 ```
+
+![](images/clipboard-630282528.png)
 
 #### 8.22 — Actualizar sequelize.factory.ts (registrar modelos)
 
