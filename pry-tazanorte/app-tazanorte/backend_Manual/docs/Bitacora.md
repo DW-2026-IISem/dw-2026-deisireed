@@ -2426,8 +2426,11 @@ mkdir -p src/features/business/product-types/infrastructure/persistence/migratio
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: add migration create-product-types-table.migration.ts"
+git add .
+git commit -m "chore: add migration create-product-types-table.migration.ts"
 ```
+
+![](images/clipboard-2536145188.png)
 
 #### 8.7 — features/business/product-types/infrastructure/persistence/seeders/product-types.seeder.ts
 
