@@ -2584,7 +2584,7 @@ git commit -m "feat: add use case delete-product-type.use-case.ts"
 
 ![](images/clipboard-3463466231.png)
 
-#### 8.15 — features/business/product-types/application/use-cases/get-product-type.use-case.ts
+#### 8.15 —/features/business/catalog/domain/interfaces
 
 Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
 
@@ -2597,8 +2597,11 @@ mkdir -p src/features/business/product-types/application/use-cases cat > src/fea
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add use case get-product-type.use-case.ts"
+git add .
+git commit -m "feat: add use case get-product-type.use-case.ts"
 ```
+
+![](images/clipboard-698890390.png)
 
 #### 8.16 — features/business/product-types/application/use-cases/list-product-types.use-case.ts
 
