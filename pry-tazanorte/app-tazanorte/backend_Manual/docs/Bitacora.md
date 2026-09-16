@@ -2432,7 +2432,7 @@ git commit -m "chore: add migration create-product-types-table.migration.ts"
 
 ![](images/clipboard-2536145188.png)
 
-#### 8.7 — features/business/product-types/infrastructure/persistence/seeders/product-types.seeder.ts
+#### 8.7 —  /features/business/catalog/domain/interfaces
 
 Seeder de datos iniciales para desarrollo y verificación física en BD.
 
@@ -2445,8 +2445,11 @@ mkdir -p src/features/business/product-types/infrastructure/persistence/seeders 
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: add seeder product-types.seeder.ts"
+git add . 
+git commit -m "chore: add seeder product-types.seeder.ts"
 ```
+
+![](images/clipboard-3236681463.png)
 
 #### 8.8 — features/business/product-types/application/dto/create-product-type.dto.ts
 
