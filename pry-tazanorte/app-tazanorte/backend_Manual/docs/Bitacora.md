@@ -2730,8 +2730,11 @@ mkdir -p src/infrastructure/database/sequelize cat > src/infrastructure/database
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: register ProductTypeModel in sequelize factory"
+git add . 
+git commit -m "feat: register ProductTypeModel in sequelize factory"
 ```
+
+![](images/clipboard-3147902687.png)
 
 #### 8.23 — Actualizar business.module.ts
 
