@@ -2559,8 +2559,11 @@ mkdir -p src/features/business/product-types/application/use-cases cat > src/fea
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add use case create-product-type.use-case.ts"
+git add . 
+git commit -m "feat: add use case create-product-type.use-case.ts"
 ```
+
+![](images/clipboard-2750455739.png)
 
 #### 8.14 — features/business/product-types/application/use-cases/delete-product-type.use-case.ts
 

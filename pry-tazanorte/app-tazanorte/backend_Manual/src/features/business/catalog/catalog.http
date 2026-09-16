@@ -1,0 +1,16 @@
+### Crear un nuevo producto
+POST http://localhost:3000/products
+Content-Type: application/json
+
+{
+  "sku": "CAF-AMER-01",
+  "name": "Café Americano 12oz",
+  "description": "Café de grano entero recién molido",
+  "price": 45.00
+}
+
+### Listar todos los productos
+GET http://localhost:3000/products
+
+### Obtener producto por ID
+GET http://localhost:3000/products/1
