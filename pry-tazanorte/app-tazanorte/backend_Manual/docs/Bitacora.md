@@ -2622,7 +2622,7 @@ git commit -m "feat: add use case list-product-types.use-case.ts"
 
 #### ![](images/clipboard-1297024581.png)
 
-#### 8.17 — features/business/product-types/application/use-cases/update-product-type.use-case.ts
+#### 8.17 — features/business/catalog/domain/interfaces
 
 Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
 
@@ -2641,7 +2641,7 @@ git commit -m "feat: add use case update-product-type.use-case.ts"
 
 ![](images/clipboard-2414663240.png)
 
-#### 8.18 — features/business/product-types/presentation/http/serializers/product-type.serializer.ts
+#### 8.18 —  features/business/catalog/domain/interfaces
 
 Serializer de presentación (forma estable de la respuesta HTTP).
 
@@ -2654,8 +2654,11 @@ mkdir -p src/features/business/product-types/presentation/http/serializers cat >
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add serializer product-type.serializer.ts"
+git add . 
+git commit -m "feat: add serializer product-type.serializer.ts"
 ```
+
+![](images/clipboard-3348756811.png)
 
 #### 8.19 — features/business/product-types/presentation/http/controllers/product-types.controller.ts
 
