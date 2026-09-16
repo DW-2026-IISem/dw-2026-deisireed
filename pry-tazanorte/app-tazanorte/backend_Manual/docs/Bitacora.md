@@ -2540,8 +2540,11 @@ mkdir -p src/features/business/product-types/application/mappers cat > src/featu
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add mapper product-type.mapper.ts"
+git add . 
+git commit -m "feat: add mapper product-type.mapper.ts"
 ```
+
+![](images/clipboard-1433425965.png)
 
 #### 8.13 — /features/business/catalog/domain/interfaces
 
