@@ -2690,8 +2690,11 @@ mkdir -p src/features/business/product-types cat > src/features/business/product
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: add barrel export product-types"
+git add . 
+git commit -m "chore: add barrel export product-types"
 ```
+
+![](images/clipboard-3847259870.png)
 
 #### 8.21 — features/business/product-types/product-types.module.ts
 
