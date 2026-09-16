@@ -2525,6 +2525,8 @@ git add .
 git commit -m "feat: add dto update-product-type.dto.ts"
 ```
 
+![](images/clipboard-2834382207.png)
+
 #### 8.12 —  /features/business/catalog/domain/interfaces
 
 Mapper entre entidad de dominio y DTO de respuesta.
