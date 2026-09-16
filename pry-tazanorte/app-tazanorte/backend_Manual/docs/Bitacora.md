@@ -2749,8 +2749,11 @@ mkdir -p src/features/business cat > src/features/business/business.module.ts <<
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add ProductTypesModule to BusinessModule"
+git add .
+git commit -m "feat: add ProductTypesModule to BusinessModule"
 ```
+
+![](images/clipboard-3517621924.png)
 
 #### 8.24 — Actualizar database-seeder.service.ts
 
