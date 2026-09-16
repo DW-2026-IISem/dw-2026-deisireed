@@ -2487,6 +2487,8 @@ git add .
 git commit -m "feat: add dto product-type-filter.dto.ts"
 ```
 
+![](images/clipboard-4038457321.png)
+
 #### 8.10 — features/business/product-types/application/dto/product-type-response.dto.ts
 
 DTO de entrada/salida HTTP con `class-validator` / Swagger.
