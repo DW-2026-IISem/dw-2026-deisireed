@@ -2768,8 +2768,11 @@ mkdir -p src/infrastructure/database/seeders cat > src/infrastructure/database/s
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: run seedProductTypes on bootstrap"
+git add . 
+git commit -m "chore: run seedProductTypes on bootstrap"
 ```
+
+![](images/clipboard-825029123.png)
 
 #### 8.25 — Actualizar app.module.ts
 
