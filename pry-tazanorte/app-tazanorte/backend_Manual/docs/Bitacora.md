@@ -2388,7 +2388,7 @@ git commit -m "feat: add sequelize model product-type.model.ts"
 
 ![](images/clipboard-1403368186.png)
 
-#### 8.5 — features/business/product-types/infrastructure/persistence/repositories/product-type.repository.ts
+#### 8.5 — /features/business/catalog/domain/interfaces
 
 Adaptador del repositorio: implementa el puerto de dominio con Sequelize.
 
@@ -2401,8 +2401,11 @@ mkdir -p src/features/business/product-types/infrastructure/persistence/reposito
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add sequelize repository product-type.repository.ts"
+git add . 
+git commit -m "feat: add sequelize repository product-type.repository.ts"
 ```
+
+![](images/clipboard-413176460.png)
 
 #### 8.6 — features/business/product-types/infrastructure/persistence/migrations/create-product-types-table.migration.ts
 
