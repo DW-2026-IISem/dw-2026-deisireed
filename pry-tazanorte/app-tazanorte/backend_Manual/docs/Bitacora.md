@@ -2464,7 +2464,8 @@ mkdir -p src/features/business/product-types/application/dto cat > src/features/
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add dto create-product-type.dto.ts"
+git add . 
+git commit -m "feat: add dto create-product-type.dto.ts"
 ```
 
 #### 8.9 — features/business/product-types/application/dto/product-type-filter.dto.ts
@@ -2480,8 +2481,11 @@ mkdir -p src/features/business/product-types/application/dto cat > src/features/
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add dto product-type-filter.dto.ts"
+git add . 
+git commit -m "feat: add dto product-type-filter.dto.ts"
 ```
+
+![](images/clipboard-1341375403.png)
 
 #### 8.10 — features/business/product-types/application/dto/product-type-response.dto.ts
 
