@@ -2660,7 +2660,7 @@ git commit -m "feat: add serializer product-type.serializer.ts"
 
 ![](images/clipboard-3348756811.png)
 
-#### 8.19 — features/business/product-types/presentation/http/controllers/product-types.controller.ts
+#### 8.19 —features/business/catalog/domain/interfaces
 
 Controller delgado: valida DTO, llama use-case, devuelve respuesta.
 
@@ -2673,10 +2673,11 @@ mkdir -p src/features/business/product-types/presentation/http/controllers cat >
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add controller product-types.controller.ts"
+git add .
+git commit -m "feat: add controller product-types.controller.ts"
 ```
 
-#### 8.20 — features/business/product-types/index.ts
+#### ![](images/clipboard-1770362003.png) 8.20 — features/business/product-types/index.ts
 
 Barrel export del feature para imports limpios.
 
