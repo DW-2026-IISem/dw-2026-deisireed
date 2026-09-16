@@ -2331,7 +2331,7 @@ git commit -m "feat: add domain entity product-type.entity.ts"
 
 ![](images/clipboard-3533726204.png)
 
-#### 8.2 — features/business/product-types/domain/exceptions/product-type-not-found.exception.ts
+#### 8.2 — features/business/productProps/domain/exceptions/product-type-not-found.exception.ts
 
 Excepción de dominio. El caso de uso la lanza; el filter HTTP la traduce a status code.
 
@@ -2350,7 +2350,7 @@ git commit -m "feat: add domain exception product-type-not-found.exception.ts"
 
 ![](images/clipboard-3064483875.png)
 
-#### 8.3 — features/business/product-types/domain/interfaces/product-type-repository.interface.ts
+#### 8.3 — /features/business/catalog/domain/interfaces
 
 Puerto (contrato) del repositorio. La aplicación depende de esta interface, no de Sequelize.
 
@@ -2363,10 +2363,13 @@ mkdir -p src/features/business/product-types/domain/interfaces cat > src/feature
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add repository port product-type-repository.interface.ts"
+git add .
+git commit -m "feat: add repository port product-type-repository.interface.ts"
 ```
 
-#### 8.4 — features/business/product-types/infrastructure/persistence/models/product-type.model.ts
+![](images/clipboard-4176512117.png)
+
+#### 8.4 — /features/business/catalog/domain/interfaces
 
 Modelo Sequelize (`@Table`). Solo infraestructura: mapeo a tabla física.
 
@@ -2379,8 +2382,11 @@ mkdir -p src/features/business/product-types/infrastructure/persistence/models c
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add sequelize model product-type.model.ts"
+git add .
+git commit -m "feat: add sequelize model product-type.model.ts"
 ```
+
+![](images/clipboard-1403368186.png)
 
 #### 8.5 — features/business/product-types/infrastructure/persistence/repositories/product-type.repository.ts
 
