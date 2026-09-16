@@ -2407,7 +2407,13 @@ git add .
 git commit -m "feat: add sequelize repository product-type.repository.ts"
 ```
 
-#### 8.6 — features/business/product-types/infrastructure/persistence/migrations/create-product-types-table.migration.ts
+![](images/clipboard-2610809509.png)
+
+![](images/clipboard-3220578399.png)
+
+![](images/clipboard-2206027196.png)
+
+#### 8.6 — /features/business/catalog/domain/interfaces
 
 Migración documental/auxiliar de la tabla. En dev el sync de Sequelize crea el esquema.
 
