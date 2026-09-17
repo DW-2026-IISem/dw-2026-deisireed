@@ -3392,8 +3392,11 @@ mkdir -p src/features/business/sales/infrastructure/persistence/migrations cat >
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: add migration create-sales-table.migration.ts"
+git add . 
+git commit -m "chore: add migration create-sales-table.migration.ts"
 ```
+
+![](images/clipboard-1594411594.png)
 
 #### 10.10 — features/business/sales/infrastructure/persistence/seeders/sales.seeder.ts
 
