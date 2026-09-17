@@ -3444,7 +3444,11 @@ DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
 #### 10.19 — features/business/sales/presentation/http/serializers/sale.serializer.ts
 
+![](images/clipboard-376110871.png)
+
 #### 10.20 — features/business/sales/presentation/http/controllers/sales.controller.ts
+
+![](images/clipboard-3049768226.png)
 
 #### 10.21 — features/business/sales/index.ts
 
