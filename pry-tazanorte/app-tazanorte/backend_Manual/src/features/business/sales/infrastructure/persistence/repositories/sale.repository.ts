@@ -1,8 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import {
-  buildPaginatedResult,
-  normalizePagination,
-} from '../../../../../../common/utils/pagination.util';
 import { ProductModel } from '../../../../products/infrastructure/persistence/models/product.model';
 import { Sale } from '../../../domain/entities/sale.entity';
 import {
@@ -40,10 +36,13 @@ export class SaleRepository implements ISaleRepository {
           transaction,
         });
         if (product) {
-          await product.update(
-            { quantity: product.quantity - item.quantity },
-            { transaction },
-          );
+          const currentStock = (product as any).stock ?? (product as any).quantity ?? 0;
+          const updatedValue = currentStock - item.quantity;
+          const updateData = (product as any).stock !== undefined 
+            ? { stock: updatedValue } 
+            : { quantity: updatedValue };
+
+          await product.update(updateData, { transaction });
         }
       }
 
@@ -76,10 +75,9 @@ export class SaleRepository implements ISaleRepository {
   }
 
   async findAll(params: SaleFindAllParams) {
-    const { page, limit, offset } = normalizePagination(
-      params.page,
-      params.limit,
-    );
+    const page = params.page && params.page > 0 ? Number(params.page) : 1;
+    const limit = params.limit && params.limit > 0 ? Number(params.limit) : 10;
+    const offset = (page - 1) * limit;
 
     const where = params.clientId ? { clientId: params.clientId } : {};
 
@@ -91,13 +89,22 @@ export class SaleRepository implements ISaleRepository {
       include: [ProductSaleModel],
     });
 
-    return buildPaginatedResult(
-      rows.map((row) =>
+    const totalPages = Math.ceil(count / limit);
+
+    return {
+      items: rows.map((row) =>
         SaleMapper.toDomain(row, row.items as ProductSaleModel[]),
       ),
-      count,
-      page,
-      limit,
-    );
+      meta: {
+        totalItems: count,
+        itemCount: rows.length,
+        itemsPerPage: limit,
+        totalPages,
+        currentPage: page,
+        page,
+        limit,
+        total: count,
+      },
+    };
   }
 }

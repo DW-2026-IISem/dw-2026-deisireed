@@ -23,7 +23,8 @@ export async function seedSales(): Promise<void> {
   }
 
   const quantity = 1;
-  const unitPrice = Number(product.price);
+  const rawPrice = (product as any).unitPrice ?? (product as any).price ?? 0;
+  const unitPrice = Number(rawPrice);
   const subtotal = quantity * unitPrice;
   const tax = Math.round(subtotal * 0.19);
   const discounts = 0;
@@ -56,9 +57,12 @@ export async function seedSales(): Promise<void> {
       { transaction },
     );
 
-    await product.update(
-      { quantity: product.quantity - quantity },
-      { transaction },
-    );
+    const currentStock = (product as any).stock ?? (product as any).quantity ?? 0;
+    const updatedValue = currentStock - quantity;
+    const updateData = (product as any).stock !== undefined 
+      ? { stock: updatedValue } 
+      : { quantity: updatedValue };
+
+    await product.update(updateData, { transaction });
   });
 }

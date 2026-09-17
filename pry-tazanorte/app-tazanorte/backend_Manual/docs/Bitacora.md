@@ -3490,8 +3490,10 @@ npm run start:dev
 git add . git commit -m "test: verify sales flow and stock side effects"
 ```
 
+![](images/clipboard-1130273526.png)
+
 ------------------------------------------------------------------------
 
-## 
+## ![](images/clipboard-2240733057.png)
 
 ------------------------------------------------------------------------

@@ -46,10 +46,12 @@ export class CreateSaleUseCase {
         throw new ProductNotFoundException(itemDto.productId);
       }
 
-      if (product.quantity < itemDto.quantity) {
+      const productStock = (product as any).stock ?? (product as any).quantity ?? 0;
+
+      if (productStock < itemDto.quantity) {
         throw new InsufficientStockException(
-          product.name,
-          product.quantity,
+          (product as any).name ?? `Producto #${product.id}`,
+          productStock,
           itemDto.quantity,
         );
       }
