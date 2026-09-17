@@ -3420,19 +3420,7 @@ DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
 #### 10.13 — features/business/sales/application/dto/sale-response.dto.ts
 
-DTO de entrada/salida HTTP con `class-validator` / Swagger.
-
-**Archivo:** `src/features/business/sales/application/dto/sale-response.dto.ts`
-
-``` bash
-mkdir -p src/features/business/sales/application/dto cat > src/features/business/sales/application/dto/sale-response.dto.ts <<'EOF_BACKEND_IA' import { ApiProperty } from '@nestjs/swagger'; import { Status } from '../../../../../common/enums/status.enum';  export class SaleItemResponseDto {   @ApiProperty({ example: 1 })   id: number;    @ApiProperty({ example: 1 })   productId: number;    @ApiProperty({ example: 2 })   quantity: number;    @ApiProperty({ example: 59999 })   unitPrice: number;    @ApiProperty({ example: 119998 })   total: number; }  export class SaleResponseDto {   @ApiProperty({ example: 1 })   id: number;    @ApiProperty()   saleDate: Date;    @ApiProperty({ example: 119998 })   subtotal: number;    @ApiProperty({ example: 22799 })   tax: number;    @ApiProperty({ example: 0 })   discounts: number;    @ApiProperty({ example: 142797 })   total: number;    @ApiProperty({ enum: Status, example: Status.ACTIVE })   status: Status;    @ApiProperty({ example: 1 })   clientId: number;    @ApiProperty({ type: [SaleItemResponseDto] })   items: SaleItemResponseDto[];    @ApiProperty()   createdAt: Date;    @ApiProperty()   updatedAt: Date; } EOF_BACKEND_IA
-```
-
-**Sugerencia de commit (issue):**
-
-``` bash
-git add . git commit -m "feat: add dto sale-response.dto.ts"
-```
+![](images/clipboard-1507138177.png)
 
 #### 10.14 — features/business/sales/application/mappers/sale.mapper.ts
 
