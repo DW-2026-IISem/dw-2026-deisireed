@@ -3259,8 +3259,11 @@ mkdir -p src/features/business/sales/domain/exceptions cat > src/features/busine
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add domain exception insufficient-stock.exception.ts"
+git add . 
+git commit -m "feat: add domain exception insufficient-stock.exception.ts"
 ```
+
+![](images/clipboard-3265514773.png)
 
 #### 10.3 — features/business/sales/domain/exceptions/sale-not-found.exception.ts
 
