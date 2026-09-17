@@ -3101,8 +3101,11 @@ mkdir -p src/features/business/products/application/dto cat > src/features/busin
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add dto update-product.dto.ts"
+git add . 
+git commit -m "feat: add dto update-product.dto.ts"
 ```
+
+![](images/clipboard-518830639.png)
 
 #### 9.16 — features/business/products/application/mappers/product.mapper.ts
 
