@@ -3452,6 +3452,8 @@ DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
 #### 10.21 — features/business/sales/index.ts
 
+![](images/clipboard-2820520022.png)
+
 #### 10.22 — features/business/sales/sales.module.ts
 
 #### 10.23 — Barrel business/index.ts
