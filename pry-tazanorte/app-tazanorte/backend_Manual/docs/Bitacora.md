@@ -3402,17 +3402,7 @@ git commit -m "chore: add migration create-sales-table.migration.ts"
 
 Seeder de datos iniciales para desarrollo y verificación física en BD.
 
-**Archivo:** `src/features/business/sales/infrastructure/persistence/seeders/sales.seeder.ts`
-
-``` bash
-mkdir -p src/features/business/sales/infrastructure/persistence/seeders cat > src/features/business/sales/infrastructure/persistence/seeders/sales.seeder.ts <<'EOF_BACKEND_IA' import { SaleModel } from '../models/sale.model'; import { ProductSaleModel } from '../models/product-sale.model'; import { ClientModel } from '../../../../clients/infrastructure/persistence/models/client.model'; import { ProductModel } from '../../../../products/infrastructure/persistence/models/product.model'; import { Status } from '../../../../../../common/enums/status.enum';  export async function seedSales(): Promise<void> {   const count = await SaleModel.count();   if (count > 0) {     return;   }    const clientCount = await ClientModel.count();   const productCount = await ProductModel.count();    if (clientCount === 0 || productCount === 0) {     return;   }    const product = await ProductModel.findByPk(1);   if (!product) {     return;   }    const quantity = 1;   const unitPrice = Number(product.price);   const subtotal = quantity * unitPrice;   const tax = Math.round(subtotal * 0.19);   const discounts = 0;   const total = subtotal + tax - discounts;    const sequelize = SaleModel.sequelize!;    await sequelize.transaction(async (transaction) => {     const sale = await SaleModel.create(       {         saleDate: new Date(),         subtotal,         tax,         discounts,         total,         status: Status.ACTIVE,         clientId: 1,       },       { transaction },     );      await ProductSaleModel.create(       {         saleId: sale.id,         productId: product.id,         quantity,         unitPrice,         total: subtotal,       },       { transaction },     );      await product.update(       { quantity: product.quantity - quantity },       { transaction },     );   }); } EOF_BACKEND_IA
-```
-
-**Sugerencia de commit (issue):**
-
-``` bash
-git add . git commit -m "chore: add seeder sales.seeder.ts"
-```
+![](images/clipboard-473899391.png)
 
 #### 10.11 — features/business/sales/application/dto/create-sale.dto.ts
 
@@ -3421,14 +3411,9 @@ DTO de entrada/salida HTTP con `class-validator` / Swagger.
 **Archivo:** `src/features/business/sales/application/dto/create-sale.dto.ts`
 
 ``` bash
-mkdir -p src/features/business/sales/application/dto cat > src/features/business/sales/application/dto/create-sale.dto.ts <<'EOF_BACKEND_IA' import { ApiProperty } from '@nestjs/swagger'; import { Type } from 'class-transformer'; import {   IsArray,   IsInt,   IsNumber,   IsOptional,   IsPositive,   Min,   ValidateNested, } from 'class-validator';  export class CreateSaleItemDto {   @ApiProperty({ example: 1 })   @IsInt()   @IsPositive()   productId: number;    @ApiProperty({ example: 2 })   @IsInt()   @Min(1)   quantity: number;    @ApiProperty({ example: 59999 })   @IsNumber()   @IsPositive()   unitPrice: number; }  export class CreateSaleDto {   @ApiProperty({ example: 1 })   @IsInt()   @IsPositive()   clientId: number;    @ApiProperty({ type: [CreateSaleItemDto] })   @IsArray()   @ValidateNested({ each: true })   @Type(() => CreateSaleItemDto)   items: CreateSaleItemDto[];    @ApiProperty({ example: 0, required: false })   @IsOptional()   @IsNumber()   @Min(0)   tax?: number;    @ApiProperty({ example: 0, required: false })   @IsOptional()   @IsNumber()   @Min(0)   discounts?: number; } EOF_BACKEND_IA
 ```
 
 **Sugerencia de commit (issue):**
-
-``` bash
-git add . git commit -m "feat: add dto create-sale.dto.ts"
-```
 
 #### 10.12 — features/business/sales/application/dto/sale-filter.dto.ts
 
@@ -3436,14 +3421,9 @@ DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
 **Archivo:** `src/features/business/sales/application/dto/sale-filter.dto.ts`
 
-``` bash
-mkdir -p src/features/business/sales/application/dto cat > src/features/business/sales/application/dto/sale-filter.dto.ts <<'EOF_BACKEND_IA' import { ApiPropertyOptional } from '@nestjs/swagger'; import { Type } from 'class-transformer'; import { IsInt, IsOptional, IsPositive, Min } from 'class-validator';  export class SaleFilterDto {   @ApiPropertyOptional({ example: 1, default: 1 })   @IsOptional()   @Type(() => Number)   @IsInt()   @Min(1)   page?: number;    @ApiPropertyOptional({ example: 10, default: 10 })   @IsOptional()   @Type(() => Number)   @IsInt()   @IsPositive()   limit?: number;    @ApiPropertyOptional({ example: 1 })   @IsOptional()   @Type(() => Number)   @IsInt()   @IsPositive()   clientId?: number; } EOF_BACKEND_IA
-```
-
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add dto sale-filter.dto.ts"
 ```
 
 #### 10.13 — features/business/sales/application/dto/sale-response.dto.ts
