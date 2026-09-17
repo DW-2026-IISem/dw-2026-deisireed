@@ -3316,8 +3316,11 @@ mkdir -p src/features/business/sales/domain/services cat > src/features/business
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add domain service sale-calculator.domain-service.ts"
+git add .
+git commit -m "feat: add domain service sale-calculator.domain-service.ts"
 ```
+
+![](images/clipboard-2134125432.png)
 
 #### 10.6 — features/business/sales/infrastructure/persistence/models/product-sale.model.ts
 
