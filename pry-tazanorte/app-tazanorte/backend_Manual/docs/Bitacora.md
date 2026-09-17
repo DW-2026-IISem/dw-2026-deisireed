@@ -2873,8 +2873,11 @@ mkdir -p src/features/business/products/domain/exceptions cat > src/features/bus
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add domain exception invalid-product-stock.exception.ts"
+git add . 
+git commit -m "feat: add domain exception invalid-product-stock.exception.ts"
 ```
+
+![](images/clipboard-929434371.png)
 
 #### 9.4 — features/business/products/domain/exceptions/product-not-found.exception.ts
 
