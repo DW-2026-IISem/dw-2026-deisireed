@@ -3177,8 +3177,11 @@ mkdir -p src/features/business/products/application/use-cases cat > src/features
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add use case get-product.use-case.ts"
+git add .
+git commit -m "feat: add use case get-product.use-case.ts"
 ```
+
+![](images/clipboard-3960143311.png)
 
 #### 9.20 — features/business/products/application/use-cases/list-products.use-case.ts
 
