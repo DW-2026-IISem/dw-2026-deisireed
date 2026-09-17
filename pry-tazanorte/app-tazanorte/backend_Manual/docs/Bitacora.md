@@ -2949,8 +2949,11 @@ mkdir -p src/features/business/products/domain/validators cat > src/features/bus
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add domain validator product-stock.validator.ts"
+git add . 
+git commit -m "feat: add domain validator product-stock.validator.ts"
 ```
+
+![](images/clipboard-3686667563.png)
 
 #### 9.8 — features/business/products/infrastructure/persistence/models/product.model.ts
 
