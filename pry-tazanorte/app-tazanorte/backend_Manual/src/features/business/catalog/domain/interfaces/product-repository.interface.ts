@@ -1,10 +1,23 @@
 import { Product } from '../entities/product.entity';
+import { ProductFilterDto } from '../../application/dto/product-filter.dto';
 
-export const PRODUCT_REPOSITORY = 'PRODUCT_REPOSITORY';
+export const PRODUCT_REPOSITORY = Symbol('PRODUCT_REPOSITORY');
+
+export interface PaginatedProducts {
+  items: Product[];
+  meta: {
+    totalItems: number;
+    itemCount: number;
+    itemsPerPage: number;
+    totalPages: number;
+    currentPage: number;
+  };
+}
 
 export interface IProductRepository {
-  create(product: Product): Promise<Product>;
   findById(id: number): Promise<Product | null>;
-  findBySku(sku: string): Promise<Product | null>;
-  findAll(): Promise<Product[]>;
+  findAll(filter: ProductFilterDto): Promise<PaginatedProducts>;
+  save(product: Product): Promise<Product>;
+  update(product: Product): Promise<Product>;
+  delete(id: number): Promise<void>;
 }

@@ -1,26 +1,33 @@
 import { Product } from '../../domain/entities/product.entity';
 import { ProductModel } from '../../infrastructure/persistence/models/product.model';
+import { ProductResponseDto } from '../dto/product-response.dto';
 
 export class ProductMapper {
+  static toResponse(entity: Product): ProductResponseDto {
+    return {
+      id: entity.id!,
+      name: entity.name,
+      price: Number(entity.price),
+      createdAt: entity.createdAt!,
+      updatedAt: entity.updatedAt!,
+    };
+  }
+
   static toDomain(model: ProductModel): Product {
-    return Product.reconstitute({
+    return new Product({
       id: model.id,
-      sku: model.sku,
       name: model.name,
-      description: model.description,
       price: Number(model.price),
-      isActive: model.isActive,
+      createdAt: model.createdAt,
+      updatedAt: model.updatedAt,
     });
   }
 
   static toPersistence(entity: Product): Partial<ProductModel> {
     return {
-      id: entity.id,
-      sku: entity.sku,
+      ...(entity.id && { id: entity.id }),
       name: entity.name,
-      description: entity.description,
       price: entity.price,
-      isActive: entity.isActive,
     };
   }
 }

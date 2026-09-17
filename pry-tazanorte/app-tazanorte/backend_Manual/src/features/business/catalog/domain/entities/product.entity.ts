@@ -1,37 +1,49 @@
 export interface ProductProps {
   id?: number;
-  sku: string;
   name: string;
-  description?: string;
   price: number;
-  isActive?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export class Product {
-  id?: number;
-  sku: string;
-  name: string;
-  description?: string;
-  price: number;
-  isActive: boolean;
+  private props: ProductProps;
 
-  private constructor(props: ProductProps) {
-    this.id = props.id;
-    this.sku = props.sku;
-    this.name = props.name;
-    this.description = props.description;
-    this.price = props.price;
-    this.isActive = props.isActive ?? true;
+  constructor(props: ProductProps) {
+    this.props = props;
   }
 
-  static create(props: Omit<ProductProps, 'id' | 'isActive'>): Product {
-    if (!props.sku?.trim()) throw new Error('El SKU es requerido');
-    if (!props.name?.trim()) throw new Error('El nombre es requerido');
-    if (props.price < 0) throw new Error('El precio debe ser mayor o igual a 0');
-    return new Product(props);
+  static create(props: Omit<ProductProps, 'id' | 'createdAt' | 'updatedAt'>): Product {
+    return new Product({
+      ...props,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
   }
 
-  static reconstitute(props: ProductProps): Product {
-    return new Product(props);
+  get id(): number | undefined {
+    return this.props.id;
+  }
+
+  get name(): string {
+    return this.props.name;
+  }
+
+  get price(): number {
+    return this.props.price;
+  }
+
+  get createdAt(): Date | undefined {
+    return this.props.createdAt;
+  }
+
+  get updatedAt(): Date | undefined {
+    return this.props.updatedAt;
+  }
+
+  update(dto: Partial<Pick<ProductProps, 'name' | 'price'>>): void {
+    if (dto.name !== undefined) this.props.name = dto.name;
+    if (dto.price !== undefined) this.props.price = dto.price;
+    this.props.updatedAt = new Date();
   }
 }

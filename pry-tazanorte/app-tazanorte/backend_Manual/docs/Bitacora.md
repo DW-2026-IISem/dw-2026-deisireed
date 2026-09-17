@@ -2787,8 +2787,11 @@ mkdir -p src cat > src/app.module.ts <<'EOF_BACKEND_IA' import { Module } from '
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: keep BusinessModule wired in AppModule"
+git add . 
+git commit -m "chore: keep BusinessModule wired in AppModule"
 ```
+
+![](images/clipboard-1161740180.png)
 
 #### 8.26 — Verificar tabla `product_types`
 
@@ -2801,8 +2804,13 @@ npm run start:dev
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "test: verify product_types table and endpoints"
+git add . 
+git commit -m "test: verify product_types table and endpoints"
 ```
+
+![](images/clipboard-1643343775.png)
+
+![](images/clipboard-1379163723.png)
 
 ------------------------------------------------------------------------
 
