@@ -2892,8 +2892,11 @@ mkdir -p src/features/business/products/domain/exceptions cat > src/features/bus
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add domain exception product-not-found.exception.ts"
+git add .
+git commit -m "feat: add domain exception product-not-found.exception.ts"
 ```
+
+![](images/clipboard-71414665.png)
 
 #### 9.5 — features/business/products/domain/interfaces/product-repository.interface.ts
 
