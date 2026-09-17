@@ -3006,8 +3006,11 @@ mkdir -p src/features/business/products/infrastructure/persistence/migrations ca
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: add migration create-products-table.migration.ts"
+git add . 
+git commit -m "chore: add migration create-products-table.migration.ts"
 ```
+
+![](images/clipboard-563866368.png)
 
 #### 9.11 — features/business/products/infrastructure/persistence/seeders/products.seeder.ts
 
@@ -3022,8 +3025,11 @@ mkdir -p src/features/business/products/infrastructure/persistence/seeders cat >
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "chore: add seeder products.seeder.ts"
+git add . 
+git commit -m "chore: add seeder products.seeder.ts"
 ```
+
+![](images/clipboard-1036038995.png)
 
 #### 9.12 — features/business/products/application/dto/create-product.dto.ts
 
@@ -3038,8 +3044,11 @@ mkdir -p src/features/business/products/application/dto cat > src/features/busin
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add dto create-product.dto.ts"
+git add . 
+git commit -m "feat: add dto create-product.dto.ts"
 ```
+
+![](images/clipboard-2356783135.png)
 
 #### 9.13 — features/business/products/application/dto/product-filter.dto.ts
 
@@ -3054,8 +3063,11 @@ mkdir -p src/features/business/products/application/dto cat > src/features/busin
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add dto product-filter.dto.ts"
+git add .
+git commit -m "feat: add dto product-filter.dto.ts"
 ```
+
+![](images/clipboard-403478292.png)
 
 #### 9.14 — features/business/products/application/dto/product-response.dto.ts
 
@@ -3070,8 +3082,11 @@ mkdir -p src/features/business/products/application/dto cat > src/features/busin
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add dto product-response.dto.ts"
+git add . 
+git commit -m "feat: add dto product-response.dto.ts"
 ```
+
+![](images/clipboard-2595477473.png)
 
 #### 9.15 — features/business/products/application/dto/update-product.dto.ts
 
