@@ -3428,6 +3428,8 @@ DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
 #### 10.15 — features/business/sales/application/use-cases/cancel-sale.use-case.ts
 
+![](images/clipboard-316768881.png)
+
 #### 10.16 — features/business/sales/application/use-cases/create-sale.use-case.ts
 
 #### 10.17 — features/business/sales/application/use-cases/get-sale.use-case.ts
