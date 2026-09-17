@@ -2987,8 +2987,11 @@ mkdir -p src/features/business/products/infrastructure/persistence/repositories 
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add sequelize repository product.repository.ts"
+git add .
+git commit -m "feat: add sequelize repository product.repository.ts"
 ```
+
+![](images/clipboard-1882626127.png)
 
 #### 9.10 — features/business/products/infrastructure/persistence/migrations/create-products-table.migration.ts
 
