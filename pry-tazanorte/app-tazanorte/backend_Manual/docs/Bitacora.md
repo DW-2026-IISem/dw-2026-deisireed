@@ -3354,8 +3354,11 @@ mkdir -p src/features/business/sales/infrastructure/persistence/models cat > src
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add sequelize model sale.model.ts"
+git add . 
+git commit -m "feat: add sequelize model sale.model.ts"
 ```
+
+![](images/clipboard-2261980526.png)
 
 #### 10.8 — features/business/sales/infrastructure/persistence/repositories/sale.repository.ts
 
