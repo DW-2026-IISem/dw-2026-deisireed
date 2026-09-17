@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { WhereOptions } from 'sequelize';
-import {
-  buildPaginatedResult,
-  normalizePagination,
-} from '../../../../../../common/utils/pagination.util';
+import { PaginatedResult } from '../../../../../../common/interfaces/pagination.interface';
 import { Order } from '../../../domain/entities/order.entity';
 import {
   IOrderRepository,
@@ -36,11 +33,10 @@ export class OrderRepository implements IOrderRepository {
     return model ? OrderMapper.toDomain(model) : null;
   }
 
-  async findAll(params: OrderFindAllParams) {
-    const { page, limit, offset } = normalizePagination(
-      params.page,
-      params.limit,
-    );
+  async findAll(params: OrderFindAllParams): Promise<PaginatedResult<Order>> {
+    const page = Number(params.page) > 0 ? Number(params.page) : 1;
+    const limit = Number(params.limit) > 0 ? Number(params.limit) : 10;
+    const offset = (page - 1) * limit;
 
     const where: WhereOptions = {};
 
@@ -59,11 +55,16 @@ export class OrderRepository implements IOrderRepository {
       order: [['createdAt', 'DESC']],
     });
 
-    return buildPaginatedResult(
-      rows.map((row) => OrderMapper.toDomain(row)),
-      count,
-      page,
-      limit,
-    );
+    const totalPages = Math.ceil(count / limit);
+
+    return {
+      items: rows.map((row) => OrderMapper.toDomain(row)),
+      meta: {
+        page,
+        limit,
+        total: count,
+        totalPages,
+      },
+    };
   }
 }
