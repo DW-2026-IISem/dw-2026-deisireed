@@ -3464,9 +3464,15 @@ DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
 #### 10.24 — Actualizar sequelize.factory.ts (registrar modelos)
 
+![](images/clipboard-561147907.png)
+
 #### 10.25 — Actualizar business.module.ts
 
+![](images/clipboard-1022960671.png)
+
 #### 10.26 — Actualizar database-seeder.service.ts
+
+![](images/clipboard-881741372.png)
 
 #### 10.27 — Actualizar app.module.ts
 
