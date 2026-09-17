@@ -3373,8 +3373,11 @@ mkdir -p src/features/business/sales/infrastructure/persistence/repositories cat
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add sequelize repository sale.repository.ts"
+git add .
+git commit -m "feat: add sequelize repository sale.repository.ts"
 ```
+
+![](images/clipboard-566607883.png)
 
 #### 10.9 — features/business/sales/infrastructure/persistence/migrations/create-sales-table.migration.ts
 
