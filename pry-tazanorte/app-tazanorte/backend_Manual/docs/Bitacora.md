@@ -3297,8 +3297,11 @@ mkdir -p src/features/business/sales/domain/interfaces cat > src/features/busine
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add repository port sale-repository.interface.ts"
+git add . 
+git commit -m "feat: add repository port sale-repository.interface.ts"
 ```
+
+![](images/clipboard-585365119.png)
 
 #### 10.5 — features/business/sales/domain/services/sale-calculator.domain-service.ts
 
