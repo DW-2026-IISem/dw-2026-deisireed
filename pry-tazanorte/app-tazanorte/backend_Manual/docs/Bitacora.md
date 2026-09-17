@@ -3456,6 +3456,8 @@ DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
 #### 10.22 — features/business/sales/sales.module.ts
 
+![](images/clipboard-250873472.png)
+
 #### 10.23 — Barrel business/index.ts
 
 #### 10.24 — Actualizar sequelize.factory.ts (registrar modelos)
