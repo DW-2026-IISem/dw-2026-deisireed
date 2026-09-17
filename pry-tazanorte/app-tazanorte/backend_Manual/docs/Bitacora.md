@@ -2911,8 +2911,11 @@ mkdir -p src/features/business/products/domain/interfaces cat > src/features/bus
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add repository port product-repository.interface.ts"
+git add . 
+git commit -m "feat: add repository port product-repository.interface.ts"
 ```
+
+![](images/clipboard-2895994777.png)
 
 #### 9.6 — features/business/products/domain/validators/product-price.validator.ts
 
@@ -2927,8 +2930,11 @@ mkdir -p src/features/business/products/domain/validators cat > src/features/bus
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add domain validator product-price.validator.ts"
+git add .
+git commit -m "feat: add domain validator product-price.validator.ts"
 ```
+
+![](images/clipboard-2255382931.png)
 
 #### 9.7 — features/business/products/domain/validators/product-stock.validator.ts
 
