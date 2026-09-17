@@ -3416,12 +3416,7 @@ DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
 DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
-**Archivo:** `src/features/business/sales/application/dto/sale-filter.dto.ts`
-
-**Sugerencia de commit (issue):**
-
-``` bash
-```
+![](images/clipboard-3549847202.png)
 
 #### 10.13 — features/business/sales/application/dto/sale-response.dto.ts
 
