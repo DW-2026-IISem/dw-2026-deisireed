@@ -3424,61 +3424,13 @@ DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
 #### 10.14 — features/business/sales/application/mappers/sale.mapper.ts
 
-Mapper entre entidad de dominio y DTO de respuesta.
-
-**Archivo:** `src/features/business/sales/application/mappers/sale.mapper.ts`
-
-``` bash
-mkdir -p src/features/business/sales/application/mappers cat > src/features/business/sales/application/mappers/sale.mapper.ts <<'EOF_BACKEND_IA' import { Status } from '../../../../../common/enums/status.enum'; import { Sale, SaleItem } from '../../domain/entities/sale.entity'; import {   SaleItemResponseDto,   SaleResponseDto, } from '../dto/sale-response.dto'; import { SaleModel } from '../../infrastructure/persistence/models/sale.model'; import { ProductSaleModel } from '../../infrastructure/persistence/models/product-sale.model';  export class SaleMapper {   static toDomain(saleModel: SaleModel, itemModels: ProductSaleModel[]): Sale {     const items = itemModels.map((item) =>       SaleItem.reconstitute({         id: item.id,         productId: item.productId,         quantity: item.quantity,         unitPrice: Number(item.unitPrice),         total: Number(item.total),         saleId: item.saleId,       }),     );      return Sale.reconstitute({       id: saleModel.id,       saleDate: saleModel.saleDate,       subtotal: Number(saleModel.subtotal),       tax: Number(saleModel.tax),       discounts: Number(saleModel.discounts),       total: Number(saleModel.total),       status: saleModel.status,       clientId: saleModel.clientId,       items,       createdAt: saleModel.createdAt,       updatedAt: saleModel.updatedAt,     });   }    static toResponse(entity: Sale): SaleResponseDto {     return {       id: entity.id!,       saleDate: entity.saleDate,       subtotal: entity.subtotal,       tax: entity.tax,       discounts: entity.discounts,       total: entity.total,       status: entity.status,       clientId: entity.clientId,       items: entity.items.map((item) => SaleMapper.toItemResponse(item)),       createdAt: entity.createdAt!,       updatedAt: entity.updatedAt!,     };   }    static toItemResponse(item: SaleItem): SaleItemResponseDto {     return {       id: item.id!,       productId: item.productId,       quantity: item.quantity,       unitPrice: item.unitPrice,       total: item.total,     };   }    static toPersistence(entity: Sale): Partial<SaleModel> {     return {       id: entity.id,       saleDate: entity.saleDate,       subtotal: entity.subtotal,       tax: entity.tax,       discounts: entity.discounts,       total: entity.total,       status: entity.status ?? Status.ACTIVE,       clientId: entity.clientId,     };   } } EOF_BACKEND_IA
-```
-
-**Sugerencia de commit (issue):**
-
-``` bash
-git add . git commit -m "feat: add mapper sale.mapper.ts"
-```
+![](images/clipboard-35786596.png)
 
 #### 10.15 — features/business/sales/application/use-cases/cancel-sale.use-case.ts
 
-Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
-
-**Archivo:** `src/features/business/sales/application/use-cases/cancel-sale.use-case.ts`
-
-``` bash
-mkdir -p src/features/business/sales/application/use-cases cat > src/features/business/sales/application/use-cases/cancel-sale.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { Status } from '../../../../../common/enums/status.enum'; import { SaleNotFoundException } from '../../domain/exceptions/sale-not-found.exception'; import {   type ISaleRepository,   SALE_REPOSITORY, } from '../../domain/interfaces/sale-repository.interface'; import { SaleMapper } from '../mappers/sale.mapper';  @Injectable() export class CancelSaleUseCase {   constructor(     @Inject(SALE_REPOSITORY)     private readonly saleRepository: ISaleRepository,   ) {}    async execute(id: number) {     const sale = await this.saleRepository.findById(id);     if (!sale) {       throw new SaleNotFoundException(id);     }      if (sale.status === Status.INACTIVE) {       return SaleMapper.toResponse(sale);     }      sale.cancel();     const updated = await this.saleRepository.update(sale);     return SaleMapper.toResponse(updated);   } } EOF_BACKEND_IA
-```
-
-**Sugerencia de commit (issue):**
-
-``` bash
-git add . git commit -m "feat: add use case cancel-sale.use-case.ts"
-```
-
 #### 10.16 — features/business/sales/application/use-cases/create-sale.use-case.ts
 
-Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
-
-**Archivo:** `src/features/business/sales/application/use-cases/create-sale.use-case.ts`
-
-``` bash
-mkdir -p src/features/business/sales/application/use-cases cat > src/features/business/sales/application/use-cases/create-sale.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { ClientNotFoundException } from '../../../clients/domain/exceptions/client-not-found.exception'; import {   CLIENT_REPOSITORY,   type IClientRepository, } from '../../../clients/domain/interfaces/client-repository.interface'; import { ProductNotFoundException } from '../../../products/domain/exceptions/product-not-found.exception'; import {   type IProductRepository,   PRODUCT_REPOSITORY, } from '../../../products/domain/interfaces/product-repository.interface'; import { InsufficientStockException } from '../../domain/exceptions/insufficient-stock.exception'; import { Sale, SaleItem } from '../../domain/entities/sale.entity'; import {   type ISaleRepository,   SALE_REPOSITORY, } from '../../domain/interfaces/sale-repository.interface'; import { SaleCalculatorDomainService } from '../../domain/services/sale-calculator.domain-service'; import { CreateSaleDto } from '../dto/create-sale.dto'; import { SaleMapper } from '../mappers/sale.mapper';  @Injectable() export class CreateSaleUseCase {   private readonly saleCalculator = new SaleCalculatorDomainService();    constructor(     @Inject(SALE_REPOSITORY)     private readonly saleRepository: ISaleRepository,     @Inject(CLIENT_REPOSITORY)     private readonly clientRepository: IClientRepository,     @Inject(PRODUCT_REPOSITORY)     private readonly productRepository: IProductRepository,   ) {}    async execute(dto: CreateSaleDto) {     const client = await this.clientRepository.findById(dto.clientId);     if (!client) {       throw new ClientNotFoundException(dto.clientId);     }      const saleItems: SaleItem[] = [];      for (const itemDto of dto.items) {       const product = await this.productRepository.findById(itemDto.productId);       if (!product) {         throw new ProductNotFoundException(itemDto.productId);       }        if (product.quantity < itemDto.quantity) {         throw new InsufficientStockException(           product.name,           product.quantity,           itemDto.quantity,         );       }        saleItems.push(         SaleItem.create({           productId: itemDto.productId,           quantity: itemDto.quantity,           unitPrice: itemDto.unitPrice,         }),       );     }      const totals = this.saleCalculator.calculateTotals(       dto.items,       dto.tax ?? 0,       dto.discounts ?? 0,     );      const sale = Sale.create({       saleDate: new Date(),       subtotal: totals.subtotal,       tax: totals.tax,       discounts: totals.discounts,       total: totals.total,       clientId: dto.clientId,       items: saleItems,     });      const created = await this.saleRepository.create(sale);     return SaleMapper.toResponse(created);   } } EOF_BACKEND_IA
-```
-
-**Sugerencia de commit (issue):**
-
-``` bash
-git add . git commit -m "feat: add use case create-sale.use-case.ts"
-```
-
 #### 10.17 — features/business/sales/application/use-cases/get-sale.use-case.ts
-
-Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
-
-**Archivo:** `src/features/business/sales/application/use-cases/get-sale.use-case.ts`
-
-``` bash
-mkdir -p src/features/business/sales/application/use-cases cat > src/features/business/sales/application/use-cases/get-sale.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { SaleNotFoundException } from '../../domain/exceptions/sale-not-found.exception'; import {   type ISaleRepository,   SALE_REPOSITORY, } from '../../domain/interfaces/sale-repository.interface'; import { SaleMapper } from '../mappers/sale.mapper';  @Injectable() export class GetSaleUseCase {   constructor(     @Inject(SALE_REPOSITORY)     private readonly saleRepository: ISaleRepository,   ) {}    async execute(id: number) {     const sale = await this.saleRepository.findById(id);     if (!sale) {       throw new SaleNotFoundException(id);     }      return SaleMapper.toResponse(sale);   } } EOF_BACKEND_IA
-```
 
 **Sugerencia de commit (issue):**
 
