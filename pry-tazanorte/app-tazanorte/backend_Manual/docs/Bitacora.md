@@ -3408,10 +3408,7 @@ Seeder de datos iniciales para desarrollo y verificación física en BD.
 
 DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
-**Archivo:** `src/features/business/sales/application/dto/create-sale.dto.ts`
-
-``` bash
-```
+![](images/clipboard-423391472.png)
 
 **Sugerencia de commit (issue):**
 
