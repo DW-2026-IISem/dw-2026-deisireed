@@ -3120,8 +3120,11 @@ mkdir -p src/features/business/products/application/mappers cat > src/features/b
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add mapper product.mapper.ts"
+git add . 
+git commit -m "feat: add mapper product.mapper.ts"
 ```
+
+![](images/clipboard-3059316732.png)
 
 #### 9.17 — features/business/products/application/use-cases/create-product.use-case.ts
 
