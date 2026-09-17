@@ -3278,8 +3278,11 @@ mkdir -p src/features/business/sales/domain/exceptions cat > src/features/busine
 **Sugerencia de commit (issue):**
 
 ``` bash
-git add . git commit -m "feat: add domain exception sale-not-found.exception.ts"
+git add . 
+git commit -m "feat: add domain exception sale-not-found.exception.ts"
 ```
+
+![](images/clipboard-3413351903.png)
 
 #### 10.4 — features/business/sales/domain/interfaces/sale-repository.interface.ts
 
