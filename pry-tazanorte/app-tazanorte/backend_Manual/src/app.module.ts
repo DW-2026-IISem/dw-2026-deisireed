@@ -23,6 +23,8 @@ import { AppService } from './app.service';
     BusinessModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+  ],
 })
 export class AppModule {}

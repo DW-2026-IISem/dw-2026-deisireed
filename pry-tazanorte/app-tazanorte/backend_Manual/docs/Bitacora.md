@@ -3476,6 +3476,8 @@ DTO de entrada/salida HTTP con `class-validator` / Swagger.
 
 #### 10.27 — Actualizar app.module.ts
 
+![](images/clipboard-2599911147.png)
+
 #### 10.28 — Verificar tablas `sales` / `product_sales`
 
 ``` bash
