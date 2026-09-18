@@ -3847,6 +3847,8 @@ mkdir -p src/infrastructure/database/sequelize cat > src/infrastructure/database
 git add . git commit -m "feat: register auth models up to user"
 ```
 
+![](images/clipboard-4276468319.png)
+
 #### 11.20 — Actualizar auth.module.ts
 
 Agrega el feature module de auth recién terminado.
