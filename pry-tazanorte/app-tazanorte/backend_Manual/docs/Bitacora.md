@@ -4377,6 +4377,8 @@ mkdir -p src/features/auth/resource-roles/domain/interfaces cat > src/features/a
 git add . git commit -m "feat: add repository port resource-role-repository.interface.ts"
 ```
 
+![](images/clipboard-3653275329.png)
+
 #### 15.4 — features/auth/resource-roles/infrastructure/persistence/models/resource-role.model.ts
 
 Modelo Sequelize (`@Table`). Solo infraestructura: mapeo a tabla física.
