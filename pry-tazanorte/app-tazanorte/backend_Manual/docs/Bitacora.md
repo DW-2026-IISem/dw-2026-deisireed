@@ -4449,6 +4449,8 @@ mkdir -p src/features/auth/resource-roles/application/dto cat > src/features/aut
 git add . git commit -m "feat: add dto assign-resource-role.dto.ts"
 ```
 
+![](images/clipboard-3060615825.png)
+
 #### 15.8 — features/auth/resource-roles/application/mappers/resource-role.mapper.ts
 
 Mapper entre entidad de dominio y DTO de respuesta.
