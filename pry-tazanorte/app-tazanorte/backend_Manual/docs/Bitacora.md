@@ -3667,6 +3667,8 @@ mkdir -p src/features/auth/users/application/dto cat > src/features/auth/users/a
 git add . git commit -m "feat: add dto create-user.dto.ts"
 ```
 
+![](images/clipboard-4115089369.png)
+
 #### 11.10 — features/auth/users/application/dto/update-user.dto.ts
 
 DTO de entrada/salida HTTP con `class-validator` / Swagger.
