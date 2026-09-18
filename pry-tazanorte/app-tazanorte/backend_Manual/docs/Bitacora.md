@@ -3811,6 +3811,8 @@ mkdir -p src/features/auth/users/presentation/http/controllers cat > src/feature
 git add . git commit -m "feat: add controller users.controller.ts"
 ```
 
+![](images/clipboard-1746037025.png)
+
 #### 11.18 — features/auth/users/users.module.ts
 
 Módulo Nest del feature: cablea providers, tokens DI y controller.
