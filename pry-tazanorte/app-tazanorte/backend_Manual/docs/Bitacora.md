@@ -4413,6 +4413,8 @@ mkdir -p src/features/auth/resource-roles/infrastructure/persistence/repositorie
 git add . git commit -m "feat: add sequelize repository sequelize-resource-role.repository.ts"
 ```
 
+![](images/clipboard-1727026743.png)
+
 #### 15.6 — features/auth/resource-roles/infrastructure/persistence/seeders/resource-roles.seeder.ts
 
 Seeder de datos iniciales para desarrollo y verificación física en BD.
