@@ -4049,6 +4049,8 @@ mkdir -p src/features/auth/roles/infrastructure/persistence/seeders cat > src/fe
 git add . git commit -m "chore: add seeder roles.seeder.ts"
 ```
 
+![](images/clipboard-70360980.png)
+
 #### 12.8 — features/auth/roles/application/dto/create-role.dto.ts
 
 DTO de entrada/salida HTTP con `class-validator` / Swagger.
