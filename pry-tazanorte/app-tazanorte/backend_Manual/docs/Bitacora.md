@@ -3918,3 +3918,365 @@ git add . git commit -m "test: verify 10_auth_users auth feature"
 ```
 
 ![![](images/clipboard-34731380.png)](images/clipboard-3371247841.png)
+
+## FASE 12 — `11_AUTH_ROLES`
+
+### Auth — Roles
+
+> **Objetivo de la fase:** Roles del sistema. Modelo sin asociaciones a Users/Resources todavía.
+
+#### 12.1 — features/auth/roles/domain/entities/role.entity.ts
+
+Entidad de dominio (TypeScript puro). No extiende Sequelize `Model`. Aquí viven las reglas del negocio.
+
+**Archivo:** `src/features/auth/roles/domain/entities/role.entity.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/domain/entities cat > src/features/auth/roles/domain/entities/role.entity.ts <<'EOF_BACKEND_IA' import { Status } from '../../../../../common/enums/status.enum';  export class Role {   id?: number;   name: string;   isActive: Status;   createdAt?: Date;   updatedAt?: Date;    constructor(partial: Partial<Role>) {     Object.assign(this, partial);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add domain entity role.entity.ts"
+```
+
+![](images/clipboard-2951812542.png)
+
+#### 12.2 — features/auth/roles/domain/exceptions/role-name-exists.exception.ts
+
+Excepción de dominio. El caso de uso la lanza; el filter HTTP la traduce a status code.
+
+**Archivo:** `src/features/auth/roles/domain/exceptions/role-name-exists.exception.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/domain/exceptions cat > src/features/auth/roles/domain/exceptions/role-name-exists.exception.ts <<'EOF_BACKEND_IA' import { DomainException } from '../../../../../common/exceptions/domain.exception';  export class RoleNameExistsException extends DomainException {   constructor(name: string) {     super(`El rol ${name} ya existe`);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add domain exception role-name-exists.exception.ts"
+```
+
+#### 12.3 — features/auth/roles/domain/exceptions/role-not-found.exception.ts
+
+Excepción de dominio. El caso de uso la lanza; el filter HTTP la traduce a status code.
+
+**Archivo:** `src/features/auth/roles/domain/exceptions/role-not-found.exception.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/domain/exceptions cat > src/features/auth/roles/domain/exceptions/role-not-found.exception.ts <<'EOF_BACKEND_IA' import { EntityNotFoundException } from '../../../../../common/exceptions/entity-not-found.exception';  export class RoleNotFoundException extends EntityNotFoundException {   constructor(identifier: string | number) {     super('Rol', identifier);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add domain exception role-not-found.exception.ts"
+```
+
+#### 12.4 — features/auth/roles/domain/interfaces/role-repository.interface.ts
+
+Puerto (contrato) del repositorio. La aplicación depende de esta interface, no de Sequelize.
+
+**Archivo:** `src/features/auth/roles/domain/interfaces/role-repository.interface.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/domain/interfaces cat > src/features/auth/roles/domain/interfaces/role-repository.interface.ts <<'EOF_BACKEND_IA' import { Role } from '../entities/role.entity';  export const ROLE_REPOSITORY = 'ROLE_REPOSITORY';  export interface IRoleRepository {   create(role: Role): Promise<Role>;   findAll(): Promise<Role[]>;   findById(id: number): Promise<Role | null>;   findByName(name: string): Promise<Role | null>;   findByIds(ids: number[]): Promise<Role[]>;   update(id: number, data: Partial<Role>): Promise<Role>;   delete(id: number): Promise<void>; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add repository port role-repository.interface.ts"
+```
+
+#### 12.5 — features/auth/roles/infrastructure/persistence/models/role.model.ts (sin asociaciones cruzadas aún)
+
+Modelo Sequelize (`@Table`). Solo infraestructura: mapeo a tabla física. En esta fase se crea **sin** BelongsToMany/HasMany hacia módulos aún no creados, para poder compilar y sincronizar la tabla.
+
+**Archivo:** `src/features/auth/roles/infrastructure/persistence/models/role.model.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/infrastructure/persistence/models cat > src/features/auth/roles/infrastructure/persistence/models/role.model.ts <<'EOF_BACKEND_IA' import {   Table,   Column,   Model,   DataType,   CreatedAt,   UpdatedAt, } from 'sequelize-typescript'; import { Status } from '../../../../../../common/enums/status.enum';  @Table({ tableName: 'roles' }) export class RoleModel extends Model {   @Column({     type: DataType.INTEGER,     primaryKey: true,     autoIncrement: true,   })   declare id: number;    @Column({ type: DataType.STRING(100), allowNull: false, unique: true })   declare name: string;    @Column({     type: DataType.ENUM(...Object.values(Status)),     allowNull: false,     defaultValue: Status.ACTIVE,   })   declare isActive: Status;    @CreatedAt   declare createdAt: Date;    @UpdatedAt   declare updatedAt: Date; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add sequelize model role.model.ts without cross associations"
+```
+
+#### 12.6 — features/auth/roles/infrastructure/persistence/repositories/sequelize-role.repository.ts
+
+Adaptador del repositorio: implementa el puerto de dominio con Sequelize.
+
+**Archivo:** `src/features/auth/roles/infrastructure/persistence/repositories/sequelize-role.repository.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/infrastructure/persistence/repositories cat > src/features/auth/roles/infrastructure/persistence/repositories/sequelize-role.repository.ts <<'EOF_BACKEND_IA' import { Injectable } from '@nestjs/common'; import { Op } from 'sequelize'; import { Role } from '../../../domain/entities/role.entity'; import { ROLE_REPOSITORY } from '../../../domain/interfaces/role-repository.interface'; import type { IRoleRepository } from '../../../domain/interfaces/role-repository.interface'; import { RoleModel } from '../models/role.model'; import { RoleMapper } from '../../../application/mappers/role.mapper';  @Injectable() export class SequelizeRoleRepository implements IRoleRepository {   async create(role: Role): Promise<Role> {     const model = await RoleModel.create(RoleMapper.toPersistence(role));     return RoleMapper.toDomain(model);   }    async findAll(): Promise<Role[]> {     const models = await RoleModel.findAll({ order: [['id', 'ASC']] });     return models.map(RoleMapper.toDomain);   }    async findById(id: number): Promise<Role | null> {     const model = await RoleModel.findByPk(id);     return model ? RoleMapper.toDomain(model) : null;   }    async findByName(name: string): Promise<Role | null> {     const model = await RoleModel.findOne({ where: { name } });     return model ? RoleMapper.toDomain(model) : null;   }    async findByIds(ids: number[]): Promise<Role[]> {     if (ids.length === 0) return [];     const models = await RoleModel.findAll({ where: { id: { [Op.in]: ids } } });     return models.map(RoleMapper.toDomain);   }    async update(id: number, data: Partial<Role>): Promise<Role> {     const model = await RoleModel.findByPk(id);     if (!model) {       throw new Error(`Role ${id} not found`);     }     await model.update(RoleMapper.toPersistence({ ...RoleMapper.toDomain(model), ...data }));     return RoleMapper.toDomain(model);   }    async delete(id: number): Promise<void> {     await RoleModel.destroy({ where: { id } });   } }  export const roleRepositoryProvider = {   provide: ROLE_REPOSITORY,   useClass: SequelizeRoleRepository, }; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add sequelize repository sequelize-role.repository.ts"
+```
+
+#### 12.7 — features/auth/roles/infrastructure/persistence/seeders/roles.seeder.ts
+
+Seeder de datos iniciales para desarrollo y verificación física en BD.
+
+**Archivo:** `src/features/auth/roles/infrastructure/persistence/seeders/roles.seeder.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/infrastructure/persistence/seeders cat > src/features/auth/roles/infrastructure/persistence/seeders/roles.seeder.ts <<'EOF_BACKEND_IA' /**  * Seeder de feature deshabilitado.  * El bootstrap central vive en:  * src/infrastructure/database/seeders/auth-bootstrap.seeder.ts  * para respetar el orden de dependencias Business → Auth.  */ export class FeatureSeederDisabled {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "chore: add seeder roles.seeder.ts"
+```
+
+#### 12.8 — features/auth/roles/application/dto/create-role.dto.ts
+
+DTO de entrada/salida HTTP con `class-validator` / Swagger.
+
+**Archivo:** `src/features/auth/roles/application/dto/create-role.dto.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/application/dto cat > src/features/auth/roles/application/dto/create-role.dto.ts <<'EOF_BACKEND_IA' import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator'; import { Status } from '../../../../../common/enums/status.enum';  export class CreateRoleDto {   @IsString()   @IsNotEmpty()   name: string;    @IsOptional()   @IsEnum(Status)   isActive?: Status; }  export class UpdateRoleDto {   @IsOptional()   @IsString()   @IsNotEmpty()   name?: string;    @IsOptional()   @IsEnum(Status)   isActive?: Status; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add dto create-role.dto.ts"
+```
+
+#### 12.9 — features/auth/roles/application/dto/update-role.dto.ts
+
+DTO de entrada/salida HTTP con `class-validator` / Swagger.
+
+**Archivo:** `src/features/auth/roles/application/dto/update-role.dto.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/application/dto cat > src/features/auth/roles/application/dto/update-role.dto.ts <<'EOF_BACKEND_IA' export { UpdateRoleDto } from './create-role.dto'; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add dto update-role.dto.ts"
+```
+
+#### 12.10 — features/auth/roles/application/mappers/role.mapper.ts
+
+Mapper entre entidad de dominio y DTO de respuesta.
+
+**Archivo:** `src/features/auth/roles/application/mappers/role.mapper.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/application/mappers cat > src/features/auth/roles/application/mappers/role.mapper.ts <<'EOF_BACKEND_IA' import { Role } from '../../domain/entities/role.entity'; import { RoleModel } from '../../infrastructure/persistence/models/role.model';  export class RoleMapper {   static toDomain(model: RoleModel): Role {     return new Role({       id: model.id,       name: model.name,       isActive: model.isActive,       createdAt: model.createdAt,       updatedAt: model.updatedAt,     });   }    static toPersistence(entity: Role): Partial<RoleModel> {     return {       id: entity.id,       name: entity.name,       isActive: entity.isActive,     };   }    static toResponse(entity: Role) {     return {       id: entity.id,       name: entity.name,       isActive: entity.isActive,       createdAt: entity.createdAt,       updatedAt: entity.updatedAt,     };   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add mapper role.mapper.ts"
+```
+
+#### 12.11 — features/auth/roles/application/use-cases/create-role.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/roles/application/use-cases/create-role.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/application/use-cases cat > src/features/auth/roles/application/use-cases/create-role.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { Status } from '../../../../../common/enums/status.enum'; import { Role } from '../../domain/entities/role.entity'; import { RoleNameExistsException } from '../../domain/exceptions/role-name-exists.exception'; import { ROLE_REPOSITORY } from '../../domain/interfaces/role-repository.interface'; import type { IRoleRepository } from '../../domain/interfaces/role-repository.interface'; import { CreateRoleDto } from '../dto/create-role.dto'; import { RoleMapper } from '../mappers/role.mapper';  @Injectable() export class CreateRoleUseCase {   constructor(     @Inject(ROLE_REPOSITORY)     private readonly roleRepository: IRoleRepository,   ) {}    async execute(dto: CreateRoleDto) {     const existing = await this.roleRepository.findByName(dto.name);     if (existing) {       throw new RoleNameExistsException(dto.name);     }      const role = new Role({       name: dto.name,       isActive: dto.isActive ?? Status.ACTIVE,     });      const created = await this.roleRepository.create(role);     return RoleMapper.toResponse(created);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case create-role.use-case.ts"
+```
+
+#### 12.12 — features/auth/roles/application/use-cases/delete-role.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/roles/application/use-cases/delete-role.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/application/use-cases cat > src/features/auth/roles/application/use-cases/delete-role.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { ROLE_REPOSITORY } from '../../domain/interfaces/role-repository.interface'; import type { IRoleRepository } from '../../domain/interfaces/role-repository.interface'; import { RoleNotFoundException } from '../../domain/exceptions/role-not-found.exception';  @Injectable() export class DeleteRoleUseCase {   constructor(     @Inject(ROLE_REPOSITORY)     private readonly roleRepository: IRoleRepository,   ) {}    async execute(id: number): Promise<void> {     const existing = await this.roleRepository.findById(id);     if (!existing) {       throw new RoleNotFoundException(id);     }     await this.roleRepository.delete(id);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case delete-role.use-case.ts"
+```
+
+#### 12.13 — features/auth/roles/application/use-cases/get-role.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/roles/application/use-cases/get-role.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/application/use-cases cat > src/features/auth/roles/application/use-cases/get-role.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { ROLE_REPOSITORY } from '../../domain/interfaces/role-repository.interface'; import type { IRoleRepository } from '../../domain/interfaces/role-repository.interface'; import { RoleNotFoundException } from '../../domain/exceptions/role-not-found.exception'; import { RoleMapper } from '../mappers/role.mapper';  @Injectable() export class GetRoleUseCase {   constructor(     @Inject(ROLE_REPOSITORY)     private readonly roleRepository: IRoleRepository,   ) {}    async execute(id: number) {     const role = await this.roleRepository.findById(id);     if (!role) {       throw new RoleNotFoundException(id);     }     return RoleMapper.toResponse(role);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case get-role.use-case.ts"
+```
+
+#### 12.14 — features/auth/roles/application/use-cases/list-roles.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/roles/application/use-cases/list-roles.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/application/use-cases cat > src/features/auth/roles/application/use-cases/list-roles.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { ROLE_REPOSITORY } from '../../domain/interfaces/role-repository.interface'; import type { IRoleRepository } from '../../domain/interfaces/role-repository.interface'; import { RoleMapper } from '../mappers/role.mapper';  @Injectable() export class ListRolesUseCase {   constructor(     @Inject(ROLE_REPOSITORY)     private readonly roleRepository: IRoleRepository,   ) {}    async execute() {     const roles = await this.roleRepository.findAll();     return roles.map(RoleMapper.toResponse);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case list-roles.use-case.ts"
+```
+
+#### 12.15 — features/auth/roles/application/use-cases/update-role.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/roles/application/use-cases/update-role.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/application/use-cases cat > src/features/auth/roles/application/use-cases/update-role.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { RoleNameExistsException } from '../../domain/exceptions/role-name-exists.exception'; import { RoleNotFoundException } from '../../domain/exceptions/role-not-found.exception'; import { ROLE_REPOSITORY } from '../../domain/interfaces/role-repository.interface'; import type { IRoleRepository } from '../../domain/interfaces/role-repository.interface'; import { UpdateRoleDto } from '../dto/update-role.dto'; import { RoleMapper } from '../mappers/role.mapper';  @Injectable() export class UpdateRoleUseCase {   constructor(     @Inject(ROLE_REPOSITORY)     private readonly roleRepository: IRoleRepository,   ) {}    async execute(id: number, dto: UpdateRoleDto) {     const existing = await this.roleRepository.findById(id);     if (!existing) {       throw new RoleNotFoundException(id);     }      if (dto.name && dto.name !== existing.name) {       const nameTaken = await this.roleRepository.findByName(dto.name);       if (nameTaken) {         throw new RoleNameExistsException(dto.name);       }     }      const updated = await this.roleRepository.update(id, dto);     return RoleMapper.toResponse(updated);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case update-role.use-case.ts"
+```
+
+#### 12.16 — features/auth/roles/presentation/http/controllers/roles.controller.ts
+
+Controller delgado: valida DTO, llama use-case, devuelve respuesta.
+
+**Archivo:** `src/features/auth/roles/presentation/http/controllers/roles.controller.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/presentation/http/controllers cat > src/features/auth/roles/presentation/http/controllers/roles.controller.ts <<'EOF_BACKEND_IA' import {   Body,   Controller,   Delete,   Get,   Param,   ParseIntPipe,   Post,   Put, } from '@nestjs/common'; import { CreateRoleDto } from '../../../application/dto/create-role.dto'; import { UpdateRoleDto } from '../../../application/dto/update-role.dto'; import { CreateRoleUseCase } from '../../../application/use-cases/create-role.use-case'; import { DeleteRoleUseCase } from '../../../application/use-cases/delete-role.use-case'; import { GetRoleUseCase } from '../../../application/use-cases/get-role.use-case'; import { ListRolesUseCase } from '../../../application/use-cases/list-roles.use-case'; import { UpdateRoleUseCase } from '../../../application/use-cases/update-role.use-case';  @Controller('roles') export class RolesController {   constructor(     private readonly createRoleUseCase: CreateRoleUseCase,     private readonly listRolesUseCase: ListRolesUseCase,     private readonly getRoleUseCase: GetRoleUseCase,     private readonly updateRoleUseCase: UpdateRoleUseCase,     private readonly deleteRoleUseCase: DeleteRoleUseCase,   ) {}    @Post()   create(@Body() dto: CreateRoleDto) {     return this.createRoleUseCase.execute(dto);   }    @Get()   findAll() {     return this.listRolesUseCase.execute();   }    @Get(':id')   findOne(@Param('id', ParseIntPipe) id: number) {     return this.getRoleUseCase.execute(id);   }    @Put(':id')   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateRoleDto) {     return this.updateRoleUseCase.execute(id, dto);   }    @Delete(':id')   async remove(@Param('id', ParseIntPipe) id: number) {     await this.deleteRoleUseCase.execute(id);     return { message: 'Rol eliminado' };   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add controller roles.controller.ts"
+```
+
+#### 12.17 — features/auth/roles/roles.module.ts
+
+Módulo Nest del feature: cablea providers, tokens DI y controller.
+
+**Archivo:** `src/features/auth/roles/roles.module.ts`
+
+``` bash
+mkdir -p src/features/auth/roles cat > src/features/auth/roles/roles.module.ts <<'EOF_BACKEND_IA' import { Module } from '@nestjs/common'; import { CreateRoleUseCase } from './application/use-cases/create-role.use-case'; import { DeleteRoleUseCase } from './application/use-cases/delete-role.use-case'; import { GetRoleUseCase } from './application/use-cases/get-role.use-case'; import { ListRolesUseCase } from './application/use-cases/list-roles.use-case'; import { UpdateRoleUseCase } from './application/use-cases/update-role.use-case'; import { roleRepositoryProvider } from './infrastructure/persistence/repositories/sequelize-role.repository'; import { RolesController } from './presentation/http/controllers/roles.controller';  @Module({   controllers: [RolesController],   providers: [     roleRepositoryProvider,     CreateRoleUseCase,     GetRoleUseCase,     ListRolesUseCase,     UpdateRoleUseCase,     DeleteRoleUseCase,   ],   exports: [roleRepositoryProvider], }) export class RolesModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: wire nest module roles.module.ts"
+```
+
+#### 12.18 — Actualizar sequelize.factory.ts (registrar modelos)
+
+Registra en ALL_MODELS solo los modelos ya creados (orden de dependencias).
+
+**Archivo:** `src/infrastructure/database/sequelize/sequelize.factory.ts`
+
+``` bash
+mkdir -p src/infrastructure/database/sequelize cat > src/infrastructure/database/sequelize/sequelize.factory.ts <<'EOF_BACKEND_IA' import { Sequelize } from 'sequelize-typescript'; import { DatabaseDialect } from '../../../config/environment/env.interface'; import { getSequelizeOptions } from './sequelize.options';  import { ClientModel } from '../../../features/business/clients/infrastructure/persistence/models/client.model'; import { ProductTypeModel } from '../../../features/business/product-types/infrastructure/persistence/models/product-type.model'; import { ProductModel } from '../../../features/business/products/infrastructure/persistence/models/product.model'; import { SaleModel } from '../../../features/business/sales/infrastructure/persistence/models/sale.model'; import { ProductSaleModel } from '../../../features/business/sales/infrastructure/persistence/models/product-sale.model'; import { UserModel } from '../../../features/auth/users/infrastructure/persistence/models/user.model'; import { RoleModel } from '../../../features/auth/roles/infrastructure/persistence/models/role.model';  export const ALL_MODELS = [   ClientModel,   ProductTypeModel,   ProductModel,   SaleModel,   ProductSaleModel,   UserModel,   RoleModel, ];  export async function createSequelizeInstance(   dialect: DatabaseDialect, ): Promise<Sequelize> {   const options = getSequelizeOptions(dialect);    let dialectModule: any;    switch (dialect) {     case DatabaseDialect.MySQL:       dialectModule = require('mysql2');       break;     case DatabaseDialect.Postgres:       dialectModule = require('pg');       break;     case DatabaseDialect.MSSQL:       dialectModule = require('tedious');       break;     case DatabaseDialect.Oracle:       dialectModule = require('oracledb');       break;     default:       throw new Error(`Dialecto no soportado: ${dialect}`);   }    const sequelize = new Sequelize({     ...options,     dialectModule,     models: ALL_MODELS,   } as any);    try {     await sequelize.authenticate();     console.log(`✅ Conexión exitosa a ${dialect.toUpperCase()}`);   } catch (error: any) {     console.error(       `❌ Error conectando a ${dialect.toUpperCase()}:`,       error.message,     );     throw error;   }    if (process.env.NODE_ENV !== 'production') {     await sequelize.sync({ alter: false });     console.log('✅ Tablas sincronizadas');   }    return sequelize; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: register auth models up to role"
+```
+
+#### 12.19 — Actualizar auth.module.ts
+
+Agrega el feature module de auth recién terminado.
+
+**Archivo:** `src/features/auth/auth.module.ts`
+
+``` bash
+mkdir -p src/features/auth cat > src/features/auth/auth.module.ts <<'EOF_BACKEND_IA' import { Module } from '@nestjs/common'; import { UsersModule } from './users/users.module'; import { RolesModule } from './roles/roles.module';  @Module({   imports: [UsersModule, RolesModule],   exports: [UsersModule, RolesModule], }) export class AuthModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add roles to AuthModule"
+```
+
+#### 12.20 — Actualizar database-seeder.service.ts
+
+Ejecuta seeders en orden de dependencias al arrancar (dev).
+
+**Archivo:** `src/infrastructure/database/seeders/database-seeder.service.ts`
+
+``` bash
+mkdir -p src/infrastructure/database/seeders cat > src/infrastructure/database/seeders/database-seeder.service.ts <<'EOF_BACKEND_IA' import { Injectable, Logger, OnModuleInit } from '@nestjs/common'; import { seedClients } from '../../../features/business/clients/infrastructure/persistence/seeders/clients.seeder'; import { seedProductTypes } from '../../../features/business/product-types/infrastructure/persistence/seeders/product-types.seeder'; import { seedProducts } from '../../../features/business/products/infrastructure/persistence/seeders/products.seeder'; import { seedSales } from '../../../features/business/sales/infrastructure/persistence/seeders/sales.seeder';  /**  * Ejecuta seeders en orden de dependencias.  * Solo en entornos no productivos.  */ @Injectable() export class DatabaseSeederService implements OnModuleInit {   private readonly logger = new Logger(DatabaseSeederService.name);    async onModuleInit(): Promise<void> {     if (process.env.NODE_ENV === 'production') {       return;     }      try {       await seedClients();       await seedProductTypes();       await seedProducts();       await seedSales();       this.logger.log('✅ Seeders ejecutados');     } catch (error: any) {       this.logger.error(`❌ Error en seeders: ${error.message}`, error.stack);       throw error;     }   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "chore: update auth/business seeders bootstrap order"
+```
+
+#### 12.21 — Actualizar app.module.ts
+
+Importa BusinessModule y/o AuthModule según el avance. Los guards globales llegan en la fase RBAC.
+
+**Archivo:** `src/app.module.ts`
+
+``` bash
+mkdir -p src cat > src/app.module.ts <<'EOF_BACKEND_IA' import { Module } from '@nestjs/common'; import { ConfigModule } from '@nestjs/config'; import { envConfig } from './config/environment/env.config'; import { appConfig } from './config/app/app.config'; import { jwtConfig } from './config/jwt/jwt.config'; import { LoggerModule } from './config/logger/logger.module'; import { SequelizeDatabaseModule } from './infrastructure/database/sequelize/sequelize.module'; import { SecurityModule } from './infrastructure/security/security.module'; import { BusinessModule } from './features/business/business.module'; import { AuthModule } from './features/auth/auth.module'; import { AppController } from './app.controller'; import { AppService } from './app.service';  @Module({   imports: [     ConfigModule.forRoot({       isGlobal: true,       load: [envConfig, appConfig, jwtConfig],       envFilePath: '.env',     }),     SequelizeDatabaseModule,     SecurityModule,     LoggerModule,     BusinessModule,     AuthModule,   ],   controllers: [AppController],   providers: [     AppService,   ], }) export class AppModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: import AuthModule into AppModule"
+```
+
+#### 12.22 — Verificar feature auth (Auth — Roles)
+
+Arranca y confirma tablas/endpoints del feature. Si hay asociaciones pendientes, el sync de columnas principales ya debe existir.
+
+``` bash
+npm run start:dev
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "test: verify 11_auth_roles auth feature"
+```
+
+------------------------------------------------------------------------
+
+## 
