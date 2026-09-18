@@ -3917,6 +3917,4 @@ npm run start:dev
 git add . git commit -m "test: verify 10_auth_users auth feature"
 ```
 
-------------------------------------------------------------------------
-
-## 
+![![](images/clipboard-34731380.png)](images/clipboard-3371247841.png)
