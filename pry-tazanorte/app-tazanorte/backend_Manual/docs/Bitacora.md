@@ -4207,6 +4207,8 @@ mkdir -p src/features/auth/resources/infrastructure/persistence/repositories cat
 git add . git commit -m "feat: add sequelize repository sequelize-resource.repository.ts"
 ```
 
+![](images/clipboard-958162321.png)
+
 #### 14.6 — features/auth/resources/infrastructure/persistence/seeders/resources.seeder.ts
 
 Seeder de datos iniciales para desarrollo y verificación física en BD.
