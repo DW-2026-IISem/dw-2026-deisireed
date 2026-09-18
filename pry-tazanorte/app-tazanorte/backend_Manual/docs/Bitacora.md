@@ -3995,6 +3995,8 @@ mkdir -p src/features/auth/roles/domain/interfaces cat > src/features/auth/roles
 git add . git commit -m "feat: add repository port role-repository.interface.ts"
 ```
 
+![](images/clipboard-1054049013.png)
+
 #### 12.5 — features/auth/roles/infrastructure/persistence/models/role.model.ts (sin asociaciones cruzadas aún)
 
 Modelo Sequelize (`@Table`). Solo infraestructura: mapeo a tabla física. En esta fase se crea **sin** BelongsToMany/HasMany hacia módulos aún no creados, para poder compilar y sincronizar la tabla.
