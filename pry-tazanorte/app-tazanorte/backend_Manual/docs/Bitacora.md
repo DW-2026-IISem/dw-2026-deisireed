@@ -3557,6 +3557,8 @@ mkdir -p src/features/auth/users/domain/exceptions cat > src/features/auth/users
 git add . git commit -m "feat: add domain exception user-not-found.exception.ts"
 ```
 
+![](images/clipboard-2277619771.png)
+
 #### 11.4 — features/auth/users/domain/exceptions/user-username-exists.exception.ts
 
 Excepción de dominio. El caso de uso la lanza; el filter HTTP la traduce a status code.
