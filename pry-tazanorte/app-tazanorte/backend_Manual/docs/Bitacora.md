@@ -3959,6 +3959,8 @@ mkdir -p src/features/auth/roles/domain/exceptions cat > src/features/auth/roles
 git add . git commit -m "feat: add domain exception role-name-exists.exception.ts"
 ```
 
+![](images/clipboard-3661182340.png)
+
 #### 12.3 — features/auth/roles/domain/exceptions/role-not-found.exception.ts
 
 Excepción de dominio. El caso de uso la lanza; el filter HTTP la traduce a status code.
