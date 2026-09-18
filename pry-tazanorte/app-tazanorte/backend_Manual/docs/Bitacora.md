@@ -3685,6 +3685,8 @@ mkdir -p src/features/auth/users/application/dto cat > src/features/auth/users/a
 git add . git commit -m "feat: add dto update-user.dto.ts"
 ```
 
+![](images/clipboard-3615633551.png)
+
 #### 11.11 — features/auth/users/application/mappers/user.mapper.ts
 
 Mapper entre entidad de dominio y DTO de respuesta.
