@@ -4533,6 +4533,8 @@ npm run start:dev
 
 #### 16.3 — features/auth/refresh-tokens/infrastructure/persistence/models/refresh-token.model.ts
 
+![](images/clipboard-290484703.png)
+
 #### 16.4 — features/auth/refresh-tokens/infrastructure/persistence/repositories/sequelize-refresh-token.repository.ts
 
 #### 16.5 — features/auth/refresh-tokens/infrastructure/persistence/seeders/refresh-tokens.seeder.ts
