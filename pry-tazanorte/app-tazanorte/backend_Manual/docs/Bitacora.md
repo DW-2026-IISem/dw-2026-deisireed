@@ -4067,6 +4067,8 @@ git add . git commit -m "test: verify 11_auth_roles auth feature"
 
 ![](images/clipboard-3637499050.png)
 
+![](images/clipboard-3795063009.png)
+
 ------------------------------------------------------------------------
 
 ## 
