@@ -4243,6 +4243,8 @@ mkdir -p src/features/auth/resources/application/dto cat > src/features/auth/res
 git add . git commit -m "feat: add dto create-resource.dto.ts"
 ```
 
+![](images/clipboard-3654794626.png)
+
 #### 14.8 — features/auth/resources/application/mappers/resource.mapper.ts
 
 Mapper entre entidad de dominio y DTO de respuesta.
