@@ -3757,6 +3757,8 @@ mkdir -p src/features/auth/users/application/use-cases cat > src/features/auth/u
 git add . git commit -m "feat: add use case get-user.use-case.ts"
 ```
 
+![](images/clipboard-1225688272.png)
+
 #### 11.15 — features/auth/users/application/use-cases/list-users.use-case.ts
 
 Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
