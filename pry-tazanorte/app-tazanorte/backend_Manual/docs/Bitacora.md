@@ -3865,6 +3865,8 @@ mkdir -p src/features/auth cat > src/features/auth/auth.module.ts <<'EOF_BACKEND
 git add . git commit -m "feat: add users to AuthModule"
 ```
 
+![](images/clipboard-221700826.png)
+
 #### 11.21 — Actualizar database-seeder.service.ts
 
 Ejecuta seeders en orden de dependencias al arrancar (dev).
