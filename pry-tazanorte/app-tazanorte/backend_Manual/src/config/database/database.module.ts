@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { ClientModel } from '../../features/business/clients/infrastructure/persistence/models/client.model';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -9,15 +8,14 @@ import { ClientModel } from '../../features/business/clients/infrastructure/pers
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        dialect: configService.get<any>('database.dialect') || 'mysql',
-        host: configService.get<string>('database.host'),
-        port: configService.get<number>('database.port'),
-        username: configService.get<string>('database.username'),
-        password: configService.get<string>('database.password'),
-        database: configService.get<string>('database.database'),
-        models: [ClientModel],
+        dialect: 'mysql',
+        host: configService.get<string>('DB_HOST', '127.0.0.1'),
+        port: configService.get<number>('DB_PORT', 3306),
+        username: configService.get<string>('DB_USERNAME', 'desireed'),
+        password: configService.get<string>('DB_PASSWORD', '0104*Deisi'),
+        database: configService.get<string>('DB_DATABASE', 'tazanorte_mysql'),
         autoLoadModels: true,
-        synchronize: true,
+        synchronize: false,
       }),
     }),
   ],

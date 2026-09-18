@@ -1,32 +1,34 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { envConfig } from './config/environment/env.config';
-import { appConfig } from './config/app/app.config';
-import { jwtConfig } from './config/jwt/jwt.config';
-import { LoggerModule } from './config/logger/logger.module';
-import { SequelizeDatabaseModule } from './infrastructure/database/sequelize/sequelize.module';
-import { SecurityModule } from './infrastructure/security/security.module';
-import { BusinessModule } from './features/business/business.module';
-import { AuthModule } from './features/auth/auth.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { DatabaseModule } from './config/database/database.module';
+import { ClientsModule } from './features/business/clients/clients.module';
+import { ProductsModule } from './features/business/products/products.module';
+import { SalesModule } from './features/business/sales/sales.module';
+import { EmployeesModule } from './features/business/employees/employees.module';
+import { CashRegistersModule } from './features/business/cash-registers/cash-registers.module';
+import { PointsModule } from './features/business/points/points.module';
+import { UsersModule } from './features/auth/users/users.module';
+import { SuppliesModule } from './features/business/supplies/supplies.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [envConfig, appConfig, jwtConfig],
       envFilePath: '.env',
     }),
-    SequelizeDatabaseModule,
-    SecurityModule,
-    LoggerModule,
-    BusinessModule,
-    AuthModule,
+    DatabaseModule,
+    ClientsModule,
+    ProductsModule,
+    SalesModule,
+    EmployeesModule,
+    CashRegistersModule,
+    PointsModule,
+    UsersModule,
+    SuppliesModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-  ],
+  providers: [AppService],
 })
 export class AppModule {}
