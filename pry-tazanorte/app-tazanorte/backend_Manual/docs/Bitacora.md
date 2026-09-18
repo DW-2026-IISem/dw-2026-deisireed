@@ -4431,6 +4431,8 @@ mkdir -p src/features/auth/resource-roles/infrastructure/persistence/seeders cat
 git add . git commit -m "chore: add seeder resource-roles.seeder.ts"
 ```
 
+![](images/clipboard-2738403142.png)
+
 #### 15.7 — features/auth/resource-roles/application/dto/assign-resource-role.dto.ts
 
 DTO de entrada/salida HTTP con `class-validator` / Swagger.
