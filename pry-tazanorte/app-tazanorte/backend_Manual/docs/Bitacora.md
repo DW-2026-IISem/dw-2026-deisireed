@@ -4529,6 +4529,8 @@ npm run start:dev
 
 #### 16.2 — features/auth/refresh-tokens/domain/interfaces/refresh-token-repository.interface.ts
 
+![](images/clipboard-2161234122.png)
+
 #### 16.3 — features/auth/refresh-tokens/infrastructure/persistence/models/refresh-token.model.ts
 
 #### 16.4 — features/auth/refresh-tokens/infrastructure/persistence/repositories/sequelize-refresh-token.repository.ts
