@@ -1,4 +1,8 @@
 import { Module } from '@nestjs/common';
+import { employeeRepositoryProvider } from './infrastructure/persistence/repositories/sequelize-employee.repository';
 
-@Module({})
+@Module({
+  providers: [employeeRepositoryProvider],
+  exports: [employeeRepositoryProvider],
+})
 export class EmployeesModule {}
