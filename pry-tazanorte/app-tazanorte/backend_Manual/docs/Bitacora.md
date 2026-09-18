@@ -4485,6 +4485,8 @@ mkdir -p src/features/auth/resource-roles/application/use-cases cat > src/featur
 git add . git commit -m "feat: add use case assign-resource-role.use-case.ts"
 ```
 
+![](images/clipboard-645384801.png)
+
 #### 15.10 — features/auth/resource-roles/application/use-cases/list-resource-roles.use-case.ts
 
 Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
