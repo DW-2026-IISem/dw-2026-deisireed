@@ -4261,6 +4261,8 @@ mkdir -p src/features/auth/resources/application/mappers cat > src/features/auth
 git add . git commit -m "feat: add mapper resource.mapper.ts"
 ```
 
+![](images/clipboard-604675049.png)
+
 #### 14.9 — features/auth/resources/application/use-cases/create-resource.use-case.ts
 
 Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
