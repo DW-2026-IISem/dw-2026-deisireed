@@ -7,6 +7,7 @@ import { LoggerModule } from './config/logger/logger.module';
 import { SequelizeDatabaseModule } from './infrastructure/database/sequelize/sequelize.module';
 import { SecurityModule } from './infrastructure/security/security.module';
 import { BusinessModule } from './features/business/business.module';
+import { AuthModule } from './features/auth/auth.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -21,6 +22,7 @@ import { AppService } from './app.service';
     SecurityModule,
     LoggerModule,
     BusinessModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [

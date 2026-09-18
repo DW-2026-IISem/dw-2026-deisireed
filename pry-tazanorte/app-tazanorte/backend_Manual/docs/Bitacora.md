@@ -3901,6 +3901,8 @@ mkdir -p src cat > src/app.module.ts <<'EOF_BACKEND_IA' import { Module } from '
 git add . git commit -m "feat: import AuthModule into AppModule"
 ```
 
+![](images/clipboard-4193761795.png)
+
 #### 11.23 — Verificar feature auth (Auth — Users)
 
 Arranca y confirma tablas/endpoints del feature. Si hay asociaciones pendientes, el sync de columnas principales ya debe existir.
