@@ -4317,4 +4317,4 @@ git add . git commit -m "test: verify 13_auth_resources auth feature"
 
 ## ![](images/clipboard-3986166641.png)
 
-![](images/clipboard-4030898485.png)
+![![](images/clipboard-3764146639.png)](images/clipboard-4030898485.png)
