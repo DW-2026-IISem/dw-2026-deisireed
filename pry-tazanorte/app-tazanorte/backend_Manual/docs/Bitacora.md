@@ -4153,6 +4153,8 @@ mkdir -p src/features/auth/resources/domain/exceptions cat > src/features/auth/r
 git add . git commit -m "feat: add domain exception resource-not-found.exception.ts"
 ```
 
+![](images/clipboard-832938839.png)
+
 #### 14.3 — features/auth/resources/domain/interfaces/resource-repository.interface.ts
 
 Puerto (contrato) del repositorio. La aplicación depende de esta interface, no de Sequelize.
