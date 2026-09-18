@@ -4297,6 +4297,8 @@ mkdir -p src/features/auth/resources/application/use-cases cat > src/features/au
 git add . git commit -m "feat: add use case delete-resource.use-case.ts"
 ```
 
+![](images/clipboard-2694532834.png)
+
 #### 14.11 — features/auth/resources/application/use-cases/get-resource.use-case.ts
 
 Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
