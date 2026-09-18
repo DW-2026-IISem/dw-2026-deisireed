@@ -4318,3 +4318,328 @@ git add . git commit -m "test: verify 13_auth_resources auth feature"
 ## ![](images/clipboard-3986166641.png)
 
 ![![](images/clipboard-3764146639.png)](images/clipboard-4030898485.png)
+
+## FASE 15 — `14_AUTH_RESOURCE_ROLES`
+
+### Auth — ResourceRoles
+
+> **Objetivo de la fase:** Pivote resource↔role. Luego se restauran asociaciones finales Role/Resource.
+
+#### 15.1 — features/auth/resource-roles/domain/entities/resource-role.entity.ts
+
+Entidad de dominio (TypeScript puro). No extiende Sequelize `Model`. Aquí viven las reglas del negocio.
+
+**Archivo:** `src/features/auth/resource-roles/domain/entities/resource-role.entity.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles/domain/entities cat > src/features/auth/resource-roles/domain/entities/resource-role.entity.ts <<'EOF_BACKEND_IA' import { Status } from '../../../../../common/enums/status.enum';  export class ResourceRole {   id?: number;   resourceId: number;   roleId: number;   isActive: Status;   createdAt?: Date;   updatedAt?: Date;    constructor(partial: Partial<ResourceRole>) {     Object.assign(this, partial);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add domain entity resource-role.entity.ts"
+```
+
+![](images/clipboard-573797823.png)
+
+#### 15.2 — features/auth/resource-roles/domain/exceptions/resource-role-not-found.exception.ts
+
+Excepción de dominio. El caso de uso la lanza; el filter HTTP la traduce a status code.
+
+**Archivo:** `src/features/auth/resource-roles/domain/exceptions/resource-role-not-found.exception.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles/domain/exceptions cat > src/features/auth/resource-roles/domain/exceptions/resource-role-not-found.exception.ts <<'EOF_BACKEND_IA' import { EntityNotFoundException } from '../../../../../common/exceptions/entity-not-found.exception';  export class ResourceRoleNotFoundException extends EntityNotFoundException {   constructor(identifier: string | number) {     super('Permiso de recurso', identifier);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add domain exception resource-role-not-found.exception.ts"
+```
+
+#### 15.3 — features/auth/resource-roles/domain/interfaces/resource-role-repository.interface.ts
+
+Puerto (contrato) del repositorio. La aplicación depende de esta interface, no de Sequelize.
+
+**Archivo:** `src/features/auth/resource-roles/domain/interfaces/resource-role-repository.interface.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles/domain/interfaces cat > src/features/auth/resource-roles/domain/interfaces/resource-role-repository.interface.ts <<'EOF_BACKEND_IA' import { ResourceRole } from '../entities/resource-role.entity';  export const RESOURCE_ROLE_REPOSITORY = 'RESOURCE_ROLE_REPOSITORY';  export interface IResourceRoleRepository {   assign(resourceRole: ResourceRole): Promise<ResourceRole>;   revoke(id: number): Promise<void>;   findAll(): Promise<ResourceRole[]>;   findByRoleIds(roleIds: number[]): Promise<ResourceRole[]>;   findByResourceIdAndRoleId(     resourceId: number,     roleId: number,   ): Promise<ResourceRole | null>; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add repository port resource-role-repository.interface.ts"
+```
+
+#### 15.4 — features/auth/resource-roles/infrastructure/persistence/models/resource-role.model.ts
+
+Modelo Sequelize (`@Table`). Solo infraestructura: mapeo a tabla física.
+
+**Archivo:** `src/features/auth/resource-roles/infrastructure/persistence/models/resource-role.model.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles/infrastructure/persistence/models cat > src/features/auth/resource-roles/infrastructure/persistence/models/resource-role.model.ts <<'EOF_BACKEND_IA' import {   Table,   Column,   Model,   DataType,   CreatedAt,   UpdatedAt,   ForeignKey,   BelongsTo, } from 'sequelize-typescript'; import { Status } from '../../../../../../common/enums/status.enum'; import { ResourceModel } from '../../../../resources/infrastructure/persistence/models/resource.model'; import { RoleModel } from '../../../../roles/infrastructure/persistence/models/role.model';  @Table({ tableName: 'resource_roles' }) export class ResourceRoleModel extends Model {   @Column({     type: DataType.INTEGER,     primaryKey: true,     autoIncrement: true,   })   declare id: number;    @ForeignKey(() => ResourceModel)   @Column({ type: DataType.INTEGER, allowNull: false })   declare resourceId: number;    @ForeignKey(() => RoleModel)   @Column({ type: DataType.INTEGER, allowNull: false })   declare roleId: number;    @Column({     type: DataType.ENUM(...Object.values(Status)),     allowNull: false,     defaultValue: Status.ACTIVE,   })   declare isActive: Status;    @CreatedAt   declare createdAt: Date;    @UpdatedAt   declare updatedAt: Date;    @BelongsTo(() => ResourceModel)   declare resource: ResourceModel;    @BelongsTo(() => RoleModel)   declare role: RoleModel; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add sequelize model resource-role.model.ts"
+```
+
+#### 15.5 — features/auth/resource-roles/infrastructure/persistence/repositories/sequelize-resource-role.repository.ts
+
+Adaptador del repositorio: implementa el puerto de dominio con Sequelize.
+
+**Archivo:** `src/features/auth/resource-roles/infrastructure/persistence/repositories/sequelize-resource-role.repository.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles/infrastructure/persistence/repositories cat > src/features/auth/resource-roles/infrastructure/persistence/repositories/sequelize-resource-role.repository.ts <<'EOF_BACKEND_IA' import { Injectable } from '@nestjs/common'; import { Op } from 'sequelize'; import { Status } from '../../../../../../common/enums/status.enum'; import { ResourceRole } from '../../../domain/entities/resource-role.entity'; import { RESOURCE_ROLE_REPOSITORY } from '../../../domain/interfaces/resource-role-repository.interface'; import type { IResourceRoleRepository } from '../../../domain/interfaces/resource-role-repository.interface'; import { ResourceRoleModel } from '../models/resource-role.model'; import { ResourceRoleMapper } from '../../../application/mappers/resource-role.mapper';  @Injectable() export class SequelizeResourceRoleRepository implements IResourceRoleRepository {   async assign(resourceRole: ResourceRole): Promise<ResourceRole> {     const model = await ResourceRoleModel.create(       ResourceRoleMapper.toPersistence(resourceRole),     );     return ResourceRoleMapper.toDomain(model);   }    async revoke(id: number): Promise<void> {     await ResourceRoleModel.update(       { isActive: Status.INACTIVE },       { where: { id } },     );   }    async findAll(): Promise<ResourceRole[]> {     const models = await ResourceRoleModel.findAll({ order: [['id', 'ASC']] });     return models.map(ResourceRoleMapper.toDomain);   }    async findByRoleIds(roleIds: number[]): Promise<ResourceRole[]> {     if (roleIds.length === 0) return [];     const models = await ResourceRoleModel.findAll({       where: { roleId: { [Op.in]: roleIds }, isActive: Status.ACTIVE },     });     return models.map(ResourceRoleMapper.toDomain);   }    async findByResourceIdAndRoleId(     resourceId: number,     roleId: number,   ): Promise<ResourceRole | null> {     const model = await ResourceRoleModel.findOne({       where: { resourceId, roleId },     });     return model ? ResourceRoleMapper.toDomain(model) : null;   } }  export const resourceRoleRepositoryProvider = {   provide: RESOURCE_ROLE_REPOSITORY,   useClass: SequelizeResourceRoleRepository, }; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add sequelize repository sequelize-resource-role.repository.ts"
+```
+
+#### 15.6 — features/auth/resource-roles/infrastructure/persistence/seeders/resource-roles.seeder.ts
+
+Seeder de datos iniciales para desarrollo y verificación física en BD.
+
+**Archivo:** `src/features/auth/resource-roles/infrastructure/persistence/seeders/resource-roles.seeder.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles/infrastructure/persistence/seeders cat > src/features/auth/resource-roles/infrastructure/persistence/seeders/resource-roles.seeder.ts <<'EOF_BACKEND_IA' /**  * Seeder de feature deshabilitado.  * El bootstrap central vive en:  * src/infrastructure/database/seeders/auth-bootstrap.seeder.ts  * para respetar el orden de dependencias Business → Auth.  */ export class FeatureSeederDisabled {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "chore: add seeder resource-roles.seeder.ts"
+```
+
+#### 15.7 — features/auth/resource-roles/application/dto/assign-resource-role.dto.ts
+
+DTO de entrada/salida HTTP con `class-validator` / Swagger.
+
+**Archivo:** `src/features/auth/resource-roles/application/dto/assign-resource-role.dto.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles/application/dto cat > src/features/auth/resource-roles/application/dto/assign-resource-role.dto.ts <<'EOF_BACKEND_IA' import { IsEnum, IsInt, IsOptional } from 'class-validator'; import { Status } from '../../../../../common/enums/status.enum';  export class AssignResourceRoleDto {   @IsInt()   resourceId: number;    @IsInt()   roleId: number;    @IsOptional()   @IsEnum(Status)   isActive?: Status; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add dto assign-resource-role.dto.ts"
+```
+
+#### 15.8 — features/auth/resource-roles/application/mappers/resource-role.mapper.ts
+
+Mapper entre entidad de dominio y DTO de respuesta.
+
+**Archivo:** `src/features/auth/resource-roles/application/mappers/resource-role.mapper.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles/application/mappers cat > src/features/auth/resource-roles/application/mappers/resource-role.mapper.ts <<'EOF_BACKEND_IA' import { ResourceRole } from '../../domain/entities/resource-role.entity'; import { ResourceRoleModel } from '../../infrastructure/persistence/models/resource-role.model';  export class ResourceRoleMapper {   static toDomain(model: ResourceRoleModel): ResourceRole {     return new ResourceRole({       id: model.id,       resourceId: model.resourceId,       roleId: model.roleId,       isActive: model.isActive,       createdAt: model.createdAt,       updatedAt: model.updatedAt,     });   }    static toPersistence(entity: ResourceRole): Partial<ResourceRoleModel> {     return {       id: entity.id,       resourceId: entity.resourceId,       roleId: entity.roleId,       isActive: entity.isActive,     };   }    static toResponse(entity: ResourceRole) {     return {       id: entity.id,       resourceId: entity.resourceId,       roleId: entity.roleId,       isActive: entity.isActive,       createdAt: entity.createdAt,       updatedAt: entity.updatedAt,     };   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add mapper resource-role.mapper.ts"
+```
+
+#### 15.9 — features/auth/resource-roles/application/use-cases/assign-resource-role.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/resource-roles/application/use-cases/assign-resource-role.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles/application/use-cases cat > src/features/auth/resource-roles/application/use-cases/assign-resource-role.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { Status } from '../../../../../common/enums/status.enum'; import { ResourceNotFoundException } from '../../../resources/domain/exceptions/resource-not-found.exception'; import { RESOURCE_REPOSITORY } from '../../../resources/domain/interfaces/resource-repository.interface'; import type { IResourceRepository } from '../../../resources/domain/interfaces/resource-repository.interface'; import { RoleNotFoundException } from '../../../roles/domain/exceptions/role-not-found.exception'; import { ROLE_REPOSITORY } from '../../../roles/domain/interfaces/role-repository.interface'; import type { IRoleRepository } from '../../../roles/domain/interfaces/role-repository.interface'; import { ResourceRole } from '../../domain/entities/resource-role.entity'; import { RESOURCE_ROLE_REPOSITORY } from '../../domain/interfaces/resource-role-repository.interface'; import type { IResourceRoleRepository } from '../../domain/interfaces/resource-role-repository.interface'; import { AssignResourceRoleDto } from '../dto/assign-resource-role.dto'; import { ResourceRoleMapper } from '../mappers/resource-role.mapper';  @Injectable() export class AssignResourceRoleUseCase {   constructor(     @Inject(RESOURCE_ROLE_REPOSITORY)     private readonly resourceRoleRepository: IResourceRoleRepository,     @Inject(RESOURCE_REPOSITORY)     private readonly resourceRepository: IResourceRepository,     @Inject(ROLE_REPOSITORY)     private readonly roleRepository: IRoleRepository,   ) {}    async execute(dto: AssignResourceRoleDto) {     const resource = await this.resourceRepository.findById(dto.resourceId);     if (!resource) {       throw new ResourceNotFoundException(dto.resourceId);     }      const role = await this.roleRepository.findById(dto.roleId);     if (!role) {       throw new RoleNotFoundException(dto.roleId);     }      const resourceRole = new ResourceRole({       resourceId: dto.resourceId,       roleId: dto.roleId,       isActive: dto.isActive ?? Status.ACTIVE,     });      const assigned = await this.resourceRoleRepository.assign(resourceRole);     return ResourceRoleMapper.toResponse(assigned);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case assign-resource-role.use-case.ts"
+```
+
+#### 15.10 — features/auth/resource-roles/application/use-cases/list-resource-roles.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/resource-roles/application/use-cases/list-resource-roles.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles/application/use-cases cat > src/features/auth/resource-roles/application/use-cases/list-resource-roles.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { RESOURCE_REPOSITORY } from '../../../resources/domain/interfaces/resource-repository.interface'; import type { IResourceRepository } from '../../../resources/domain/interfaces/resource-repository.interface'; import { ROLE_REPOSITORY } from '../../../roles/domain/interfaces/role-repository.interface'; import type { IRoleRepository } from '../../../roles/domain/interfaces/role-repository.interface'; import { RESOURCE_ROLE_REPOSITORY } from '../../domain/interfaces/resource-role-repository.interface'; import type { IResourceRoleRepository } from '../../domain/interfaces/resource-role-repository.interface'; import { ResourceRoleMapper } from '../mappers/resource-role.mapper';  @Injectable() export class ListResourceRolesUseCase {   constructor(     @Inject(RESOURCE_ROLE_REPOSITORY)     private readonly resourceRoleRepository: IResourceRoleRepository,     @Inject(RESOURCE_REPOSITORY)     private readonly resourceRepository: IResourceRepository,     @Inject(ROLE_REPOSITORY)     private readonly roleRepository: IRoleRepository,   ) {}    async execute() {     const resourceRoles = await this.resourceRoleRepository.findAll();     const resources = await this.resourceRepository.findAll();     const roles = await this.roleRepository.findAll();      const resourceMap = new Map(resources.map((r) => [r.id, r]));     const roleMap = new Map(roles.map((r) => [r.id, r]));      return resourceRoles.map((rr) => ({       ...ResourceRoleMapper.toResponse(rr),       resource: resourceMap.get(rr.resourceId),       role: roleMap.get(rr.roleId),     }));   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case list-resource-roles.use-case.ts"
+```
+
+#### 15.11 — features/auth/resource-roles/application/use-cases/revoke-resource-role.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/resource-roles/application/use-cases/revoke-resource-role.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles/application/use-cases cat > src/features/auth/resource-roles/application/use-cases/revoke-resource-role.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { RESOURCE_ROLE_REPOSITORY } from '../../domain/interfaces/resource-role-repository.interface'; import type { IResourceRoleRepository } from '../../domain/interfaces/resource-role-repository.interface'; import { ResourceRoleNotFoundException } from '../../domain/exceptions/resource-role-not-found.exception'; import { ResourceRoleModel } from '../../infrastructure/persistence/models/resource-role.model';  @Injectable() export class RevokeResourceRoleUseCase {   constructor(     @Inject(RESOURCE_ROLE_REPOSITORY)     private readonly resourceRoleRepository: IResourceRoleRepository,   ) {}    async execute(id: number): Promise<void> {     const existing = await ResourceRoleModel.findByPk(id);     if (!existing) {       throw new ResourceRoleNotFoundException(id);     }     await this.resourceRoleRepository.revoke(id);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case revoke-resource-role.use-case.ts"
+```
+
+#### 15.12 — features/auth/resource-roles/presentation/http/controllers/resource-roles.controller.ts
+
+Controller delgado: valida DTO, llama use-case, devuelve respuesta.
+
+**Archivo:** `src/features/auth/resource-roles/presentation/http/controllers/resource-roles.controller.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles/presentation/http/controllers cat > src/features/auth/resource-roles/presentation/http/controllers/resource-roles.controller.ts <<'EOF_BACKEND_IA' import {   Body,   Controller,   Delete,   Get,   Param,   ParseIntPipe,   Post, } from '@nestjs/common'; import { AssignResourceRoleDto } from '../../../application/dto/assign-resource-role.dto'; import { AssignResourceRoleUseCase } from '../../../application/use-cases/assign-resource-role.use-case'; import { ListResourceRolesUseCase } from '../../../application/use-cases/list-resource-roles.use-case'; import { RevokeResourceRoleUseCase } from '../../../application/use-cases/revoke-resource-role.use-case';  @Controller('resource-roles') export class ResourceRolesController {   constructor(     private readonly assignResourceRoleUseCase: AssignResourceRoleUseCase,     private readonly revokeResourceRoleUseCase: RevokeResourceRoleUseCase,     private readonly listResourceRolesUseCase: ListResourceRolesUseCase,   ) {}    @Post()   assign(@Body() dto: AssignResourceRoleDto) {     return this.assignResourceRoleUseCase.execute(dto);   }    @Get()   findAll() {     return this.listResourceRolesUseCase.execute();   }    @Delete(':id')   async revoke(@Param('id', ParseIntPipe) id: number) {     await this.revokeResourceRoleUseCase.execute(id);     return { message: 'Permiso revocado' };   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add controller resource-roles.controller.ts"
+```
+
+#### 15.13 — features/auth/resource-roles/resource-roles.module.ts
+
+Módulo Nest del feature: cablea providers, tokens DI y controller.
+
+**Archivo:** `src/features/auth/resource-roles/resource-roles.module.ts`
+
+``` bash
+mkdir -p src/features/auth/resource-roles cat > src/features/auth/resource-roles/resource-roles.module.ts <<'EOF_BACKEND_IA' import { Module } from '@nestjs/common'; import { ResourcesModule } from '../resources/resources.module'; import { RolesModule } from '../roles/roles.module'; import { AssignResourceRoleUseCase } from './application/use-cases/assign-resource-role.use-case'; import { ListResourceRolesUseCase } from './application/use-cases/list-resource-roles.use-case'; import { RevokeResourceRoleUseCase } from './application/use-cases/revoke-resource-role.use-case'; import { resourceRoleRepositoryProvider } from './infrastructure/persistence/repositories/sequelize-resource-role.repository'; import { ResourceRolesController } from './presentation/http/controllers/resource-roles.controller';  @Module({   imports: [ResourcesModule, RolesModule],   controllers: [ResourceRolesController],   providers: [     resourceRoleRepositoryProvider,     AssignResourceRoleUseCase,     RevokeResourceRoleUseCase,     ListResourceRolesUseCase,   ],   exports: [resourceRoleRepositoryProvider], }) export class ResourceRolesModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: wire nest module resource-roles.module.ts"
+```
+
+#### 15.14 — Restaurar asociaciones finales en src/features/auth/roles/infrastructure/persistence/models/role.model.ts
+
+Ya existen los modelos relacionados: se reintroducen las asociaciones Sequelize finales.
+
+**Archivo:** `src/features/auth/roles/infrastructure/persistence/models/role.model.ts`
+
+``` bash
+mkdir -p src/features/auth/roles/infrastructure/persistence/models cat > src/features/auth/roles/infrastructure/persistence/models/role.model.ts <<'EOF_BACKEND_IA' import {   Table,   Column,   Model,   DataType,   CreatedAt,   UpdatedAt,   BelongsToMany, } from 'sequelize-typescript'; import { Status } from '../../../../../../common/enums/status.enum'; import { UserModel } from '../../../../users/infrastructure/persistence/models/user.model'; import { RoleUserModel } from '../../../../role-users/infrastructure/persistence/models/role-user.model'; import { ResourceModel } from '../../../../resources/infrastructure/persistence/models/resource.model'; import { ResourceRoleModel } from '../../../../resource-roles/infrastructure/persistence/models/resource-role.model';  @Table({ tableName: 'roles' }) export class RoleModel extends Model {   @Column({     type: DataType.INTEGER,     primaryKey: true,     autoIncrement: true,   })   declare id: number;    @Column({ type: DataType.STRING(100), allowNull: false, unique: true })   declare name: string;    @Column({     type: DataType.ENUM(...Object.values(Status)),     allowNull: false,     defaultValue: Status.ACTIVE,   })   declare isActive: Status;    @CreatedAt   declare createdAt: Date;    @UpdatedAt   declare updatedAt: Date;    @BelongsToMany(() => UserModel, () => RoleUserModel)   declare users: UserModel[];    @BelongsToMany(() => ResourceModel, () => ResourceRoleModel)   declare resources: ResourceModel[]; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: restore sequelize associations in role.model.ts"
+```
+
+#### 15.15 — Restaurar asociaciones finales en src/features/auth/resources/infrastructure/persistence/models/resource.model.ts
+
+Ya existen los modelos relacionados: se reintroducen las asociaciones Sequelize finales.
+
+**Archivo:** `src/features/auth/resources/infrastructure/persistence/models/resource.model.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/infrastructure/persistence/models cat > src/features/auth/resources/infrastructure/persistence/models/resource.model.ts <<'EOF_BACKEND_IA' import {   Table,   Column,   Model,   DataType,   CreatedAt,   UpdatedAt,   BelongsToMany, } from 'sequelize-typescript'; import { Status } from '../../../../../../common/enums/status.enum'; import { RoleModel } from '../../../../roles/infrastructure/persistence/models/role.model'; import { ResourceRoleModel } from '../../../../resource-roles/infrastructure/persistence/models/resource-role.model';  @Table({ tableName: 'resources' }) export class ResourceModel extends Model {   @Column({     type: DataType.INTEGER,     primaryKey: true,     autoIncrement: true,   })   declare id: number;    @Column({ type: DataType.STRING(255), allowNull: false })   declare path: string;    @Column({ type: DataType.STRING(10), allowNull: false })   declare method: string;    @Column({     type: DataType.ENUM(...Object.values(Status)),     allowNull: false,     defaultValue: Status.ACTIVE,   })   declare isActive: Status;    @CreatedAt   declare createdAt: Date;    @UpdatedAt   declare updatedAt: Date;    @BelongsToMany(() => RoleModel, () => ResourceRoleModel)   declare roles: RoleModel[]; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: restore sequelize associations in resource.model.ts"
+```
+
+#### 15.16 — Actualizar sequelize.factory.ts (registrar modelos)
+
+Registra en ALL_MODELS solo los modelos ya creados (orden de dependencias).
+
+**Archivo:** `src/infrastructure/database/sequelize/sequelize.factory.ts`
+
+``` bash
+mkdir -p src/infrastructure/database/sequelize cat > src/infrastructure/database/sequelize/sequelize.factory.ts <<'EOF_BACKEND_IA' import { Sequelize } from 'sequelize-typescript'; import { DatabaseDialect } from '../../../config/environment/env.interface'; import { getSequelizeOptions } from './sequelize.options';  import { ClientModel } from '../../../features/business/clients/infrastructure/persistence/models/client.model'; import { ProductTypeModel } from '../../../features/business/product-types/infrastructure/persistence/models/product-type.model'; import { ProductModel } from '../../../features/business/products/infrastructure/persistence/models/product.model'; import { SaleModel } from '../../../features/business/sales/infrastructure/persistence/models/sale.model'; import { ProductSaleModel } from '../../../features/business/sales/infrastructure/persistence/models/product-sale.model'; import { UserModel } from '../../../features/auth/users/infrastructure/persistence/models/user.model'; import { RoleModel } from '../../../features/auth/roles/infrastructure/persistence/models/role.model'; import { RoleUserModel } from '../../../features/auth/role-users/infrastructure/persistence/models/role-user.model'; import { ResourceModel } from '../../../features/auth/resources/infrastructure/persistence/models/resource.model'; import { ResourceRoleModel } from '../../../features/auth/resource-roles/infrastructure/persistence/models/resource-role.model';  export const ALL_MODELS = [   ClientModel,   ProductTypeModel,   ProductModel,   SaleModel,   ProductSaleModel,   UserModel,   RoleModel,   RoleUserModel,   ResourceModel,   ResourceRoleModel, ];  export async function createSequelizeInstance(   dialect: DatabaseDialect, ): Promise<Sequelize> {   const options = getSequelizeOptions(dialect);    let dialectModule: any;    switch (dialect) {     case DatabaseDialect.MySQL:       dialectModule = require('mysql2');       break;     case DatabaseDialect.Postgres:       dialectModule = require('pg');       break;     case DatabaseDialect.MSSQL:       dialectModule = require('tedious');       break;     case DatabaseDialect.Oracle:       dialectModule = require('oracledb');       break;     default:       throw new Error(`Dialecto no soportado: ${dialect}`);   }    const sequelize = new Sequelize({     ...options,     dialectModule,     models: ALL_MODELS,   } as any);    try {     await sequelize.authenticate();     console.log(`✅ Conexión exitosa a ${dialect.toUpperCase()}`);   } catch (error: any) {     console.error(       `❌ Error conectando a ${dialect.toUpperCase()}:`,       error.message,     );     throw error;   }    if (process.env.NODE_ENV !== 'production') {     await sequelize.sync({ alter: false });     console.log('✅ Tablas sincronizadas');   }    return sequelize; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: register auth models up to resourceRole"
+```
+
+#### 15.17 — Actualizar auth.module.ts
+
+Agrega el feature module de auth recién terminado.
+
+**Archivo:** `src/features/auth/auth.module.ts`
+
+``` bash
+mkdir -p src/features/auth cat > src/features/auth/auth.module.ts <<'EOF_BACKEND_IA' import { Module } from '@nestjs/common'; import { UsersModule } from './users/users.module'; import { RolesModule } from './roles/roles.module'; import { RoleUsersModule } from './role-users/role-users.module'; import { ResourcesModule } from './resources/resources.module'; import { ResourceRolesModule } from './resource-roles/resource-roles.module';  @Module({   imports: [UsersModule, RolesModule, RoleUsersModule, ResourcesModule, ResourceRolesModule],   exports: [UsersModule, RolesModule, RoleUsersModule, ResourcesModule, ResourceRolesModule], }) export class AuthModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add resourceRoles to AuthModule"
+```
+
+#### 15.18 — Actualizar database-seeder.service.ts
+
+Ejecuta seeders en orden de dependencias al arrancar (dev).
+
+**Archivo:** `src/infrastructure/database/seeders/database-seeder.service.ts`
+
+``` bash
+mkdir -p src/infrastructure/database/seeders cat > src/infrastructure/database/seeders/database-seeder.service.ts <<'EOF_BACKEND_IA' import { Injectable, Logger, OnModuleInit } from '@nestjs/common'; import { seedClients } from '../../../features/business/clients/infrastructure/persistence/seeders/clients.seeder'; import { seedProductTypes } from '../../../features/business/product-types/infrastructure/persistence/seeders/product-types.seeder'; import { seedProducts } from '../../../features/business/products/infrastructure/persistence/seeders/products.seeder'; import { seedSales } from '../../../features/business/sales/infrastructure/persistence/seeders/sales.seeder';  /**  * Ejecuta seeders en orden de dependencias.  * Solo en entornos no productivos.  */ @Injectable() export class DatabaseSeederService implements OnModuleInit {   private readonly logger = new Logger(DatabaseSeederService.name);    async onModuleInit(): Promise<void> {     if (process.env.NODE_ENV === 'production') {       return;     }      try {       await seedClients();       await seedProductTypes();       await seedProducts();       await seedSales();       this.logger.log('✅ Seeders ejecutados');     } catch (error: any) {       this.logger.error(`❌ Error en seeders: ${error.message}`, error.stack);       throw error;     }   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "chore: update auth/business seeders bootstrap order"
+```
+
+#### 15.19 — Actualizar app.module.ts
+
+Importa BusinessModule y/o AuthModule según el avance. Los guards globales llegan en la fase RBAC.
+
+**Archivo:** `src/app.module.ts`
+
+``` bash
+mkdir -p src cat > src/app.module.ts <<'EOF_BACKEND_IA' import { Module } from '@nestjs/common'; import { ConfigModule } from '@nestjs/config'; import { envConfig } from './config/environment/env.config'; import { appConfig } from './config/app/app.config'; import { jwtConfig } from './config/jwt/jwt.config'; import { LoggerModule } from './config/logger/logger.module'; import { SequelizeDatabaseModule } from './infrastructure/database/sequelize/sequelize.module'; import { SecurityModule } from './infrastructure/security/security.module'; import { BusinessModule } from './features/business/business.module'; import { AuthModule } from './features/auth/auth.module'; import { AppController } from './app.controller'; import { AppService } from './app.service';  @Module({   imports: [     ConfigModule.forRoot({       isGlobal: true,       load: [envConfig, appConfig, jwtConfig],       envFilePath: '.env',     }),     SequelizeDatabaseModule,     SecurityModule,     LoggerModule,     BusinessModule,     AuthModule,   ],   controllers: [AppController],   providers: [     AppService,   ], }) export class AppModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: import AuthModule into AppModule"
+```
+
+#### 15.20 — Verificar feature auth (Auth — ResourceRoles)
+
+Arranca y confirma tablas/endpoints del feature. Si hay asociaciones pendientes, el sync de columnas principales ya debe existir.
+
+``` bash
+npm run start:dev
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+```
