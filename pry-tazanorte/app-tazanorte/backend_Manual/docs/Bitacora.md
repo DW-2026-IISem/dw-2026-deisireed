@@ -3575,6 +3575,8 @@ mkdir -p src/features/auth/users/domain/exceptions cat > src/features/auth/users
 git add . git commit -m "feat: add domain exception user-username-exists.exception.ts"
 ```
 
+![](images/clipboard-148945607.png)
+
 #### 11.5 — features/auth/users/domain/interfaces/user-repository.interface.ts
 
 Puerto (contrato) del repositorio. La aplicación depende de esta interface, no de Sequelize.
