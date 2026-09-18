@@ -4225,6 +4225,8 @@ mkdir -p src/features/auth/resources/infrastructure/persistence/seeders cat > sr
 git add . git commit -m "chore: add seeder resources.seeder.ts"
 ```
 
+![](images/clipboard-435069086.png)
+
 #### 14.7 — features/auth/resources/application/dto/create-resource.dto.ts
 
 DTO de entrada/salida HTTP con `class-validator` / Swagger.
