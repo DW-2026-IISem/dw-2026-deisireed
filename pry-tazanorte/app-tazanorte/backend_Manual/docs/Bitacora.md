@@ -3649,6 +3649,8 @@ mkdir -p src/features/auth/users/infrastructure/persistence/seeders cat > src/fe
 git add . git commit -m "chore: add seeder users.seeder.ts"
 ```
 
+![](images/clipboard-642051070.png)
+
 #### 11.9 — features/auth/users/application/dto/create-user.dto.ts
 
 DTO de entrada/salida HTTP con `class-validator` / Swagger.
