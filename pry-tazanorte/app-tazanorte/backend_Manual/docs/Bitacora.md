@@ -4545,6 +4545,8 @@ npm run start:dev
 
 #### 16.6— Verificar feature auth (Auth — RefreshTokens)
 
+![](images/clipboard-1915876177.png)
+
 ------------------------------------------------------------------------
 
 ## 
