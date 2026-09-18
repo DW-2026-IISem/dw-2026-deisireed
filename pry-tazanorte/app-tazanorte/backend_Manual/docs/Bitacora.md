@@ -4112,3 +4112,333 @@ git add . git commit -m "test: verify 12_auth_role_users auth feature"
 ## ![](images/clipboard-2230277554.png)
 
 ## ![](images/clipboard-1010585752.png)
+
+## FASE 14 — `13_AUTH_RESOURCES`
+
+### Auth — Resources
+
+> **Objetivo de la fase:** Recursos HTTP protegibles (path + method). Modelo sin ResourceRoles aún.
+
+#### 14.1 — features/auth/resources/domain/entities/resource.entity.ts
+
+Entidad de dominio (TypeScript puro). No extiende Sequelize `Model`. Aquí viven las reglas del negocio.
+
+**Archivo:** `src/features/auth/resources/domain/entities/resource.entity.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/domain/entities cat > src/features/auth/resources/domain/entities/resource.entity.ts <<'EOF_BACKEND_IA' import { Status } from '../../../../../common/enums/status.enum';  export class Resource {   id?: number;   path: string;   method: string;   isActive: Status;   createdAt?: Date;   updatedAt?: Date;    constructor(partial: Partial<Resource>) {     Object.assign(this, partial);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add domain entity resource.entity.ts"
+```
+
+![](images/clipboard-1387394810.png)
+
+#### 14.2 — features/auth/resources/domain/exceptions/resource-not-found.exception.ts
+
+Excepción de dominio. El caso de uso la lanza; el filter HTTP la traduce a status code.
+
+**Archivo:** `src/features/auth/resources/domain/exceptions/resource-not-found.exception.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/domain/exceptions cat > src/features/auth/resources/domain/exceptions/resource-not-found.exception.ts <<'EOF_BACKEND_IA' import { EntityNotFoundException } from '../../../../../common/exceptions/entity-not-found.exception';  export class ResourceNotFoundException extends EntityNotFoundException {   constructor(identifier: string | number) {     super('Recurso', identifier);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add domain exception resource-not-found.exception.ts"
+```
+
+#### 14.3 — features/auth/resources/domain/interfaces/resource-repository.interface.ts
+
+Puerto (contrato) del repositorio. La aplicación depende de esta interface, no de Sequelize.
+
+**Archivo:** `src/features/auth/resources/domain/interfaces/resource-repository.interface.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/domain/interfaces cat > src/features/auth/resources/domain/interfaces/resource-repository.interface.ts <<'EOF_BACKEND_IA' import { Resource } from '../entities/resource.entity';  export const RESOURCE_REPOSITORY = 'RESOURCE_REPOSITORY';  export interface IResourceRepository {   create(resource: Resource): Promise<Resource>;   findAll(): Promise<Resource[]>;   findById(id: number): Promise<Resource | null>;   findByPathAndMethod(path: string, method: string): Promise<Resource | null>;   update(id: number, data: Partial<Resource>): Promise<Resource>;   delete(id: number): Promise<void>; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add repository port resource-repository.interface.ts"
+```
+
+#### 14.4 — features/auth/resources/infrastructure/persistence/models/resource.model.ts (sin asociaciones cruzadas aún)
+
+Modelo Sequelize (`@Table`). Solo infraestructura: mapeo a tabla física. En esta fase se crea **sin** BelongsToMany/HasMany hacia módulos aún no creados, para poder compilar y sincronizar la tabla.
+
+**Archivo:** `src/features/auth/resources/infrastructure/persistence/models/resource.model.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/infrastructure/persistence/models cat > src/features/auth/resources/infrastructure/persistence/models/resource.model.ts <<'EOF_BACKEND_IA' import {   Table,   Column,   Model,   DataType,   CreatedAt,   UpdatedAt, } from 'sequelize-typescript'; import { Status } from '../../../../../../common/enums/status.enum';  @Table({ tableName: 'resources' }) export class ResourceModel extends Model {   @Column({     type: DataType.INTEGER,     primaryKey: true,     autoIncrement: true,   })   declare id: number;    @Column({ type: DataType.STRING(255), allowNull: false })   declare path: string;    @Column({ type: DataType.STRING(10), allowNull: false })   declare method: string;    @Column({     type: DataType.ENUM(...Object.values(Status)),     allowNull: false,     defaultValue: Status.ACTIVE,   })   declare isActive: Status;    @CreatedAt   declare createdAt: Date;    @UpdatedAt   declare updatedAt: Date; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add sequelize model resource.model.ts without cross associations"
+```
+
+#### 14.5 — features/auth/resources/infrastructure/persistence/repositories/sequelize-resource.repository.ts
+
+Adaptador del repositorio: implementa el puerto de dominio con Sequelize.
+
+**Archivo:** `src/features/auth/resources/infrastructure/persistence/repositories/sequelize-resource.repository.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/infrastructure/persistence/repositories cat > src/features/auth/resources/infrastructure/persistence/repositories/sequelize-resource.repository.ts <<'EOF_BACKEND_IA' import { Injectable } from '@nestjs/common'; import { Resource } from '../../../domain/entities/resource.entity'; import { RESOURCE_REPOSITORY } from '../../../domain/interfaces/resource-repository.interface'; import type { IResourceRepository } from '../../../domain/interfaces/resource-repository.interface'; import { ResourceModel } from '../models/resource.model'; import { ResourceMapper } from '../../../application/mappers/resource.mapper';  @Injectable() export class SequelizeResourceRepository implements IResourceRepository {   async create(resource: Resource): Promise<Resource> {     const model = await ResourceModel.create(ResourceMapper.toPersistence(resource));     return ResourceMapper.toDomain(model);   }    async findAll(): Promise<Resource[]> {     const models = await ResourceModel.findAll({ order: [['id', 'ASC']] });     return models.map(ResourceMapper.toDomain);   }    async findById(id: number): Promise<Resource | null> {     const model = await ResourceModel.findByPk(id);     return model ? ResourceMapper.toDomain(model) : null;   }    async findByPathAndMethod(path: string, method: string): Promise<Resource | null> {     const model = await ResourceModel.findOne({ where: { path, method } });     return model ? ResourceMapper.toDomain(model) : null;   }    async update(id: number, data: Partial<Resource>): Promise<Resource> {     const model = await ResourceModel.findByPk(id);     if (!model) {       throw new Error(`Resource ${id} not found`);     }     await model.update(       ResourceMapper.toPersistence({ ...ResourceMapper.toDomain(model), ...data }),     );     return ResourceMapper.toDomain(model);   }    async delete(id: number): Promise<void> {     await ResourceModel.destroy({ where: { id } });   } }  export const resourceRepositoryProvider = {   provide: RESOURCE_REPOSITORY,   useClass: SequelizeResourceRepository, }; EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add sequelize repository sequelize-resource.repository.ts"
+```
+
+#### 14.6 — features/auth/resources/infrastructure/persistence/seeders/resources.seeder.ts
+
+Seeder de datos iniciales para desarrollo y verificación física en BD.
+
+**Archivo:** `src/features/auth/resources/infrastructure/persistence/seeders/resources.seeder.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/infrastructure/persistence/seeders cat > src/features/auth/resources/infrastructure/persistence/seeders/resources.seeder.ts <<'EOF_BACKEND_IA' /**  * Seeder de feature deshabilitado.  * El bootstrap central vive en:  * src/infrastructure/database/seeders/auth-bootstrap.seeder.ts  * para respetar el orden de dependencias Business → Auth.  */ export class FeatureSeederDisabled {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "chore: add seeder resources.seeder.ts"
+```
+
+#### 14.7 — features/auth/resources/application/dto/create-resource.dto.ts
+
+DTO de entrada/salida HTTP con `class-validator` / Swagger.
+
+**Archivo:** `src/features/auth/resources/application/dto/create-resource.dto.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/application/dto cat > src/features/auth/resources/application/dto/create-resource.dto.ts <<'EOF_BACKEND_IA' import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator'; import { HttpMethod } from '../../../../../common/enums/http-method.enum'; import { Status } from '../../../../../common/enums/status.enum';  export class CreateResourceDto {   @IsString()   @IsNotEmpty()   path: string;    @IsEnum(HttpMethod)   method: HttpMethod;    @IsOptional()   @IsEnum(Status)   isActive?: Status; }  export class UpdateResourceDto {   @IsOptional()   @IsString()   @IsNotEmpty()   path?: string;    @IsOptional()   @IsEnum(HttpMethod)   method?: HttpMethod;    @IsOptional()   @IsEnum(Status)   isActive?: Status; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add dto create-resource.dto.ts"
+```
+
+#### 14.8 — features/auth/resources/application/mappers/resource.mapper.ts
+
+Mapper entre entidad de dominio y DTO de respuesta.
+
+**Archivo:** `src/features/auth/resources/application/mappers/resource.mapper.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/application/mappers cat > src/features/auth/resources/application/mappers/resource.mapper.ts <<'EOF_BACKEND_IA' import { Resource } from '../../domain/entities/resource.entity'; import { ResourceModel } from '../../infrastructure/persistence/models/resource.model';  export class ResourceMapper {   static toDomain(model: ResourceModel): Resource {     return new Resource({       id: model.id,       path: model.path,       method: model.method,       isActive: model.isActive,       createdAt: model.createdAt,       updatedAt: model.updatedAt,     });   }    static toPersistence(entity: Resource): Partial<ResourceModel> {     return {       id: entity.id,       path: entity.path,       method: entity.method,       isActive: entity.isActive,     };   }    static toResponse(entity: Resource) {     return {       id: entity.id,       path: entity.path,       method: entity.method,       isActive: entity.isActive,       createdAt: entity.createdAt,       updatedAt: entity.updatedAt,     };   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add mapper resource.mapper.ts"
+```
+
+#### 14.9 — features/auth/resources/application/use-cases/create-resource.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/resources/application/use-cases/create-resource.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/application/use-cases cat > src/features/auth/resources/application/use-cases/create-resource.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { Status } from '../../../../../common/enums/status.enum'; import { Resource } from '../../domain/entities/resource.entity'; import { RESOURCE_REPOSITORY } from '../../domain/interfaces/resource-repository.interface'; import type { IResourceRepository } from '../../domain/interfaces/resource-repository.interface'; import { CreateResourceDto } from '../dto/create-resource.dto'; import { ResourceMapper } from '../mappers/resource.mapper';  @Injectable() export class CreateResourceUseCase {   constructor(     @Inject(RESOURCE_REPOSITORY)     private readonly resourceRepository: IResourceRepository,   ) {}    async execute(dto: CreateResourceDto) {     const resource = new Resource({       path: dto.path,       method: dto.method,       isActive: dto.isActive ?? Status.ACTIVE,     });      const created = await this.resourceRepository.create(resource);     return ResourceMapper.toResponse(created);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case create-resource.use-case.ts"
+```
+
+#### 14.10 — features/auth/resources/application/use-cases/delete-resource.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/resources/application/use-cases/delete-resource.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/application/use-cases cat > src/features/auth/resources/application/use-cases/delete-resource.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { RESOURCE_REPOSITORY } from '../../domain/interfaces/resource-repository.interface'; import type { IResourceRepository } from '../../domain/interfaces/resource-repository.interface'; import { ResourceNotFoundException } from '../../domain/exceptions/resource-not-found.exception';  @Injectable() export class DeleteResourceUseCase {   constructor(     @Inject(RESOURCE_REPOSITORY)     private readonly resourceRepository: IResourceRepository,   ) {}    async execute(id: number): Promise<void> {     const existing = await this.resourceRepository.findById(id);     if (!existing) {       throw new ResourceNotFoundException(id);     }     await this.resourceRepository.delete(id);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case delete-resource.use-case.ts"
+```
+
+#### 14.11 — features/auth/resources/application/use-cases/get-resource.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/resources/application/use-cases/get-resource.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/application/use-cases cat > src/features/auth/resources/application/use-cases/get-resource.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { RESOURCE_REPOSITORY } from '../../domain/interfaces/resource-repository.interface'; import type { IResourceRepository } from '../../domain/interfaces/resource-repository.interface'; import { ResourceNotFoundException } from '../../domain/exceptions/resource-not-found.exception'; import { ResourceMapper } from '../mappers/resource.mapper';  @Injectable() export class GetResourceUseCase {   constructor(     @Inject(RESOURCE_REPOSITORY)     private readonly resourceRepository: IResourceRepository,   ) {}    async execute(id: number) {     const resource = await this.resourceRepository.findById(id);     if (!resource) {       throw new ResourceNotFoundException(id);     }     return ResourceMapper.toResponse(resource);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case get-resource.use-case.ts"
+```
+
+#### 14.12 — features/auth/resources/application/use-cases/list-resources.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/resources/application/use-cases/list-resources.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/application/use-cases cat > src/features/auth/resources/application/use-cases/list-resources.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { RESOURCE_REPOSITORY } from '../../domain/interfaces/resource-repository.interface'; import type { IResourceRepository } from '../../domain/interfaces/resource-repository.interface'; import { ResourceMapper } from '../mappers/resource.mapper';  @Injectable() export class ListResourcesUseCase {   constructor(     @Inject(RESOURCE_REPOSITORY)     private readonly resourceRepository: IResourceRepository,   ) {}    async execute() {     const resources = await this.resourceRepository.findAll();     return resources.map(ResourceMapper.toResponse);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case list-resources.use-case.ts"
+```
+
+#### 14.13 — features/auth/resources/application/use-cases/update-resource.use-case.ts
+
+Caso de uso (aplicación). Orquesta dominio + repositorio. El controller solo lo invoca.
+
+**Archivo:** `src/features/auth/resources/application/use-cases/update-resource.use-case.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/application/use-cases cat > src/features/auth/resources/application/use-cases/update-resource.use-case.ts <<'EOF_BACKEND_IA' import { Inject, Injectable } from '@nestjs/common'; import { RESOURCE_REPOSITORY } from '../../domain/interfaces/resource-repository.interface'; import type { IResourceRepository } from '../../domain/interfaces/resource-repository.interface'; import { ResourceNotFoundException } from '../../domain/exceptions/resource-not-found.exception'; import { UpdateResourceDto } from '../dto/create-resource.dto'; import { ResourceMapper } from '../mappers/resource.mapper';  @Injectable() export class UpdateResourceUseCase {   constructor(     @Inject(RESOURCE_REPOSITORY)     private readonly resourceRepository: IResourceRepository,   ) {}    async execute(id: number, dto: UpdateResourceDto) {     const existing = await this.resourceRepository.findById(id);     if (!existing) {       throw new ResourceNotFoundException(id);     }      const updated = await this.resourceRepository.update(id, dto);     return ResourceMapper.toResponse(updated);   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add use case update-resource.use-case.ts"
+```
+
+#### 14.14 — features/auth/resources/presentation/http/controllers/resources.controller.ts
+
+Controller delgado: valida DTO, llama use-case, devuelve respuesta.
+
+**Archivo:** `src/features/auth/resources/presentation/http/controllers/resources.controller.ts`
+
+``` bash
+mkdir -p src/features/auth/resources/presentation/http/controllers cat > src/features/auth/resources/presentation/http/controllers/resources.controller.ts <<'EOF_BACKEND_IA' import {   Body,   Controller,   Delete,   Get,   Param,   ParseIntPipe,   Post,   Put, } from '@nestjs/common'; import { CreateResourceDto, UpdateResourceDto } from '../../../application/dto/create-resource.dto'; import { CreateResourceUseCase } from '../../../application/use-cases/create-resource.use-case'; import { DeleteResourceUseCase } from '../../../application/use-cases/delete-resource.use-case'; import { GetResourceUseCase } from '../../../application/use-cases/get-resource.use-case'; import { ListResourcesUseCase } from '../../../application/use-cases/list-resources.use-case'; import { UpdateResourceUseCase } from '../../../application/use-cases/update-resource.use-case';  @Controller('resources') export class ResourcesController {   constructor(     private readonly createResourceUseCase: CreateResourceUseCase,     private readonly listResourcesUseCase: ListResourcesUseCase,     private readonly getResourceUseCase: GetResourceUseCase,     private readonly updateResourceUseCase: UpdateResourceUseCase,     private readonly deleteResourceUseCase: DeleteResourceUseCase,   ) {}    @Post()   create(@Body() dto: CreateResourceDto) {     return this.createResourceUseCase.execute(dto);   }    @Get()   findAll() {     return this.listResourcesUseCase.execute();   }    @Get(':id')   findOne(@Param('id', ParseIntPipe) id: number) {     return this.getResourceUseCase.execute(id);   }    @Put(':id')   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateResourceDto) {     return this.updateResourceUseCase.execute(id, dto);   }    @Delete(':id')   async remove(@Param('id', ParseIntPipe) id: number) {     await this.deleteResourceUseCase.execute(id);     return { message: 'Recurso eliminado' };   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add controller resources.controller.ts"
+```
+
+#### 14.15 — features/auth/resources/resources.module.ts
+
+Módulo Nest del feature: cablea providers, tokens DI y controller.
+
+**Archivo:** `src/features/auth/resources/resources.module.ts`
+
+``` bash
+mkdir -p src/features/auth/resources cat > src/features/auth/resources/resources.module.ts <<'EOF_BACKEND_IA' import { Module } from '@nestjs/common'; import { CreateResourceUseCase } from './application/use-cases/create-resource.use-case'; import { DeleteResourceUseCase } from './application/use-cases/delete-resource.use-case'; import { GetResourceUseCase } from './application/use-cases/get-resource.use-case'; import { ListResourcesUseCase } from './application/use-cases/list-resources.use-case'; import { UpdateResourceUseCase } from './application/use-cases/update-resource.use-case'; import { resourceRepositoryProvider } from './infrastructure/persistence/repositories/sequelize-resource.repository'; import { ResourcesController } from './presentation/http/controllers/resources.controller';  @Module({   controllers: [ResourcesController],   providers: [     resourceRepositoryProvider,     CreateResourceUseCase,     GetResourceUseCase,     ListResourcesUseCase,     UpdateResourceUseCase,     DeleteResourceUseCase,   ],   exports: [resourceRepositoryProvider], }) export class ResourcesModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: wire nest module resources.module.ts"
+```
+
+#### 14.16 — Actualizar sequelize.factory.ts (registrar modelos)
+
+Registra en ALL_MODELS solo los modelos ya creados (orden de dependencias).
+
+**Archivo:** `src/infrastructure/database/sequelize/sequelize.factory.ts`
+
+``` bash
+mkdir -p src/infrastructure/database/sequelize cat > src/infrastructure/database/sequelize/sequelize.factory.ts <<'EOF_BACKEND_IA' import { Sequelize } from 'sequelize-typescript'; import { DatabaseDialect } from '../../../config/environment/env.interface'; import { getSequelizeOptions } from './sequelize.options';  import { ClientModel } from '../../../features/business/clients/infrastructure/persistence/models/client.model'; import { ProductTypeModel } from '../../../features/business/product-types/infrastructure/persistence/models/product-type.model'; import { ProductModel } from '../../../features/business/products/infrastructure/persistence/models/product.model'; import { SaleModel } from '../../../features/business/sales/infrastructure/persistence/models/sale.model'; import { ProductSaleModel } from '../../../features/business/sales/infrastructure/persistence/models/product-sale.model'; import { UserModel } from '../../../features/auth/users/infrastructure/persistence/models/user.model'; import { RoleModel } from '../../../features/auth/roles/infrastructure/persistence/models/role.model'; import { RoleUserModel } from '../../../features/auth/role-users/infrastructure/persistence/models/role-user.model'; import { ResourceModel } from '../../../features/auth/resources/infrastructure/persistence/models/resource.model';  export const ALL_MODELS = [   ClientModel,   ProductTypeModel,   ProductModel,   SaleModel,   ProductSaleModel,   UserModel,   RoleModel,   RoleUserModel,   ResourceModel, ];  export async function createSequelizeInstance(   dialect: DatabaseDialect, ): Promise<Sequelize> {   const options = getSequelizeOptions(dialect);    let dialectModule: any;    switch (dialect) {     case DatabaseDialect.MySQL:       dialectModule = require('mysql2');       break;     case DatabaseDialect.Postgres:       dialectModule = require('pg');       break;     case DatabaseDialect.MSSQL:       dialectModule = require('tedious');       break;     case DatabaseDialect.Oracle:       dialectModule = require('oracledb');       break;     default:       throw new Error(`Dialecto no soportado: ${dialect}`);   }    const sequelize = new Sequelize({     ...options,     dialectModule,     models: ALL_MODELS,   } as any);    try {     await sequelize.authenticate();     console.log(`✅ Conexión exitosa a ${dialect.toUpperCase()}`);   } catch (error: any) {     console.error(       `❌ Error conectando a ${dialect.toUpperCase()}:`,       error.message,     );     throw error;   }    if (process.env.NODE_ENV !== 'production') {     await sequelize.sync({ alter: false });     console.log('✅ Tablas sincronizadas');   }    return sequelize; } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: register auth models up to resource"
+```
+
+#### 14.17 — Actualizar auth.module.ts
+
+Agrega el feature module de auth recién terminado.
+
+**Archivo:** `src/features/auth/auth.module.ts`
+
+``` bash
+mkdir -p src/features/auth cat > src/features/auth/auth.module.ts <<'EOF_BACKEND_IA' import { Module } from '@nestjs/common'; import { UsersModule } from './users/users.module'; import { RolesModule } from './roles/roles.module'; import { RoleUsersModule } from './role-users/role-users.module'; import { ResourcesModule } from './resources/resources.module';  @Module({   imports: [UsersModule, RolesModule, RoleUsersModule, ResourcesModule],   exports: [UsersModule, RolesModule, RoleUsersModule, ResourcesModule], }) export class AuthModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: add resources to AuthModule"
+```
+
+#### 14.18 — Actualizar database-seeder.service.ts
+
+Ejecuta seeders en orden de dependencias al arrancar (dev).
+
+**Archivo:** `src/infrastructure/database/seeders/database-seeder.service.ts`
+
+``` bash
+mkdir -p src/infrastructure/database/seeders cat > src/infrastructure/database/seeders/database-seeder.service.ts <<'EOF_BACKEND_IA' import { Injectable, Logger, OnModuleInit } from '@nestjs/common'; import { seedClients } from '../../../features/business/clients/infrastructure/persistence/seeders/clients.seeder'; import { seedProductTypes } from '../../../features/business/product-types/infrastructure/persistence/seeders/product-types.seeder'; import { seedProducts } from '../../../features/business/products/infrastructure/persistence/seeders/products.seeder'; import { seedSales } from '../../../features/business/sales/infrastructure/persistence/seeders/sales.seeder';  /**  * Ejecuta seeders en orden de dependencias.  * Solo en entornos no productivos.  */ @Injectable() export class DatabaseSeederService implements OnModuleInit {   private readonly logger = new Logger(DatabaseSeederService.name);    async onModuleInit(): Promise<void> {     if (process.env.NODE_ENV === 'production') {       return;     }      try {       await seedClients();       await seedProductTypes();       await seedProducts();       await seedSales();       this.logger.log('✅ Seeders ejecutados');     } catch (error: any) {       this.logger.error(`❌ Error en seeders: ${error.message}`, error.stack);       throw error;     }   } } EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "chore: update auth/business seeders bootstrap order"
+```
+
+#### 14.19 — Actualizar app.module.ts
+
+Importa BusinessModule y/o AuthModule según el avance. Los guards globales llegan en la fase RBAC.
+
+**Archivo:** `src/app.module.ts`
+
+``` bash
+mkdir -p src cat > src/app.module.ts <<'EOF_BACKEND_IA' import { Module } from '@nestjs/common'; import { ConfigModule } from '@nestjs/config'; import { envConfig } from './config/environment/env.config'; import { appConfig } from './config/app/app.config'; import { jwtConfig } from './config/jwt/jwt.config'; import { LoggerModule } from './config/logger/logger.module'; import { SequelizeDatabaseModule } from './infrastructure/database/sequelize/sequelize.module'; import { SecurityModule } from './infrastructure/security/security.module'; import { BusinessModule } from './features/business/business.module'; import { AuthModule } from './features/auth/auth.module'; import { AppController } from './app.controller'; import { AppService } from './app.service';  @Module({   imports: [     ConfigModule.forRoot({       isGlobal: true,       load: [envConfig, appConfig, jwtConfig],       envFilePath: '.env',     }),     SequelizeDatabaseModule,     SecurityModule,     LoggerModule,     BusinessModule,     AuthModule,   ],   controllers: [AppController],   providers: [     AppService,   ], }) export class AppModule {} EOF_BACKEND_IA
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "feat: import AuthModule into AppModule"
+```
+
+#### 14.20 — Verificar feature auth (Auth — Resources)
+
+Arranca y confirma tablas/endpoints del feature. Si hay asociaciones pendientes, el sync de columnas principales ya debe existir.
+
+``` bash
+npm run start:dev
+```
+
+**Sugerencia de commit (issue):**
+
+``` bash
+git add . git commit -m "test: verify 13_auth_resources auth feature"
+```
+
+------------------------------------------------------------------------
+
+## 
