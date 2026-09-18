@@ -3611,6 +3611,8 @@ mkdir -p src/features/auth/users/infrastructure/persistence/models cat > src/fea
 git add . git commit -m "feat: add sequelize model user.model.ts without cross associations"
 ```
 
+![](images/clipboard-1715421026.png)
+
 #### 11.7 — features/auth/users/infrastructure/persistence/repositories/sequelize-user.repository.ts
 
 Adaptador del repositorio: implementa el puerto de dominio con Sequelize.
