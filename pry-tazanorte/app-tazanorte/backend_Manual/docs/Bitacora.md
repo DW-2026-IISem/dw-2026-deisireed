@@ -3793,6 +3793,8 @@ mkdir -p src/features/auth/users/application/use-cases cat > src/features/auth/u
 git add . git commit -m "feat: add use case update-user.use-case.ts"
 ```
 
+![](images/clipboard-1876662692.png)
+
 #### 11.17 — features/auth/users/presentation/http/controllers/users.controller.ts
 
 Controller delgado: valida DTO, llama use-case, devuelve respuesta.
