@@ -3977,6 +3977,8 @@ mkdir -p src/features/auth/roles/domain/exceptions cat > src/features/auth/roles
 git add . git commit -m "feat: add domain exception role-not-found.exception.ts"
 ```
 
+![](images/clipboard-1665536749.png)
+
 #### 12.4 — features/auth/roles/domain/interfaces/role-repository.interface.ts
 
 Puerto (contrato) del repositorio. La aplicación depende de esta interface, no de Sequelize.
