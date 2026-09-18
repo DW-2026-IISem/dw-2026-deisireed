@@ -3611,7 +3611,9 @@ mkdir -p src/features/auth/users/infrastructure/persistence/models cat > src/fea
 git add . git commit -m "feat: add sequelize model user.model.ts without cross associations"
 ```
 
-![](images/clipboard-1715421026.png)
+![](images/clipboard-937880105.png)
+
+s
 
 #### 11.7 — features/auth/users/infrastructure/persistence/repositories/sequelize-user.repository.ts
 
@@ -3628,6 +3630,8 @@ mkdir -p src/features/auth/users/infrastructure/persistence/repositories cat > s
 ``` bash
 git add . git commit -m "feat: add sequelize repository sequelize-user.repository.ts"
 ```
+
+![](images/clipboard-3090471712.png)
 
 #### 11.8 — features/auth/users/infrastructure/persistence/seeders/users.seeder.ts
 
