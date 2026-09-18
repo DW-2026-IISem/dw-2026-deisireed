@@ -3883,6 +3883,8 @@ mkdir -p src/infrastructure/database/seeders cat > src/infrastructure/database/s
 git add . git commit -m "chore: update auth/business seeders bootstrap order"
 ```
 
+![](images/clipboard-270770905.png)
+
 #### 11.22 — Actualizar app.module.ts
 
 Importa BusinessModule y/o AuthModule según el avance. Los guards globales llegan en la fase RBAC.
