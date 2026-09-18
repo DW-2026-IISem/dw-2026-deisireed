@@ -3593,6 +3593,8 @@ mkdir -p src/features/auth/users/domain/interfaces cat > src/features/auth/users
 git add . git commit -m "feat: add repository port user-repository.interface.ts"
 ```
 
+![](images/clipboard-872263506.png)
+
 #### 11.6 — features/auth/users/infrastructure/persistence/models/user.model.ts (sin asociaciones cruzadas aún)
 
 Modelo Sequelize (`@Table`). Solo infraestructura: mapeo a tabla física. En esta fase se crea **sin** BelongsToMany/HasMany hacia módulos aún no creados, para poder compilar y sincronizar la tabla.
