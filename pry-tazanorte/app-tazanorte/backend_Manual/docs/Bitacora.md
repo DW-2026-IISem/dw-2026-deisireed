@@ -4395,6 +4395,8 @@ mkdir -p src/features/auth/resource-roles/infrastructure/persistence/models cat 
 git add . git commit -m "feat: add sequelize model resource-role.model.ts"
 ```
 
+![](images/clipboard-2205019280.png)
+
 #### 15.5 — features/auth/resource-roles/infrastructure/persistence/repositories/sequelize-resource-role.repository.ts
 
 Adaptador del repositorio: implementa el puerto de dominio con Sequelize.
