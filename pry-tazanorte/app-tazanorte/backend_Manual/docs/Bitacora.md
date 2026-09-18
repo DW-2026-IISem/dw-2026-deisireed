@@ -3829,6 +3829,8 @@ mkdir -p src/features/auth/users cat > src/features/auth/users/users.module.ts <
 git add . git commit -m "feat: wire nest module users.module.ts"
 ```
 
+![](images/clipboard-428428952.png)
+
 #### 11.19 — Actualizar sequelize.factory.ts (registrar modelos)
 
 Registra en ALL_MODELS solo los modelos ya creados (orden de dependencias).
