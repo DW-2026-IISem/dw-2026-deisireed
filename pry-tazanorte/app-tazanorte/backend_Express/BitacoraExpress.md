@@ -244,4 +244,24 @@
 
 ![](images/clipboard-2080236713.png)
 
-![](images/clipboard-672175169.png)
+![![](images/clipboard-432538309.png)](images/clipboard-672175169.png)
+
+![![](images/clipboard-163100583.png)](images/clipboard-2155426218.png)
+
+## ISS-05: Swagger / OpenAPI
+
+### 10.1 OpenAPI del feature Client
+
+![![](images/clipboard-1655294247.png)](images/clipboard-3996787255.png)
+
+### 10.2 Registry externo y montaje en Config
+
+![](images/clipboard-862453156.png)
+
+![](images/clipboard-2845378070.png)
+
+![](images/clipboard-3826633451.png)
+
+![](images/clipboard-2149590757.png)
+
+![](images/clipboard-578979392.png)
