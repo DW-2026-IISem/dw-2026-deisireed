@@ -43,3 +43,23 @@
 ![](images/clipboard-3062894939.png)
 
 ![](images/clipboard-3864816247.png)
+
+## ISS-02: Infraestructura de base de datos
+
+### 3.1 Drivers de Sequelize y `.env`
+
+![](images/clipboard-2624278356.png)
+
+![](images/clipboard-2583979560.png)
+
+![](images/clipboard-4165331832.png)
+
+### 3.2 Crear `src/database/db.ts`
+
+![](images/clipboard-2823566844.png)
+
+### 3.3 Carpeta de seeders
+
+![![](images/clipboard-3294968030.png)](images/clipboard-1795090140.png)
+
+![](images/clipboard-2232121356.png)
