@@ -5,7 +5,9 @@ import { ClientsService } from "./clients.service";
 
 /**
  * Capa Controller del feature Clients.
- * Solo HTTP: lee `req`, llama al service y arma `res`.
+ *
+ * Traduce HTTP <-> negocio: lee `req`, llama al service y arma la respuesta.
+ * Cada método delega el manejo de errores en `run()` (ver `BaseController`).
  */
 export class ClientsController extends BaseController {
   public constructor(

@@ -11,8 +11,12 @@ import { AppError } from "../../../shared/errors/app-error";
 
 /**
  * Capa Service del feature Clients.
+ *
  * Reglas de negocio: default de `is_active`, documento único, política de
- * borrado lógico y borrado físico. Devuelve **DTOs**, nunca instancias del modelo.
+ * borrado lógico y borrado físico.
+ *
+ * No conoce `req`/`res` ni escribe Sequelize directamente: delega en el
+ * repository y devuelve **DTOs** (carpeta `dto/`), nunca instancias del modelo.
  */
 export class ClientsService {
   public constructor(
@@ -67,7 +71,7 @@ export class ClientsService {
       await this.assertUniqueDocument(body.numero_documento, id);
     }
 
-    // Se copian solo los campos permitidos por el DTO (nunca `is_active`).
+    // Solo campos permitidos por el DTO (nunca `is_active`).
     await this.repository.update(client, {
       ...(body.tipo_documento !== undefined && { tipo_documento: body.tipo_documento }),
       ...(body.numero_documento !== undefined && { numero_documento: body.numero_documento }),
@@ -97,8 +101,10 @@ export class ClientsService {
   // ================== HELPERS ==================
   /**
    * Busca por PK y falla con 404 si no existe.
+   *
    * `onlyActive` (por defecto `true`) aplica la política de borrado lógico:
-   * un registro inactivo deja de ser visible para la API.
+   * un registro inactivo deja de ser visible para la API, igual que en `getAll`.
+   * `deletePhysical` lo desactiva para poder purgar también los desactivados.
    */
   private async findOrFail(id: number, onlyActive = true): Promise<Client> {
     const client = await this.repository.findById(id);

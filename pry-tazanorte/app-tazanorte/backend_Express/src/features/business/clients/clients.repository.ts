@@ -3,9 +3,12 @@ import { Client, ClientI } from "./client.model";
 
 /**
  * Capa Repository del feature Clients.
+ *
  * Única responsable de hablar con Sequelize (el modelo `Client`).
+ * No contiene reglas de negocio ni conoce `req`/`res`.
  */
 export class ClientsRepository {
+  // ================== READ ==================
   /** Todos los clientes activos. */
   public async findAllActive(): Promise<Client[]> {
     return Client.findAll({ where: { is_active: true } });
@@ -29,16 +32,19 @@ export class ClientsRepository {
     });
   }
 
+  // ================== CREATE ==================
   /** Inserta un cliente. */
   public async create(data: CreationAttributes<Client>): Promise<Client> {
     return Client.create(data);
   }
 
+  // ================== UPDATE ==================
   /** Persiste cambios sobre una instancia existente. */
   public async update(client: Client, data: Partial<ClientI>): Promise<Client> {
     return client.update(data);
   }
 
+  // ================== DELETE ==================
   /** Elimina físicamente una instancia. */
   public async delete(client: Client): Promise<void> {
     await client.destroy();

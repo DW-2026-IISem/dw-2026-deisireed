@@ -100,12 +100,48 @@
 
 ### 4.3 Agregador de rutas y `config/index.ts`
 
-![![](images/clipboard-675511251.png)](images/clipboard-633788275.png)
+![](images/clipboard-2388406169.png)
 
-![](images/clipboard-543727272.png)
+![](images/clipboard-3162303467.png)
+
+![](images/clipboard-4051665175.png)
+
+![](images/clipboard-2419956136.png)
 
 ### Verificación 
 
 ![](images/clipboard-3686764562.png)
 
 ![](images/clipboard-1734030478.png)
+
+## ISS-03-B: GetAll y GetOne
+
+### Repository
+
+![](images/clipboard-159786707.png)
+
+### Service
+
+![](images/clipboard-4133541548.png)
+
+![](images/clipboard-2297241240.png)
+
+![](images/clipboard-1244720914.png)
+
+### Controller
+
+![](images/clipboard-1857925118.png)
+
+![](images/clipboard-2140254428.png)
+
+### Routes
+
+![](images/clipboard-1950832965.png)
+
+### HTTP (REST Client)
+
+![](images/clipboard-2318981948.png)
+
+### Verificación
+
+![](images/clipboard-2348283970.png)
