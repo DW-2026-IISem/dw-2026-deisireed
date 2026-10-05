@@ -63,3 +63,49 @@
 ![![](images/clipboard-3294968030.png)](images/clipboard-1795090140.png)
 
 ![](images/clipboard-2232121356.png)
+
+## ISS-03-A: Fundación
+
+### 4.0 Capa compartida `shared/`
+
+![![](images/clipboard-3103845163.png)](images/clipboard-2614566608.png)
+
+![](images/clipboard-2306733247.png)
+
+![](images/clipboard-2206001474.png)
+
+### 4.1 Modelo `Client`
+
+![](images/clipboard-2066534653.png)
+
+### 4.2 DTOs
+
+![](images/clipboard-3790777542.png)
+
+#### Repository
+
+![](images/clipboard-3903841851.png)
+
+#### Service
+
+![](images/clipboard-102180088.png)
+
+### Controller
+
+![](images/clipboard-1831345539.png)
+
+#### Routes
+
+![](images/clipboard-3667374115.png)
+
+### 4.3 Agregador de rutas y `config/index.ts`
+
+![![](images/clipboard-675511251.png)](images/clipboard-633788275.png)
+
+![](images/clipboard-543727272.png)
+
+### Verificación 
+
+![](images/clipboard-3686764562.png)
+
+![](images/clipboard-1734030478.png)

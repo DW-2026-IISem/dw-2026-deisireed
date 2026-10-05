@@ -1,18 +1,23 @@
 import dotenv from "dotenv";
-import express, { Application } from "express";
+import express, { Application, ErrorRequestHandler } from "express";
 import morgan from "morgan";
 import cors from "cors";
+import { sequelize, getDatabaseInfo, testConnection } from "../database/db";
+import "../features/business/clients/client.model";
+import { Routes } from "../routes/index";
 
 dotenv.config();
 
 export class App {
   public app: Application;
+  public routePrv: Routes = new Routes();
 
   constructor(private port?: number | string) {
     this.app = express();
     this.settings();
     this.middlewares();
     this.routes();
+    this.errorHandling();
   }
 
   private settings(): void {
@@ -27,13 +32,64 @@ export class App {
   }
 
   private routes(): void {
-    // Se rellena en ISS-03 en adelante
+    this.routePrv.clientsRoutes.routes(this.app);
   }
 
-  // Se implementa en ISS-02 / ISS-03 (conexión y sync)
-  private async dbConnection(): Promise<void> {}
+  /**
+   * Errores que ocurren antes de llegar a un controller (ej. JSON malformado).
+   * Sin esto, Express responde con un HTML que filtra el stack trace.
+   * Debe registrarse después de las rutas.
+   */
+  private errorHandling(): void {
+    const bodyErrorHandler: ErrorRequestHandler = (err, _req, res, next) => {
+      if (err instanceof SyntaxError && "body" in err) {
+        res.status(400).json({ error: "Malformed JSON body" });
+        return;
+      }
+      next(err);
+    };
+    this.app.use(bodyErrorHandler);
+  }
+
+  private async dbConnection(): Promise<void> {
+    try {
+      const dbInfo = getDatabaseInfo();
+      console.log(`🔗 Intentando conectar a: ${dbInfo.engine.toUpperCase()}`);
+
+      const isConnected = await testConnection();
+      if (!isConnected) {
+        throw new Error(`No se pudo conectar a la base de datos ${dbInfo.engine.toUpperCase()}`);
+      }
+
+      // Lab: sync crea/altera tablas desde los modelos.
+      const force = process.env.DB_SYNC_FORCE === "true";
+      const isMysql =
+        sequelize.getDialect() === "mysql" || sequelize.getDialect() === "mariadb";
+
+      if (isMysql) {
+        await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
+      }
+      try {
+        await sequelize.sync({ force, alter: !force });
+      } finally {
+        if (isMysql) {
+          await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
+        }
+      }
+
+      console.log(
+        force
+          ? "📦 Base de datos recreada (DB_SYNC_FORCE=true)"
+          : "📦 Base de datos sincronizada exitosamente"
+      );
+    } catch (error) {
+      console.error("❌ Error al conectar con la base de datos:", error);
+      process.exit(1);
+    }
+  }
 
   async listen() {
+    // Primero la BD (conexión + sync), después abrir el puerto: evita deadlocks por DDL.
     await this.dbConnection();
     this.app.listen(this.app.get("port"));
     console.log(`🚀 Servidor ejecutándose en puerto ${this.app.get("port")}`);
