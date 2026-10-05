@@ -174,4 +174,60 @@
 
 ### ISS-03-D: Update (PUT) y Update (PATCH)
 
-### 
+### Repository
+
+![](images/clipboard-4262026794.png)
+
+![](images/clipboard-959770312.png)
+
+### Service
+
+![](images/clipboard-678502013.png)
+
+![](images/clipboard-3870607747.png)
+
+![](images/clipboard-3062626506.png)
+
+### Controller
+
+![](images/clipboard-1665741401.png)
+
+### Routes
+
+![](images/clipboard-444513639.png)
+
+### HTTP
+
+![](images/clipboard-1814202154.png)
+
+### Verificación
+
+![](images/clipboard-3991406333.png)
+
+## ISS-03-E: Eliminar (físico y lógico)
+
+### Repository
+
+![](images/clipboard-2208189930.png)
+
+### Service
+
+![](images/clipboard-3920522060.png)
+
+![![](images/clipboard-1510529925.png)](images/clipboard-815041473.png)
+
+### Controller
+
+![![](images/clipboard-1073361210.png)](images/clipboard-4172709182.png)
+
+### Routes
+
+![](images/clipboard-3104889206.png)
+
+### HTTP
+
+![](images/clipboard-4107791472.png)
+
+### Verficación
+
+![![](images/clipboard-646130957.png)](images/clipboard-2422431848.png)

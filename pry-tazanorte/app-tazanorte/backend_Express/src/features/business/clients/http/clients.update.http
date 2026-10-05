@@ -1,0 +1,24 @@
+### Feature Client — UPDATE (PUT) / UPDATE (PATCH) (SIN AUTH)
+### `is_active` no se envía: el estado solo cambia con PATCH /api/clientes/:id/deactivate
+@baseUrl = http://localhost:4000
+@id = 1
+
+### PUT — reemplazo completo
+PUT {{baseUrl}}/api/clientes/{{id}}
+Content-Type: application/json
+
+{
+  "tipo_documento": "CC",
+  "numero_documento": "1234567890",
+  "nombre": "Ana Pérez Actualizada",
+  "telefono": "3009876543",
+  "email": "ana.perez@example.com"
+}
+
+### PATCH — parcial
+PATCH {{baseUrl}}/api/clientes/{{id}}
+Content-Type: application/json
+
+{
+  "telefono": "3011112233"
+}

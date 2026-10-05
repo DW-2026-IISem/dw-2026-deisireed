@@ -1,9 +1,11 @@
 import { CreationAttributes, Op, Transaction } from "sequelize";
-import { Client } from "./client.model";
+import { Client, ClientI } from "./client.model";
 
 /**
  * Capa Repository del feature Clients.
+ *
  * Única responsable de hablar con Sequelize (el modelo `Client`).
+ * No contiene reglas de negocio ni conoce `req`/`res`.
  */
 export class ClientsRepository {
   // ================== READ ==================
@@ -37,8 +39,14 @@ export class ClientsRepository {
   }
 
   // ================== UPDATE ==================
-  // (rellenar en ISS-03-D) update
+  /** Persiste cambios sobre una instancia existente. */
+  public async update(client: Client, data: Partial<ClientI>): Promise<Client> {
+    return client.update(data);
+  }
 
   // ================== DELETE ==================
-  // (rellenar en ISS-03-E) delete
+  /** Elimina físicamente una instancia. */
+  public async delete(client: Client): Promise<void> {
+    await client.destroy();
+  }
 }
