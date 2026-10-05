@@ -145,3 +145,33 @@
 ### Verificación
 
 ![](images/clipboard-2348283970.png)
+
+### ISS-03-C: Crear cliente
+
+### Repository
+
+![](images/clipboard-739103849.png)
+
+### Services
+
+![](images/clipboard-2007663960.png)
+
+### Controller
+
+![](images/clipboard-2817009574.png)
+
+### Routes
+
+![](images/clipboard-3974290299.png)
+
+### HTTP
+
+![](images/clipboard-4144101022.png)
+
+### Verificación ISS-03-C
+
+![](images/clipboard-2249159485.png)
+
+### ISS-03-D: Update (PUT) y Update (PATCH)
+
+### 

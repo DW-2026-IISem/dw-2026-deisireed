@@ -1,0 +1,24 @@
+### Feature Client — CREATE (SIN AUTH)
+@baseUrl = http://localhost:4000
+
+### CREATE -> 201
+POST {{baseUrl}}/api/clientes
+Content-Type: application/json
+
+{
+  "tipo_documento": "CC",
+  "numero_documento": "1234567890",
+  "nombre": "Ana Pérez",
+  "telefono": "3001234567",
+  "email": "ana.perez@example.com"
+}
+
+### CREATE con documento repetido -> 409
+POST {{baseUrl}}/api/clientes
+Content-Type: application/json
+
+{
+  "tipo_documento": "CC",
+  "numero_documento": "1234567890",
+  "nombre": "Otra Persona"
+}

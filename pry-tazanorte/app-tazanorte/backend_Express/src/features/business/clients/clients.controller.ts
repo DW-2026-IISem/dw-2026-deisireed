@@ -1,13 +1,11 @@
 import { Request, Response } from "express";
 import { BaseController } from "../../../shared/http/base-controller";
-import { CreateClientDto, PatchClientDto, UpdateClientDto } from "./dto";
+import { CreateClientDto } from "./dto";
 import { ClientsService } from "./clients.service";
 
 /**
  * Capa Controller del feature Clients.
- *
- * Traduce HTTP <-> negocio: lee `req`, llama al service y arma la respuesta.
- * Cada método delega el manejo de errores en `run()` (ver `BaseController`).
+ * Solo HTTP: lee req, llama al service y arma res.
  */
 export class ClientsController extends BaseController {
   public constructor(
@@ -40,41 +38,8 @@ export class ClientsController extends BaseController {
   }
 
   // ================== UPDATE ==================
-  public async updatePut(req: Request, res: Response): Promise<void> {
-    await this.run(res, async () => {
-      const client = await this.service.updatePut(
-        this.paramId(req),
-        req.body as UpdateClientDto
-      );
-      res.status(200).json({ client });
-    });
-  }
-
-  public async updatePatch(req: Request, res: Response): Promise<void> {
-    await this.run(res, async () => {
-      const client = await this.service.updatePatch(
-        this.paramId(req),
-        req.body as PatchClientDto
-      );
-      res.status(200).json({ client });
-    });
-  }
+  // (rellenar en ISS-03-D) updatePut, updatePatch
 
   // ================== DELETE ==================
-  /** Eliminación física. */
-  public async deletePhysical(req: Request, res: Response): Promise<void> {
-    await this.run(res, async () => {
-      const id = this.paramId(req);
-      await this.service.deletePhysical(id);
-      res.status(200).json({ message: "Client permanently deleted", id });
-    });
-  }
-
-  /** Eliminación lógica -> `is_active = false`. */
-  public async deleteLogical(req: Request, res: Response): Promise<void> {
-    await this.run(res, async () => {
-      const client = await this.service.deleteLogical(this.paramId(req));
-      res.status(200).json({ message: "Client deactivated (logical delete)", client });
-    });
-  }
+  // (rellenar en ISS-03-E) deletePhysical, deleteLogical
 }
