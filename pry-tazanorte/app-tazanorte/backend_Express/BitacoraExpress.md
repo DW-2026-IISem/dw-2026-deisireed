@@ -231,3 +231,17 @@
 ### Verficación
 
 ![![](images/clipboard-646130957.png)](images/clipboard-2422431848.png)
+
+## ISS-04: Seeders con Faker
+
+### 9.1 Seeder del feature Client
+
+![](images/clipboard-2025478266.png)
+
+![](images/clipboard-510123619.png)
+
+### 9.2 Conteos y runner
+
+![](images/clipboard-2080236713.png)
+
+![](images/clipboard-672175169.png)
