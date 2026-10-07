@@ -671,3 +671,23 @@
 ![](images/clipboard-2335627915.png)
 
 ![](images/clipboard-3576412489.png)
+
+## ISS-13: Puntos de Fidelización
+
+## Repository, Service, Controller y Routes
+
+![](images/clipboard-836462837.png)
+
+![](images/clipboard-2565219749.png)
+
+![](images/clipboard-2920446436.png)
+
+## Seeder y Swagger
+
+![](images/clipboard-2332851604.png)
+
+## Verificación 
+
+![![](images/clipboard-1474548082.png)](images/clipboard-2548584321.png)
+
+![](images/clipboard-2501690256.png)

@@ -7,6 +7,7 @@ import { OrdersRoutes } from "../features/business/orders/orders.routes";
 import { OrderItemsRoutes } from "../features/business/order-items/order-items.routes";
 import { SupplyOrderItemsRoutes } from "../features/business/supply-order-items/supply-order-items.routes";
 import { PaymentsRoutes } from "../features/business/payments/payments.routes";
+import { LoyaltyPointsRoutes } from "../features/business/loyalty-points/loyalty-points.routes";
 
 export class Routes {
   public clientsRoutes: ClientsRoutes = new ClientsRoutes();
@@ -18,6 +19,7 @@ export class Routes {
   public orderItemsRoutes: OrderItemsRoutes = new OrderItemsRoutes();
   public supplyOrderItemsRoutes: SupplyOrderItemsRoutes = new SupplyOrderItemsRoutes();
   public paymentsRoutes: PaymentsRoutes = new PaymentsRoutes();
+  public loyaltyPointsRoutes: LoyaltyPointsRoutes = new LoyaltyPointsRoutes();
 
   public routes(app: any): void {
     this.clientsRoutes.routes(app);
@@ -29,5 +31,6 @@ export class Routes {
     this.orderItemsRoutes.routes(app);
     this.supplyOrderItemsRoutes.routes(app);
     this.paymentsRoutes.routes(app);
+    this.loyaltyPointsRoutes.routes(app);
   }
 }
