@@ -1,11 +1,14 @@
 import { Sequelize } from 'sequelize-typescript';
 import dotenv from 'dotenv';
+
+// Modelos Auth / RBAC
 import { UserModel } from './models/user.model';
 import { RoleModel } from './models/role.model';
 import { ResourceModel } from './models/resource.model';
 import { RoleUserModel } from './models/role-user.model';
 import { ResourceRoleModel } from './models/resource-role.model';
 import { RefreshTokenModel } from './models/refresh-token.model';
+
 import { setupRbacAssociations } from './rbac.associations';
 
 dotenv.config();
@@ -30,7 +33,6 @@ export const sequelize = new Sequelize({
   models: authModels,
 });
 
-// Ejecutar asociaciones explícitas
 setupRbacAssociations();
 
 export const connectDatabase = async (): Promise<void> => {

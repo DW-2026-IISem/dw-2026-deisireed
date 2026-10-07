@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "nodemon --watch src --ext ts --exec ts-node -- src/server.ts",
-    "db:seed": "ts-node -- src/database/seeders/index.ts"
+    "db:seed": "ts-node -- src/database/seeders/index.ts",
+    "seed": "ts-node src/shared/database/seed.ts"
   },
   "keywords": [],
   "author": "",

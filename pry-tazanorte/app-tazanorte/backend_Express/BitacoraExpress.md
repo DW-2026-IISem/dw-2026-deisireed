@@ -896,3 +896,21 @@
 ![](images/clipboard-320291478.png)
 
 ![](images/clipboard-722968855.png)
+
+## ISS-21: Seeding y Verificación Final
+
+![](images/clipboard-318251105.png)
+
+![](images/clipboard-694528696.png)
+
+**Verifica la compilación final**:
+
+![**Ejecuta el Seeding para popular tu base de datos**:](images/clipboard-1465237055.png)
+
+![](images/clipboard-3825560982.png)
+
+**Inicia el servidor en modo desarrollo**:
+
+![](images/clipboard-1863547071.png)
+
+![](images/clipboard-2947370699.png)
