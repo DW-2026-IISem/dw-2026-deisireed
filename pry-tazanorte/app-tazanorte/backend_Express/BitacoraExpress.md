@@ -873,3 +873,9 @@
 ### 17.11 Verificación
 
 ![](images/clipboard-4294111544.png)
+
+## **ISS-18: Feature Auth (Flujo de Autenticación JWT y Refresh Tokens)**.
+
+![![](images/clipboard-1661041336.png)](images/clipboard-984662249.png)
+
+![](images/clipboard-233736741.png)
