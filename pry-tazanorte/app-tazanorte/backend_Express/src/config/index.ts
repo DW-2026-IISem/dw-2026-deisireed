@@ -1,118 +1,55 @@
-import dotenv from "dotenv";
-import express, { Application, ErrorRequestHandler } from "express";
-import morgan from "morgan";
+import express, { Application } from "express";
 import cors from "cors";
-import { sequelize, getDatabaseInfo, testConnection } from "../database/db";
-import "../features/business/clients/client.model";
-import "../features/business/products/product.model";
-import "../features/business/employees/employee.model";
-import "../features/business/supplies/supply.model";
-import "../features/business/cash-registers/cash-register.model";
-import "../features/business/orders/order.model";
-import "../features/business/order-items/order-item.model";
-import "../features/business/cash-registers/cash-registers.associations";
-import "../features/business/orders/orders.associations";
-import "../features/business/order-items/order-items.associations";
-import { Routes } from "../routes/index";
-import { setupSwagger } from "../swagger/index";
+import swaggerUi from "swagger-ui-express";
+import { Routes } from "../routes";
+import { swaggerSpec } from "./swagger";
+import { testConnection } from "../database/db";
 
-dotenv.config();
+// Carga directa de documentaciones Swagger de cada módulo
+import "../features/business/cash-registers/cash-registers.swagger";
+import "../features/business/clients/clients.swagger";
+import "../features/business/employees/employees.swagger";
+import "../features/business/orders/orders.swagger";
+import "../features/business/products/products.swagger";
+import "../features/business/supplies/supplies.swagger";
+import "../features/business/order-items/order-items.swagger";
+import "../features/business/supply-order-items/supply-order-items.swagger";
 
 export class App {
   public app: Application;
   public routePrv: Routes = new Routes();
 
-  constructor(private port?: number | string) {
+  constructor() {
     this.app = express();
-    this.settings();
-    this.middlewares();
+    this.config();
     this.routes();
-    this.docs();
-    this.errorHandling();
+    this.connectDB();
   }
 
-  private settings(): void {
-    this.app.set("port", this.port || process.env.PORT || 4000);
-  }
-
-  private middlewares(): void {
-    this.app.use(morgan("dev"));
-    this.app.use(cors());
+  private config(): void {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: false }));
+    this.app.use(cors());
   }
 
   private routes(): void {
-    this.routePrv.clientsRoutes.routes(this.app);
-    this.routePrv.productsRoutes.routes(this.app);
-    this.routePrv.employeesRoutes.routes(this.app);
-    this.routePrv.suppliesRoutes.routes(this.app);
-    this.routePrv.cashRegistersRoutes.routes(this.app);
-    this.routePrv.orderItemsRoutes.routes(this.app);
-    this.routePrv.ordersRoutes.routes(this.app);
+    this.app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    this.app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+    this.routePrv.routes(this.app);
   }
 
-  private docs(): void {
-    setupSwagger(this.app);
+  private async connectDB(): Promise<void> {
+    await testConnection();
   }
 
-  /**
-   * Errores que ocurren antes de llegar a un controller (ej. JSON malformado).
-   * Sin esto, Express responde con un HTML que filtra el stack trace.
-   * Debe registrarse después de las rutas.
-   */
-  private errorHandling(): void {
-    const bodyErrorHandler: ErrorRequestHandler = (err, _req, res, next) => {
-      if (err instanceof SyntaxError && "body" in err) {
-        res.status(400).json({ error: "Malformed JSON body" });
-        return;
-      }
-      next(err);
-    };
-    this.app.use(bodyErrorHandler);
-  }
-
-  private async dbConnection(): Promise<void> {
-    try {
-      const dbInfo = getDatabaseInfo();
-      console.log(`🔗 Intentando conectar a: ${dbInfo.engine.toUpperCase()}`);
-
-      const isConnected = await testConnection();
-      if (!isConnected) {
-        throw new Error(`No se pudo conectar a la base de datos ${dbInfo.engine.toUpperCase()}`);
-      }
-
-      // Lab: sync crea/altera tablas desde los modelos.
-      const force = process.env.DB_SYNC_FORCE === "true";
-      const isMysql =
-        sequelize.getDialect() === "mysql" || sequelize.getDialect() === "mariadb";
-
-      if (isMysql) {
-        await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
-      }
-      try {
-        await sequelize.sync({ force, alter: !force });
-      } finally {
-        if (isMysql) {
-          await sequelize.query("SET FOREIGN_KEY_CHECKS = 1");
-        }
-      }
-
-      console.log(
-        force
-          ? "📦 Base de datos recreada (DB_SYNC_FORCE=true)"
-          : "📦 Base de datos sincronizada exitosamente"
-      );
-    } catch (error) {
-      console.error("❌ Error al conectar con la base de datos:", error);
-      process.exit(1);
-    }
-  }
-
-  async listen() {
-    // Primero la BD (conexión + sync), después abrir el puerto: evita deadlocks por DDL.
-    await this.dbConnection();
-    this.app.listen(this.app.get("port"));
-    console.log(`🚀 Servidor ejecutándose en puerto ${this.app.get("port")}`);
+  public listen(port?: number): any {
+    const PORT = port || Number(process.env.PORT) || 4000;
+    return this.app.listen(PORT, () => {
+      console.log(`Servidor corriendo en puerto ${PORT}`);
+      console.log(`Swagger disponible en: http://localhost:${PORT}/api/docs`);
+    });
   }
 }
+
+export default new App();

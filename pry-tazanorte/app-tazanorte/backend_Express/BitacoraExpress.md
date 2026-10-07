@@ -597,3 +597,43 @@
 ![](images/clipboard-4110508063.png)
 
 ![![](images/clipboard-1084979947.png)](images/clipboard-2733710898.png)
+
+## ISS-11 — Feature SupplyOrderItem (InsumoPedidoDetalle)
+
+## Modelo, Relación y DTOs
+
+![](images/clipboard-624501167.png)
+
+![![](images/clipboard-3162686034.png)](images/clipboard-4183031699.png)
+
+![](images/clipboard-365540882.png)
+
+![![](images/clipboard-3798097896.png)](images/clipboard-2113658440.png)
+
+![![](images/clipboard-2220616525.png)](images/clipboard-901506114.png)
+
+## Repository, Service, Controller y Routes
+
+![![](images/clipboard-3512413558.png)](images/clipboard-2687610736.png)
+
+![![](images/clipboard-1297453007.png)](images/clipboard-1351523123.png)
+
+![](images/clipboard-2416420281.png)
+
+## Archivos `.http` 
+
+![](images/clipboard-3189943790.png)
+
+## Seeder y Swagger
+
+![](images/clipboard-1320333575.png)
+
+![](images/clipboard-2090022111.png)
+
+## Verificación 
+
+![](images/clipboard-2861659705.png)
+
+![](images/clipboard-2235893882.png)
+
+![![](images/clipboard-1034998999.png)](images/clipboard-1034998999.png)

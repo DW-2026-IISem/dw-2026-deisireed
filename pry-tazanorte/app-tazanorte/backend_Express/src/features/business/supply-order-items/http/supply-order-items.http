@@ -1,0 +1,30 @@
+@baseUrl = http://localhost:4000
+
+### GET ALL
+GET {{baseUrl}}/api/insumo-pedido-detalles
+
+### CREATE
+POST {{baseUrl}}/api/insumo-pedido-detalles
+Content-Type: application/json
+
+{
+  "orderItemId": 1,
+  "supplyId": 1,
+  "quantityUsed": 0.5
+}
+
+### GET ONE
+GET {{baseUrl}}/api/insumo-pedido-detalles/1
+
+### UPDATE PUT
+PUT {{baseUrl}}/api/insumo-pedido-detalles/1
+Content-Type: application/json
+
+{
+  "orderItemId": 1,
+  "supplyId": 1,
+  "quantityUsed": 0.75
+}
+
+### DELETE
+DELETE {{baseUrl}}/api/insumo-pedido-detalles/1
