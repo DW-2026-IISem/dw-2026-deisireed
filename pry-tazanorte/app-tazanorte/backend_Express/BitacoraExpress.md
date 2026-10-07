@@ -637,3 +637,37 @@
 ![](images/clipboard-2235893882.png)
 
 ![![](images/clipboard-1034998999.png)](images/clipboard-1034998999.png)
+
+## ISS-12  Feature Payment (Pago)
+
+## Modelo, Relación y DTOs
+
+![](images/clipboard-3052225304.png)
+
+![](images/clipboard-2705020222.png)
+
+![](images/clipboard-2880059331.png)
+
+## Repository, Service, Controller y Routes
+
+![](images/clipboard-2915625827.png)
+
+![](images/clipboard-1524268685.png)
+
+![](images/clipboard-4133554735.png)
+
+![](images/clipboard-2837294128.png)
+
+## Archivos `.http` 
+
+## Seeder y Swagger
+
+![](images/clipboard-3008208825.png)
+
+![](images/clipboard-2893881187.png)
+
+## Verificación 
+
+![](images/clipboard-2335627915.png)
+
+![](images/clipboard-3576412489.png)

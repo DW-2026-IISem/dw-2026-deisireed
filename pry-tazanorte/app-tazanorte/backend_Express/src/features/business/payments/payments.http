@@ -1,0 +1,29 @@
+### Obtener todos los pagos
+GET http://localhost:4000/api/pagos
+
+### Crear un pago
+POST http://localhost:4000/api/pagos
+Content-Type: application/json
+
+{
+  "referencia_tipo": "PEDIDO",
+  "referencia_id": 1,
+  "metodo": "EFECTIVO",
+  "monto": 12500,
+  "estado": "COMPLETADO"
+}
+
+### Obtener pago por ID
+GET http://localhost:4000/api/pagos/1
+
+### Actualizar pago
+PUT http://localhost:4000/api/pagos/1
+Content-Type: application/json
+
+{
+  "metodo": "TARJETA",
+  "monto": 15000
+}
+
+### Eliminar pago
+DELETE http://localhost:4000/api/pagos/1
