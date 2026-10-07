@@ -333,3 +333,41 @@
 ## ISS-07-A: Feature Employee (Empleado)
 
 ### Modelo y DTOs
+
+![![](images/clipboard-4292104799.png)](images/clipboard-2737197696.png)
+
+![![](images/clipboard-3633401410.png)](images/clipboard-3276733328.png)
+
+![![](images/clipboard-2469807209.png)](images/clipboard-2047549385.png)
+
+![](images/clipboard-2884169055.png)
+
+## Repository, Service, Controller y Routes
+
+![![](images/clipboard-2905925923.png)![](images/clipboard-815868403.png)](images/clipboard-4038095020.png)
+
+![![](images/clipboard-3976731548.png)](images/clipboard-1669109617.png)
+
+![![](images/clipboard-1674208972.png)](images/clipboard-433642445.png)
+
+![](images/clipboard-2522641669.png)
+
+## Archivos `.http`
+
+![](images/clipboard-1351997511.png)
+
+## Seeder y Swagger
+
+![](images/clipboard-1043340742.png)
+
+![](images/clipboard-1720204443.png)
+
+## Cableado
+
+![](images/clipboard-101167385.png)
+
+## Verificación ISS-07-A
+
+![![](images/clipboard-3158530421.png)](images/clipboard-1098291745.png)
+
+![](images/clipboard-2975842907.png)

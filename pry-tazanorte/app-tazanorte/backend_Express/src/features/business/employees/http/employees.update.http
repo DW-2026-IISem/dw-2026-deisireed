@@ -1,0 +1,21 @@
+### Feature Employee — UPDATE (PUT) / UPDATE (PATCH) (SIN AUTH)
+### `is_active` no se envía: solo cambia con PATCH /api/empleados/:id/deactivate
+@baseUrl = http://localhost:4000
+@id = 1
+
+### PUT — reemplazo completo
+PUT {{baseUrl}}/api/empleados/{{id}}
+Content-Type: application/json
+
+{
+  "nombre": "Laura Gómez Ruiz",
+  "descripcion": "Barista turno tarde"
+}
+
+### PATCH — parcial
+PATCH {{baseUrl}}/api/empleados/{{id}}
+Content-Type: application/json
+
+{
+  "descripcion": "Supervisora de barra"
+}

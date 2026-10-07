@@ -1,0 +1,11 @@
+### Feature Employee — CREATE (SIN AUTH)
+@baseUrl = http://localhost:4000
+
+### CREATE -> 201
+POST {{baseUrl}}/api/empleados
+Content-Type: application/json
+
+{
+  "nombre": "Laura Gómez",
+  "descripcion": "Barista turno mañana"
+}

@@ -5,6 +5,7 @@ import cors from "cors";
 import { sequelize, getDatabaseInfo, testConnection } from "../database/db";
 import "../features/business/clients/client.model";
 import "../features/business/products/product.model";
+import "../features/business/employees/employee.model";
 import { Routes } from "../routes/index";
 import { setupSwagger } from "../swagger/index";
 
@@ -37,6 +38,7 @@ export class App {
   private routes(): void {
     this.routePrv.clientsRoutes.routes(this.app);
     this.routePrv.productsRoutes.routes(this.app);
+    this.routePrv.employeesRoutes.routes(this.app);
   }
 
   private docs(): void {
