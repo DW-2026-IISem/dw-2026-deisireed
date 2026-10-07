@@ -321,3 +321,15 @@
 ### Verificación ISS-06
 
 ![![](images/clipboard-1630452207.png)](images/clipboard-4165136416.png)
+
+![![](images/clipboard-734800930.png)](images/clipboard-199167993.png)
+
+## ISS-07: Empleado e Insumo
+
+## Helper compartido de Swagger 
+
+![](images/clipboard-264492010.png)
+
+## ISS-07-A: Feature Employee (Empleado)
+
+### Modelo y DTOs
