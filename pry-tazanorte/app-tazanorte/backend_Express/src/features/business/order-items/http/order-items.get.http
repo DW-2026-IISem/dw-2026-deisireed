@@ -1,0 +1,18 @@
+### Feature OrderItem — GET ALL / GET ONE
+### Modalidad SIN AUTH.
+@baseUrl = http://localhost:4000
+@id = 1
+
+# @name getAllOrderItems
+GET {{baseUrl}}/api/detalle-pedidos
+
+###
+
+# @name getOneOrderItem
+GET {{baseUrl}}/api/detalle-pedidos/{{id}}
+
+### 400 — id inválido
+GET {{baseUrl}}/api/detalle-pedidos/abc
+
+### 404 — no existe
+GET {{baseUrl}}/api/detalle-pedidos/999999

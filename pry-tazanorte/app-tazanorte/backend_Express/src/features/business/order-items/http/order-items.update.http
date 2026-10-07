@@ -1,0 +1,24 @@
+### Feature OrderItem — UPDATE (PUT) / UPDATE (PATCH)
+### Modalidad SIN AUTH. `is_active` no se envía: la línea se desactiva con
+### PATCH {{baseUrl}}/api/detalle-pedidos/{{id}}/deactivate.
+@baseUrl = http://localhost:4000
+@id = 1
+
+# @name updateOrderItemPut
+PUT {{baseUrl}}/api/detalle-pedidos/{{id}}
+Content-Type: application/json
+
+{
+  "cantidad": 3,
+  "observaciones": "Con leche de almendras"
+}
+
+###
+
+# @name updateOrderItemPatch
+PATCH {{baseUrl}}/api/detalle-pedidos/{{id}}
+Content-Type: application/json
+
+{
+  "cantidad": 1
+}

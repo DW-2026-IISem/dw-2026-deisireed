@@ -471,3 +471,51 @@
 ![](images/clipboard-1398601733.png)
 
 ![](images/clipboard-2830273846.png)
+
+## ISS-09-: Feature OrderItem (PedidoDetalle)
+
+## Modelo, relación y DTOs
+
+![](images/clipboard-996931086.png)
+
+![![](images/clipboard-4068048845.png)](images/clipboard-2169004235.png)
+
+![![](images/clipboard-280493132.png)](images/clipboard-3108813271.png)
+
+![](images/clipboard-3493097886.png)
+
+## Repository, Service, Controller y Routes
+
+![![](images/clipboard-2775622685.png)](images/clipboard-2073365068.png)
+
+![![](images/clipboard-822346901.png)](images/clipboard-1242249634.png)
+
+![](images/clipboard-3323988620.png)
+
+![![](images/clipboard-2372571850.png)](images/clipboard-1546013905.png)
+
+![![](images/clipboard-1147763467.png)](images/clipboard-1764784622.png)
+
+## Archivos `.http`
+
+![](images/clipboard-2912866573.png)
+
+## Seeder y Swagger
+
+![![](images/clipboard-3726407956.png)](images/clipboard-1131323045.png)
+
+![![](images/clipboard-4142983489.png)](images/clipboard-1650840229.png)
+
+![](images/clipboard-4189446465.png)
+
+## Cableado
+
+![](images/clipboard-1538832317.png)
+
+## Verificación
+
+![](images/clipboard-1852225812.png)
+
+![](images/clipboard-3524211575.png)
+
+![](images/clipboard-3027570491.png)

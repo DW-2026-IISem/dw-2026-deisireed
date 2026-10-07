@@ -1,0 +1,12 @@
+### Feature OrderItem — DELETE físico / DELETE lógico (is_active = false)
+### Modalidad SIN AUTH.
+@baseUrl = http://localhost:4000
+@id = 1
+
+# @name deleteOrderItemPhysical
+DELETE {{baseUrl}}/api/detalle-pedidos/{{id}}
+
+###
+
+# @name deleteOrderItemLogical
+PATCH {{baseUrl}}/api/detalle-pedidos/{{id}}/deactivate
