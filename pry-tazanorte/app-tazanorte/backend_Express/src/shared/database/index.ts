@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize-typescript';
+import dotenv from 'dotenv';
 import { UserModel } from './models/user.model';
 import { RoleModel } from './models/role.model';
 import { ResourceModel } from './models/resource.model';
@@ -6,6 +7,8 @@ import { RoleUserModel } from './models/role-user.model';
 import { ResourceRoleModel } from './models/resource-role.model';
 import { RefreshTokenModel } from './models/refresh-token.model';
 import { setupRbacAssociations } from './rbac.associations';
+
+dotenv.config();
 
 export const authModels = [
   UserModel,
@@ -16,5 +19,26 @@ export const authModels = [
   RefreshTokenModel,
 ];
 
+export const sequelize = new Sequelize({
+  dialect: (process.env.DB_DIALECT as any) || 'postgres',
+  host: process.env.DB_HOST || 'localhost',
+  port: Number(process.env.DB_PORT) || 5432,
+  username: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || 'postgres',
+  database: process.env.DB_NAME || 'tazanorte_db',
+  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  models: authModels,
+});
+
 // Ejecutar asociaciones explícitas
 setupRbacAssociations();
+
+export const connectDatabase = async (): Promise<void> => {
+  try {
+    await sequelize.authenticate();
+    console.log('✅ Conexión a la base de datos establecida correctamente.');
+  } catch (error) {
+    console.error('❌ Error al conectar a la base de datos:', error);
+    throw error;
+  }
+};

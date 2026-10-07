@@ -888,3 +888,11 @@
 
 \
 ![](images/clipboard-4203775094.png)
+
+##  ISS-20: Router Central y Entrypoint Server
+
+![](images/clipboard-1606321169.png)
+
+![](images/clipboard-320291478.png)
+
+![](images/clipboard-722968855.png)
