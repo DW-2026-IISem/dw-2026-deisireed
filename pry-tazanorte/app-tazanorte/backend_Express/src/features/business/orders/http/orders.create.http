@@ -1,0 +1,49 @@
+### Feature Order — CREATE (cabecera + líneas, transaccional)
+### Modalidad SIN AUTH. Estado inicial: 'pendiente'. subtotal/total los calcula el service.
+@baseUrl = http://localhost:4000
+
+### 201 — pedido con dos líneas
+# @name createOrder
+POST {{baseUrl}}/api/pedidos
+Content-Type: application/json
+
+{
+  "cliente_id": 1,
+  "turno_caja_id": 1,
+  "canal": "caja",
+  "items": [
+    { "producto_id": 1, "cantidad": 2, "observaciones": "Sin azúcar" },
+    { "producto_id": 2, "cantidad": 1 }
+  ]
+}
+
+### 400 — sin líneas
+POST {{baseUrl}}/api/pedidos
+Content-Type: application/json
+
+{
+  "cliente_id": 1,
+  "turno_caja_id": 1,
+  "items": []
+}
+
+### 400 — canal inválido
+POST {{baseUrl}}/api/pedidos
+Content-Type: application/json
+
+{
+  "cliente_id": 1,
+  "turno_caja_id": 1,
+  "canal": "domicilio",
+  "items": [{ "producto_id": 1, "cantidad": 1 }]
+}
+
+### 404 — cliente inexistente
+POST {{baseUrl}}/api/pedidos
+Content-Type: application/json
+
+{
+  "cliente_id": 999999,
+  "turno_caja_id": 1,
+  "items": [{ "producto_id": 1, "cantidad": 1 }]
+}

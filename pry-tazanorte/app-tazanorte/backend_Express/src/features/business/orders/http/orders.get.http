@@ -1,0 +1,18 @@
+### Feature Order — GET ALL / GET ONE
+### Modalidad SIN AUTH. Los pedidos cancelados no se listan.
+@baseUrl = http://localhost:4000
+@id = 1
+
+# @name getAllOrders
+GET {{baseUrl}}/api/pedidos
+
+###
+
+# @name getOneOrder
+GET {{baseUrl}}/api/pedidos/{{id}}
+
+### 400 — id inválido
+GET {{baseUrl}}/api/pedidos/abc
+
+### 404 — no existe
+GET {{baseUrl}}/api/pedidos/999999

@@ -1,0 +1,12 @@
+### Feature Order — DELETE físico / DELETE lógico (cancelación)
+### Modalidad SIN AUTH. El físico solo aplica a pedidos 'pendiente' o 'cancelado'.
+@baseUrl = http://localhost:4000
+@id = 1
+
+# @name deleteOrderPhysical
+DELETE {{baseUrl}}/api/pedidos/{{id}}
+
+###
+
+# @name cancelOrder
+PATCH {{baseUrl}}/api/pedidos/{{id}}/deactivate

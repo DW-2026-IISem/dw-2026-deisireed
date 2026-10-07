@@ -519,3 +519,81 @@
 ![](images/clipboard-3524211575.png)
 
 ![](images/clipboard-3027570491.png)
+
+## ISS-10: Pedido
+
+## Modelo, relación y DTOs
+
+![](images/clipboard-3862282791.png)
+
+![](images/clipboard-3330768052.png)
+
+![](images/clipboard-1727807500.png)
+
+![](images/clipboard-1011281829.png)
+
+![](images/clipboard-1428832649.png)
+
+![](images/clipboard-2754010032.png)
+
+![](images/clipboard-3730214383.png)
+
+## Repository, Service, Controller y Routes
+
+![](images/clipboard-3669781040.png)
+
+![](images/clipboard-74234586.png)
+
+![](images/clipboard-1897535950.png)
+
+![](images/clipboard-1790805451.png)
+
+![](images/clipboard-3517196030.png)
+
+![](images/clipboard-3539762853.png)
+
+![](images/clipboard-1472766667.png)
+
+![](images/clipboard-2636264478.png)
+
+![](images/clipboard-2540515329.png)
+
+![](images/clipboard-2935479616.png)
+
+![](images/clipboard-523806774.png)
+
+![](images/clipboard-2027334693.png)
+
+![](images/clipboard-3992882875.png)
+
+## Archivos `.http`
+
+![![](images/clipboard-267563524.png)](images/clipboard-2832759319.png)
+
+![![](images/clipboard-737841132.png)](images/clipboard-383073615.png)
+
+![](images/clipboard-302816116.png)
+
+## Seeder y Swagger
+
+![](images/clipboard-1086894614.png)
+
+![](images/clipboard-2920932138.png)
+
+![](images/clipboard-849399148.png)
+
+![](images/clipboard-372744714.png)
+
+![](images/clipboard-958123164.png)
+
+![](images/clipboard-1112264380.png)
+
+## Cableado
+
+![](images/clipboard-2806189576.png)
+
+## Verificación
+
+![](images/clipboard-4110508063.png)
+
+![![](images/clipboard-1084979947.png)](images/clipboard-2733710898.png)

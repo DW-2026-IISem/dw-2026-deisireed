@@ -4,6 +4,7 @@ import { EmployeesRoutes } from "../features/business/employees/employees.routes
 import { SuppliesRoutes } from "../features/business/supplies/supplies.routes";
 import { CashRegistersRoutes } from "../features/business/cash-registers/cash-registers.routes";
 import { OrderItemsRoutes } from "../features/business/order-items/order-items.routes";
+import { OrdersRoutes } from "../features/business/orders/orders.routes";
 
 export class Routes {
   public clientsRoutes: ClientsRoutes = new ClientsRoutes();
@@ -12,4 +13,5 @@ export class Routes {
   public suppliesRoutes: SuppliesRoutes = new SuppliesRoutes();
   public cashRegistersRoutes: CashRegistersRoutes = new CashRegistersRoutes();
   public orderItemsRoutes: OrderItemsRoutes = new OrderItemsRoutes();
+  public ordersRoutes: OrdersRoutes = new OrdersRoutes();
 }

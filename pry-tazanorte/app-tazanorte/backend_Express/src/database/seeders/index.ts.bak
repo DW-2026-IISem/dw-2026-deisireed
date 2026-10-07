@@ -5,18 +5,12 @@ import "../../features/business/products/product.model";
 import "../../features/business/employees/employee.model";
 import "../../features/business/supplies/supply.model";
 import "../../features/business/cash-registers/cash-register.model";
-import "../../features/business/orders/order.model";
-import "../../features/business/order-items/order-item.model";
 import "../../features/business/cash-registers/cash-registers.associations";
-import "../../features/business/orders/orders.associations";
-import "../../features/business/order-items/order-items.associations";
 import { seedClients } from "../../features/business/clients/clients.seeder";
 import { seedProducts } from "../../features/business/products/products.seeder";
 import { seedEmployees } from "../../features/business/employees/employees.seeder";
 import { seedSupplies } from "../../features/business/supplies/supplies.seeder";
 import { seedCashRegisters } from "../../features/business/cash-registers/cash-registers.seeder";
-import { seedOrders } from "../../features/business/orders/orders.seeder";
-import { seedOrderItems } from "../../features/business/order-items/order-items.seeder";
 import { resolveSeedCounts } from "./counts";
 
 dotenv.config();
@@ -59,8 +53,6 @@ export async function runAllSeeders(): Promise<void> {
   await seedEmployees(counts.employees);
   await seedSupplies(counts.supplies);
   await seedCashRegisters(counts.cash_registers);
-  await seedOrders(counts.orders);
-  await seedOrderItems(counts.order_items);
 
   console.log("🌱 SeedersRunner finalizado");
 }

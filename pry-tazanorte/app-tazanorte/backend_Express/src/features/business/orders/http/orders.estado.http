@@ -1,0 +1,35 @@
+### Feature Order — CAMBIO DE ESTADO
+### Modalidad SIN AUTH.
+### Transiciones: pendiente -> pagado | cancelado
+###               pagado -> en_preparacion | entregado | cancelado
+###               en_preparacion -> entregado | cancelado
+@baseUrl = http://localhost:4000
+@id = 1
+
+# @name payOrder
+PATCH {{baseUrl}}/api/pedidos/{{id}}/estado
+Content-Type: application/json
+
+{ "estado": "pagado" }
+
+###
+
+# @name prepareOrder
+PATCH {{baseUrl}}/api/pedidos/{{id}}/estado
+Content-Type: application/json
+
+{ "estado": "en_preparacion" }
+
+###
+
+# @name deliverOrder
+PATCH {{baseUrl}}/api/pedidos/{{id}}/estado
+Content-Type: application/json
+
+{ "estado": "entregado" }
+
+### 400 — transición inválida (si el pedido ya está entregado)
+PATCH {{baseUrl}}/api/pedidos/{{id}}/estado
+Content-Type: application/json
+
+{ "estado": "pendiente" }

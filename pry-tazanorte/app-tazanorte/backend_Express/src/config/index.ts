@@ -49,6 +49,7 @@ export class App {
     this.routePrv.suppliesRoutes.routes(this.app);
     this.routePrv.cashRegistersRoutes.routes(this.app);
     this.routePrv.orderItemsRoutes.routes(this.app);
+    this.routePrv.ordersRoutes.routes(this.app);
   }
 
   private docs(): void {
