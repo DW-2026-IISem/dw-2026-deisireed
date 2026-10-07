@@ -4,10 +4,13 @@ import "../../features/business/clients/client.model";
 import "../../features/business/products/product.model";
 import "../../features/business/employees/employee.model";
 import "../../features/business/supplies/supply.model";
+import "../../features/business/cash-registers/cash-register.model";
+import "../../features/business/cash-registers/cash-registers.associations";
 import { seedClients } from "../../features/business/clients/clients.seeder";
 import { seedProducts } from "../../features/business/products/products.seeder";
 import { seedEmployees } from "../../features/business/employees/employees.seeder";
 import { seedSupplies } from "../../features/business/supplies/supplies.seeder";
+import { seedCashRegisters } from "../../features/business/cash-registers/cash-registers.seeder";
 import { resolveSeedCounts } from "./counts";
 
 dotenv.config();
@@ -49,6 +52,7 @@ export async function runAllSeeders(): Promise<void> {
   await seedProducts(counts.products);
   await seedEmployees(counts.employees);
   await seedSupplies(counts.supplies);
+  await seedCashRegisters(counts.cash_registers);
 
   console.log("🌱 SeedersRunner finalizado");
 }

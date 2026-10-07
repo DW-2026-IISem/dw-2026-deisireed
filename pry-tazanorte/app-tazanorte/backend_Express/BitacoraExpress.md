@@ -417,3 +417,57 @@
 ![](images/clipboard-1000175602.png)
 
 ![](images/clipboard-2110497930.png)
+
+## ISS-08: TurnoCaja
+
+##  Mejora en `BaseController`
+
+![](images/clipboard-795907986.png)
+
+## Modelo, relación y DTOs
+
+![](images/clipboard-381849241.png)
+
+![](images/clipboard-2052834996.png)
+
+![![](images/clipboard-3978091437.png)](images/clipboard-1849121511.png)
+
+![![](images/clipboard-2834040637.png)](images/clipboard-3383754419.png)
+
+![](images/clipboard-3296611764.png)
+
+## Repository, Service, Controller y Routes
+
+![![](images/clipboard-3717206956.png)](images/clipboard-1785569684.png)
+
+![](images/clipboard-4039906018.png)
+
+![![](images/clipboard-4293676555.png)](images/clipboard-833973634.png)
+
+![![](images/clipboard-1994758819.png)](images/clipboard-832678514.png)
+
+![![](images/clipboard-4002552474.png)](images/clipboard-2441316125.png)
+
+![](images/clipboard-4069937409.png)
+
+## Archivos `.http`
+
+![](images/clipboard-1653130525.png)
+
+## Seeder y Swagger
+
+![](images/clipboard-2580208467.png)
+
+![](images/clipboard-806017099.png)
+
+## Cableado
+
+![](images/clipboard-71145083.png)
+
+## Verificación ISS-08
+
+![](images/clipboard-17654541.png)
+
+![](images/clipboard-1398601733.png)
+
+![](images/clipboard-2830273846.png)

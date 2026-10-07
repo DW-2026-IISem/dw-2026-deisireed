@@ -1,0 +1,22 @@
+### Feature CashRegister (TurnoCaja) — CREATE (SIN AUTH)
+### empleado_id debe existir y estar activo
+@baseUrl = http://localhost:4000
+
+### CREATE -> 201
+POST {{baseUrl}}/api/turnos-caja
+Content-Type: application/json
+
+{
+  "nombre": "Turno mañana",
+  "descripcion": "6:00 a 14:00",
+  "empleado_id": 1
+}
+
+### CREATE con empleado inexistente -> 404
+POST {{baseUrl}}/api/turnos-caja
+Content-Type: application/json
+
+{
+  "nombre": "Turno fantasma",
+  "empleado_id": 99999
+}

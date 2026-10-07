@@ -1,0 +1,22 @@
+### Feature CashRegister (TurnoCaja) — UPDATE (PUT) / UPDATE (PATCH) (SIN AUTH)
+### `is_active` no se envía: solo cambia con PATCH /api/turnos-caja/:id/deactivate
+@baseUrl = http://localhost:4000
+@id = 1
+
+### PUT — reemplazo completo
+PUT {{baseUrl}}/api/turnos-caja/{{id}}
+Content-Type: application/json
+
+{
+  "nombre": "Turno tarde",
+  "descripcion": "14:00 a 22:00",
+  "empleado_id": 2
+}
+
+### PATCH — parcial
+PATCH {{baseUrl}}/api/turnos-caja/{{id}}
+Content-Type: application/json
+
+{
+  "descripcion": "Turno con cambio de horario"
+}

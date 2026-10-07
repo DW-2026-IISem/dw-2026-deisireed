@@ -7,6 +7,8 @@ import "../features/business/clients/client.model";
 import "../features/business/products/product.model";
 import "../features/business/employees/employee.model";
 import "../features/business/supplies/supply.model";
+import "../features/business/cash-registers/cash-register.model";
+import "../features/business/cash-registers/cash-registers.associations";
 import { Routes } from "../routes/index";
 import { setupSwagger } from "../swagger/index";
 
@@ -41,6 +43,7 @@ export class App {
     this.routePrv.productsRoutes.routes(this.app);
     this.routePrv.employeesRoutes.routes(this.app);
     this.routePrv.suppliesRoutes.routes(this.app);
+    this.routePrv.cashRegistersRoutes.routes(this.app);
   }
 
   private docs(): void {
