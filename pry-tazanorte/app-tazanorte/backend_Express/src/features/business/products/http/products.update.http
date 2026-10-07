@@ -1,0 +1,23 @@
+### Feature Product — UPDATE (PUT) / UPDATE (PATCH) (SIN AUTH)
+### `is_active` no se envía: el estado solo cambia con PATCH /api/productos/:id/deactivate
+@baseUrl = http://localhost:4000
+@id = 1
+
+### PUT — reemplazo completo
+PUT {{baseUrl}}/api/productos/{{id}}
+Content-Type: application/json
+
+{
+  "sku": "BEB-0001",
+  "nombre": "Latte grande",
+  "descripcion": "Café con leche vaporizada, 16 oz",
+  "precio": 9500
+}
+
+### PATCH — parcial
+PATCH {{baseUrl}}/api/productos/{{id}}
+Content-Type: application/json
+
+{
+  "precio": 9000
+}

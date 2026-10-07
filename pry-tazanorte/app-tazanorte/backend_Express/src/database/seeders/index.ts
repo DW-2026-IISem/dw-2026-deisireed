@@ -1,7 +1,9 @@
 import dotenv from "dotenv";
 import { sequelize, testConnection } from "../db";
 import "../../features/business/clients/client.model";
+import "../../features/business/products/product.model";
 import { seedClients } from "../../features/business/clients/clients.seeder";
+import { seedProducts } from "../../features/business/products/products.seeder";
 import { resolveSeedCounts } from "./counts";
 
 dotenv.config();
@@ -12,8 +14,8 @@ dotenv.config();
  *
  * Uso:
  *   npm run db:seed
- *   npm run db:seed -- --clients=20
- *   SEED_CLIENTS=5 npm run db:seed
+ *   npm run db:seed -- --clients=20 --products=30
+ *   SEED_CLIENTS=5 SEED_PRODUCTS=8 npm run db:seed
  */
 export async function runAllSeeders(): Promise<void> {
   const counts = resolveSeedCounts();
@@ -40,6 +42,7 @@ export async function runAllSeeders(): Promise<void> {
 
   // Orden: padres -> hijos
   await seedClients(counts.clients);
+  await seedProducts(counts.products);
 
   console.log("🌱 SeedersRunner finalizado");
 }

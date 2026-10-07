@@ -1,6 +1,6 @@
-# BITACORA PASO A PASO DE BACKEND EXPRESS 
+# BITACORA PASO A PASO DE BACKEND EXPRESS
 
-#                                 EVIDENCIAS
+# EVIDENCIAS
 
 ## DEISIREED CASTAÑEDA OVIEDO
 
@@ -108,7 +108,7 @@
 
 ![](images/clipboard-2419956136.png)
 
-### Verificación 
+### Verificación
 
 ![](images/clipboard-3686764562.png)
 
@@ -265,3 +265,59 @@
 ![](images/clipboard-2149590757.png)
 
 ![](images/clipboard-578979392.png)
+
+## ISS-06: Feature Product (productos)
+
+### 11.1 Carpetas y modelo
+
+![](images/clipboard-2348175441.png)
+
+### 11.2 DTOs
+
+![](images/clipboard-2735507696.png)
+
+### 11.3 Repository, Service, Controller y Routes
+
+#### Repository
+
+![](images/clipboard-1448368466.png)
+
+#### Service
+
+![](images/clipboard-979949265.png)
+
+![](images/clipboard-1570318709.png)
+
+![](images/clipboard-3147349417.png)
+
+#### Controller
+
+![](images/clipboard-2282340356.png)
+
+![](images/clipboard-3449828400.png)
+
+#### Routes
+
+![](images/clipboard-3338724165.png)
+
+## 11.4 Archivos `.http` (REST Client)
+
+![](images/clipboard-2628330995.png)
+
+## 11.5 Seeder
+
+![](images/clipboard-129535597.png)
+
+## 11.6 Swagger
+
+![![](images/clipboard-2261543418.png)](images/clipboard-3522759735.png)
+
+![![](images/clipboard-3900077679.png)](images/clipboard-3509892047.png)
+
+## 11.7 Cableado 
+
+![](images/clipboard-2771556357.png)
+
+### Verificación ISS-06
+
+![![](images/clipboard-1630452207.png)](images/clipboard-4165136416.png)

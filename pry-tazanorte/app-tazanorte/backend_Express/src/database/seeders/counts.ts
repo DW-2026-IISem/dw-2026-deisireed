@@ -6,10 +6,12 @@
  */
 export type SeedCounts = {
   clients: number;
+  products: number;
 };
 
 export const DEFAULT_SEED_COUNTS: SeedCounts = {
   clients: 10,
+  products: 15,
 };
 
 export function resolveSeedCounts(argv: string[] = process.argv.slice(2)): SeedCounts {
@@ -17,6 +19,7 @@ export function resolveSeedCounts(argv: string[] = process.argv.slice(2)): SeedC
 
   const envMap: Array<[keyof SeedCounts, string | undefined]> = [
     ["clients", process.env.SEED_CLIENTS],
+    ["products", process.env.SEED_PRODUCTS],
   ];
   for (const [key, value] of envMap) {
     if (value !== undefined && value !== "") {
