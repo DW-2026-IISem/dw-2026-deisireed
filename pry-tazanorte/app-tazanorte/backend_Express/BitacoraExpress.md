@@ -879,3 +879,12 @@
 ![![](images/clipboard-1661041336.png)](images/clipboard-984662249.png)
 
 ![](images/clipboard-233736741.png)
+
+## ISS-19: Middlewares de Autenticación y Autorización (RBAC Guard)
+
+![](images/clipboard-3233991527.png)
+
+![](images/clipboard-1894531920.png)
+
+\
+![](images/clipboard-4203775094.png)
