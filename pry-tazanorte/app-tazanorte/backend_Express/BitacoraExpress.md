@@ -691,3 +691,89 @@
 ![![](images/clipboard-1474548082.png)](images/clipboard-2548584321.png)
 
 ![](images/clipboard-2501690256.png)
+
+# ISS-14: Base de seguridad y modelos Auth
+
+## 14.0 Prerrequisitos
+
+![](images/clipboard-2732260846.png)
+
+## 14.1 Dependencias y variables de entorno
+
+![![](images/clipboard-387955260.png)](images/clipboard-3850610921.png)
+
+## 14.2 `password.ts`
+
+![](images/clipboard-3017294878.png)
+
+## 14.3 `jwt.ts`
+
+![](images/clipboard-2201154112.png)
+
+## 14.4 `resource-match.ts`
+
+![](images/clipboard-3467073777.png)
+
+## 14.5 `auth-user.ts`
+
+![](images/clipboard-2316611551.png)
+
+## 14.6 `error-response.ts` y parche de `BaseController`
+
+![](images/clipboard-271164872.png)
+
+## 14.7 `swagger-security.ts`
+
+![](images/clipboard-2898093292.png)
+
+## 14.8 Los seis modelos
+
+**`User`**:
+
+![](images/clipboard-242698672.png)
+
+### Role:
+
+![](images/clipboard-2505575254.png)
+
+### Resource:
+
+![](images/clipboard-1337138407.png)
+
+**`RoleUser`**:
+
+![](images/clipboard-3853927546.png)
+
+### ResourceRole:
+
+![](images/clipboard-3842465894.png)
+
+### RefreshToken:
+
+![](images/clipboard-156230507.png)
+
+## 14.9 `rbac.associations.ts`
+
+![](images/clipboard-2968310401.png)
+
+## ISS-15: Feature Users (Identidad y Gestión de Usuarios)
+
+## 1. DTO 
+
+![](images/clipboard-2244963473.png)
+
+## 2. Repository
+
+![](images/clipboard-987846890.png)
+
+## 3. Service
+
+![](images/clipboard-998176641.png)
+
+## 4. Controller 
+
+![](images/clipboard-1585690276.png)
+
+### 5. Routes
+
+![](images/clipboard-2131765403.png)
