@@ -371,3 +371,49 @@
 ![![](images/clipboard-3158530421.png)](images/clipboard-1098291745.png)
 
 ![](images/clipboard-2975842907.png)
+
+## ISS-07-B: Feature Supply (Insumo)
+
+## Modelo y DTOs
+
+![![](images/clipboard-234732212.png)](images/clipboard-2776995034.png)
+
+![![](images/clipboard-4209664085.png)](images/clipboard-4074665266.png)
+
+![](images/clipboard-3266229449.png)
+
+## Repository, Service, Controller y Routes
+
+![![](images/clipboard-1580926198.png)](images/clipboard-1980939962.png)
+
+![![](images/clipboard-327399059.png)](images/clipboard-1634636765.png)
+
+![](images/clipboard-1224653237.png)
+
+![![](images/clipboard-3376064729.png)](images/clipboard-212304217.png)
+
+![](images/clipboard-1613984509.png)
+
+![](images/clipboard-593962382.png)
+
+## Archivos `.http`
+
+![](images/clipboard-1340825087.png)
+
+## Seeder y Swagger
+
+![](images/clipboard-3761052025.png)
+
+![](images/clipboard-8863419.png)
+
+## Cableado
+
+![](images/clipboard-2306830240.png)
+
+## Verificación ISS-07-B
+
+![](images/clipboard-3471221407.png)
+
+![](images/clipboard-1000175602.png)
+
+![](images/clipboard-2110497930.png)

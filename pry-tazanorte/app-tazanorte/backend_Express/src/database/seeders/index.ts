@@ -3,9 +3,11 @@ import { sequelize, testConnection } from "../db";
 import "../../features/business/clients/client.model";
 import "../../features/business/products/product.model";
 import "../../features/business/employees/employee.model";
+import "../../features/business/supplies/supply.model";
 import { seedClients } from "../../features/business/clients/clients.seeder";
 import { seedProducts } from "../../features/business/products/products.seeder";
 import { seedEmployees } from "../../features/business/employees/employees.seeder";
+import { seedSupplies } from "../../features/business/supplies/supplies.seeder";
 import { resolveSeedCounts } from "./counts";
 
 dotenv.config();
@@ -46,6 +48,7 @@ export async function runAllSeeders(): Promise<void> {
   await seedClients(counts.clients);
   await seedProducts(counts.products);
   await seedEmployees(counts.employees);
+  await seedSupplies(counts.supplies);
 
   console.log("🌱 SeedersRunner finalizado");
 }

@@ -1,0 +1,23 @@
+### Feature Supply — UPDATE (PUT) / UPDATE (PATCH) (SIN AUTH)
+### `is_active` no se envía: solo cambia con PATCH /api/insumos/:id/deactivate
+@baseUrl = http://localhost:4000
+@id = 1
+
+### PUT — reemplazo completo
+PUT {{baseUrl}}/api/insumos/{{id}}
+Content-Type: application/json
+
+{
+  "codigo": "INS-0100",
+  "nombre": "Café en grano premium",
+  "unidad_medida": "kg",
+  "stock_minimo": 8
+}
+
+### PATCH — parcial
+PATCH {{baseUrl}}/api/insumos/{{id}}
+Content-Type: application/json
+
+{
+  "stock_minimo": 10
+}

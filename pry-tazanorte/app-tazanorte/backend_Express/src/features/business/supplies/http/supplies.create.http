@@ -1,0 +1,23 @@
+### Feature Supply — CREATE (SIN AUTH)
+@baseUrl = http://localhost:4000
+
+### CREATE -> 201
+POST {{baseUrl}}/api/insumos
+Content-Type: application/json
+
+{
+  "codigo": "INS-0100",
+  "nombre": "Café en grano",
+  "unidad_medida": "kg",
+  "stock_minimo": 5
+}
+
+### CREATE con codigo repetido -> 409
+POST {{baseUrl}}/api/insumos
+Content-Type: application/json
+
+{
+  "codigo": "INS-0100",
+  "nombre": "Otro insumo",
+  "unidad_medida": "l"
+}
