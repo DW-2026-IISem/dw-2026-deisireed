@@ -314,7 +314,7 @@
 
 ![![](images/clipboard-3900077679.png)](images/clipboard-3509892047.png)
 
-## 11.7 Cableado 
+## 11.7 Cableado
 
 ![](images/clipboard-2771556357.png)
 
@@ -326,7 +326,7 @@
 
 ## ISS-07: Empleado e Insumo
 
-## Helper compartido de Swagger 
+## Helper compartido de Swagger
 
 ![](images/clipboard-264492010.png)
 
@@ -420,7 +420,7 @@
 
 ## ISS-08: TurnoCaja
 
-##  Mejora en `BaseController`
+## Mejora en `BaseController`
 
 ![](images/clipboard-795907986.png)
 
@@ -620,7 +620,7 @@
 
 ![](images/clipboard-2416420281.png)
 
-## Archivos `.http` 
+## Archivos `.http`
 
 ![](images/clipboard-3189943790.png)
 
@@ -630,7 +630,7 @@
 
 ![](images/clipboard-2090022111.png)
 
-## Verificación 
+## Verificación
 
 ![](images/clipboard-2861659705.png)
 
@@ -638,7 +638,7 @@
 
 ![![](images/clipboard-1034998999.png)](images/clipboard-1034998999.png)
 
-## ISS-12  Feature Payment (Pago)
+## ISS-12 Feature Payment (Pago)
 
 ## Modelo, Relación y DTOs
 
@@ -658,7 +658,7 @@
 
 ![](images/clipboard-2837294128.png)
 
-## Archivos `.http` 
+## Archivos `.http`
 
 ## Seeder y Swagger
 
@@ -666,7 +666,7 @@
 
 ![](images/clipboard-2893881187.png)
 
-## Verificación 
+## Verificación
 
 ![](images/clipboard-2335627915.png)
 
@@ -686,7 +686,7 @@
 
 ![](images/clipboard-2332851604.png)
 
-## Verificación 
+## Verificación
 
 ![![](images/clipboard-1474548082.png)](images/clipboard-2548584321.png)
 
@@ -758,7 +758,7 @@
 
 ## ISS-15: Feature Users (Identidad y Gestión de Usuarios)
 
-## 1. DTO 
+## 1. DTO
 
 ![](images/clipboard-2244963473.png)
 
@@ -770,10 +770,106 @@
 
 ![](images/clipboard-998176641.png)
 
-## 4. Controller 
+## 4. Controller
 
 ![](images/clipboard-1585690276.png)
 
 ### 5. Routes
 
 ![](images/clipboard-2131765403.png)
+
+## ISS-16: Features Roles y Resources (Catálogo RBAC)
+
+## 16.0 Comprobaciones previas
+
+![](images/clipboard-2887804129.png)
+
+## 16.1 Roles — DTOs
+
+![](images/clipboard-613821358.png)
+
+## 16.2 Roles — repository
+
+![](images/clipboard-2844028942.png)
+
+## 16.3 Roles — service
+
+![](images/clipboard-3268335645.png)
+
+## 16.4 Roles — controller
+
+![](images/clipboard-2463940598.png)
+
+## 16.5 Roles — Routes
+
+![](images/clipboard-2606005431.png)
+
+## 16.6 Roles — Feature Resources — DTO 
+
+![](images/clipboard-875774055.png)
+
+## 16.7 Roles — Feature Resources — repository
+
+![](images/clipboard-54100922.png)
+
+## 16.8 Roles — Feature Resources — service
+
+![](images/clipboard-2827121010.png)
+
+## 16.9 Roles — Feature Resources — controller
+
+![](images/clipboard-140705573.png)
+
+## 16.10 Roles — Feature Resources — routes
+
+![](images/clipboard-4168334520.png)
+
+## 16.11 Verificación
+
+![](images/clipboard-3893708081.png)
+
+## ISS-17: Features RoleUsers y ResourceRoles (Asignaciones RBAC)
+
+### 17.1 Feature RoleUsers — DTO 
+
+![](images/clipboard-2615660438.png)
+
+### 17.2 Feature RoleUsers — repository 
+
+![](images/clipboard-277791435.png)
+
+### 17.3 Feature RoleUsers — service
+
+![](images/clipboard-3124503241.png)
+
+### 17.4 Feature RoleUsers — controller
+
+![](images/clipboard-2400725922.png)
+
+### 17.5 Feature RoleUsers — routes
+
+![](images/clipboard-2850136124.png)
+
+### 17.6 Feature ResourceRoles—DTO
+
+![](images/clipboard-3034530558.png)
+
+### 17.7 Feature ResourceRoles—repository
+
+![](images/clipboard-1434085928.png)
+
+### 17.8 Feature ResourceRoles—service
+
+![](images/clipboard-1630875460.png)
+
+### 17.9 Feature ResourceRoles—controller
+
+![](images/clipboard-1281122176.png)
+
+### 17.10 Feature ResourceRoles—routes
+
+![](images/clipboard-2776771217.png)
+
+### 17.11 Verificación
+
+![](images/clipboard-4294111544.png)
