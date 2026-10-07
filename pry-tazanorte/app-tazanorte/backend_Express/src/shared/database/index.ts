@@ -23,11 +23,11 @@ export const authModels = [
 ];
 
 export const sequelize = new Sequelize({
-  dialect: (process.env.DB_DIALECT as any) || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 5432,
-  username: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  dialect: 'mysql',
+  host: process.env.DB_HOST || '127.0.0.1',
+  port: Number(process.env.DB_PORT) || 3306,
+  username: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'tazanorte_db',
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
   models: authModels,
@@ -38,7 +38,7 @@ setupRbacAssociations();
 export const connectDatabase = async (): Promise<void> => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Conexión a la base de datos establecida correctamente.');
+    console.log('✅ Conexión a la base de datos MySQL establecida correctamente.');
   } catch (error) {
     console.error('❌ Error al conectar a la base de datos:', error);
     throw error;

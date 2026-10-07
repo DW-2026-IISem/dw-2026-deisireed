@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
@@ -11,23 +11,37 @@ dotenv.config();
 const app: Application = express();
 const PORT = process.env.PORT || 4000;
 
-// Middlewares globales
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Swagger UI Endpoint
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Endpoint JSON crudo de la especificación
+app.get('/api/docs.json', (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+// Middleware de Swagger sin caché y con tipos explícitos
+app.use(
+  '/api/docs',
+  (_req: Request, res: Response, next: NextFunction) => {
+    res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.header('Pragma', 'no-cache');
+    res.header('Expires', '0');
+    next();
+  },
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec)
+);
 
 // Health Check
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'UP', timestamp: new Date() });
 });
 
-// Registrar Router Principal
+// Router Principal
 app.use('/api', apiRouter);
 
-// Inicialización del servidor y base de datos
 const startServer = async () => {
   try {
     await connectDatabase();
