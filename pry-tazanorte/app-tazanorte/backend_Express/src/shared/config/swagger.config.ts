@@ -15,7 +15,6 @@ const options: swaggerJSDoc.Options = {
       },
     ],
     tags: [
-      // Módulos Parte 1
       { name: 'Clientes', description: 'Gestión de clientes (ISS-01/02)' },
       { name: 'Productos', description: 'Gestión de productos y categorías (ISS-03/04)' },
       { name: 'Empleados', description: 'Gestión de empleados y roles (ISS-05/06)' },
@@ -26,13 +25,11 @@ const options: swaggerJSDoc.Options = {
       { name: 'SuministroPedidoArticulos', description: 'Insumos consumidos por pedido (ISS-11)' },
       { name: 'Pagos', description: 'Gestión de pagos (ISS-12)' },
       { name: 'PuntosFidelizacion', description: 'Puntos de fidelización (ISS-13)' },
-      
-      // Módulos Parte 2 (ISS-14 a ISS-20)
       { name: 'Autenticación', description: 'Gestión de sesiones, Tokens JWT y Refresh Tokens (ISS-14 a ISS-16)' },
       { name: 'Usuarios', description: 'Administración de usuarios del sistema (ISS-17)' },
       { name: 'Roles', description: 'Gestión de roles de usuario (ISS-18)' },
       { name: 'Recursos', description: 'Gestión de recursos y endpoints del sistema (ISS-19)' },
-      { name: 'Asignaciones usuario-rol', description: 'Asignar / retirar / reactivar el rol de un usuario — JWT + RBAC' },
+      { name: 'Asignaciones usuario-rol', description: 'Asignar / retirar / reactivar el rol de un usuario' },
       { name: 'Concesiones rol-recurso', description: 'Conceder / retirar / reactivar recursos a un rol (ISS-20)' },
     ],
     components: {
@@ -43,37 +40,228 @@ const options: swaggerJSDoc.Options = {
           bearerFormat: 'JWT',
         },
       },
-      schemas: {
-        // Esquemas Parte 1
-        Cliente: { type: 'object', properties: { id: { type: 'string' }, nombre: { type: 'string' } } },
-        Producto: { type: 'object', properties: { id: { type: 'string' }, nombre: { type: 'string' }, precio: { type: 'number' } } },
-        Empleado: { type: 'object', properties: { id: { type: 'string' }, nombre: { type: 'string' } } },
-        Insumo: { type: 'object', properties: { id: { type: 'string' }, nombre: { type: 'string' } } },
-        Caja: { type: 'object', properties: { id: { type: 'string' }, estado: { type: 'string' } } },
-        Pedido: { type: 'object', properties: { id: { type: 'string' }, total: { type: 'number' } } },
-        DetallePedido: { type: 'object', properties: { id: { type: 'string' }, cantidad: { type: 'integer' } } },
-        SuministroPedidoArticulo: { type: 'object', properties: { id: { type: 'string' } } },
-        Pago: { type: 'object', properties: { id: { type: 'string' }, monto: { type: 'number' } } },
-        PuntosFidelizacion: { type: 'object', properties: { id: { type: 'string' }, puntos: { type: 'integer' } } },
-        
-        // Esquemas Parte 2
-        Usuario: { type: 'object', properties: { id: { type: 'string', format: 'uuid' }, name: { type: 'string' }, email: { type: 'string' }, is_active: { type: 'boolean' } } },
-        Rol: { type: 'object', properties: { id: { type: 'string', format: 'uuid' }, name: { type: 'string' }, description: { type: 'string' } } },
-        Recurso: { type: 'object', properties: { id: { type: 'string', format: 'uuid' }, name: { type: 'string' }, path: { type: 'string' }, method: { type: 'string' }, module: { type: 'string' } } },
-        RolUsuario: { type: 'object', properties: { user_id: { type: 'string' }, role_id: { type: 'string' } } },
-        RecursoRol: { type: 'object', properties: { resource_id: { type: 'string' }, role_id: { type: 'string' } } },
-        RefreshToken: { type: 'object', properties: { id: { type: 'string' }, user_id: { type: 'string' }, token: { type: 'string' }, is_revoked: { type: 'boolean' } } },
-      },
     },
     security: [{ bearerAuth: [] }],
     paths: {
+      // Clientes (ISS-01/02)
+      '/api/v1/clientes': {
+        get: { tags: ['Clientes'], summary: 'Listar clientes', responses: { 200: { description: 'OK' } } },
+        post: { tags: ['Clientes'], summary: 'Crear cliente', responses: { 201: { description: 'Creado' } } },
+      },
+      '/api/v1/clientes/{id}': {
+        get: { tags: ['Clientes'], summary: 'Obtener cliente por ID', responses: { 200: { description: 'OK' } } },
+        put: { tags: ['Clientes'], summary: 'Actualizar cliente', responses: { 200: { description: 'OK' } } },
+        delete: { tags: ['Clientes'], summary: 'Eliminar cliente', responses: { 200: { description: 'OK' } } },
+      },
+
+      // Productos (ISS-03/04)
+      '/api/v1/productos': {
+        get: { tags: ['Productos'], summary: 'Listar productos', responses: { 200: { description: 'OK' } } },
+        post: { tags: ['Productos'], summary: 'Crear producto', responses: { 201: { description: 'Creado' } } },
+      },
+      '/api/v1/productos/{id}': {
+        get: { tags: ['Productos'], summary: 'Obtener producto por ID', responses: { 200: { description: 'OK' } } },
+        put: { tags: ['Productos'], summary: 'Actualizar producto', responses: { 200: { description: 'OK' } } },
+        delete: { tags: ['Productos'], summary: 'Eliminar producto', responses: { 200: { description: 'OK' } } },
+      },
+
+      // Empleados (ISS-05/06)
+      '/api/v1/empleados': {
+        get: { tags: ['Empleados'], summary: 'Listar empleados', responses: { 200: { description: 'OK' } } },
+        post: { tags: ['Empleados'], summary: 'Crear empleado', responses: { 201: { description: 'Creado' } } },
+      },
+      '/api/v1/empleados/{id}': {
+        get: { tags: ['Empleados'], summary: 'Obtener empleado por ID', responses: { 200: { description: 'OK' } } },
+        put: { tags: ['Empleados'], summary: 'Actualizar empleado', responses: { 200: { description: 'OK' } } },
+        delete: { tags: ['Empleados'], summary: 'Eliminar empleado', responses: { 200: { description: 'OK' } } },
+      },
+
+      // Insumos (ISS-07)
+      '/api/v1/insumos': {
+        get: { tags: ['Insumos'], summary: 'Listar insumos', responses: { 200: { description: 'OK' } } },
+        post: { tags: ['Insumos'], summary: 'Crear insumo', responses: { 201: { description: 'Creado' } } },
+      },
+      '/api/v1/insumos/{id}': {
+        get: { tags: ['Insumos'], summary: 'Obtener insumo por ID', responses: { 200: { description: 'OK' } } },
+        put: { tags: ['Insumos'], summary: 'Actualizar insumo', responses: { 200: { description: 'OK' } } },
+        delete: { tags: ['Insumos'], summary: 'Eliminar insumo', responses: { 200: { description: 'OK' } } },
+      },
+
+      // Cajas (ISS-08)
+      '/api/v1/cajas': {
+        get: { tags: ['Cajas'], summary: 'Listar cajas', responses: { 200: { description: 'OK' } } },
+        post: { tags: ['Cajas'], summary: 'Crear caja', responses: { 201: { description: 'Creado' } } },
+      },
+      '/api/v1/cajas/{id}': {
+        get: { tags: ['Cajas'], summary: 'Obtener caja por ID', responses: { 200: { description: 'OK' } } },
+        put: { tags: ['Cajas'], summary: 'Actualizar caja', responses: { 200: { description: 'OK' } } },
+        delete: { tags: ['Cajas'], summary: 'Eliminar caja', responses: { 200: { description: 'OK' } } },
+      },
+
+      // Pedidos (ISS-09)
+      '/api/v1/pedidos': {
+        get: { tags: ['Pedidos'], summary: 'Listar pedidos', responses: { 200: { description: 'OK' } } },
+        post: { tags: ['Pedidos'], summary: 'Crear pedido', responses: { 201: { description: 'Creado' } } },
+      },
+      '/api/v1/pedidos/{id}': {
+        get: { tags: ['Pedidos'], summary: 'Obtener pedido por ID', responses: { 200: { description: 'OK' } } },
+        put: { tags: ['Pedidos'], summary: 'Actualizar pedido', responses: { 200: { description: 'OK' } } },
+      },
+
+      // DetallesPedido (ISS-10)
+      '/api/v1/detalles-pedido': {
+        get: { tags: ['DetallesPedido'], summary: 'Listar detalles de pedido', responses: { 200: { description: 'OK' } } },
+      },
+
+      // SuministroPedidoArticulos (ISS-11)
+      '/api/v1/suministros-pedido': {
+        get: { tags: ['SuministroPedidoArticulos'], summary: 'Listar suministros de pedido', responses: { 200: { description: 'OK' } } },
+      },
+
+      
+      // Pagos (ISS-12)
+      '/api/v1/pagos': {
+        get: {
+          tags: ['Pagos'],
+          summary: 'Listar pagos',
+          responses: {
+            200: { description: 'Lista de pagos obtenida correctamente' },
+            500: { description: 'Error interno del servidor' },
+          },
+        },
+        post: {
+          tags: ['Pagos'],
+          summary: 'Registrar pago',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: [
+                    'referencia_tipo',
+                    'referencia_id',
+                    'metodo',
+                    'monto',
+                  ],
+                  properties: {
+                    referencia_tipo: { type: 'string', example: 'PEDIDO' },
+                    referencia_id: { type: 'integer', example: 1, minimum: 1 },
+                    metodo: { type: 'string', example: 'EFECTIVO' },
+                    monto: { type: 'number', example: 53500, exclusiveMinimum: 0 },
+                    fecha: { type: 'string', format: 'date-time' },
+                    estado: { type: 'string', example: 'COMPLETADO' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            201: { description: 'Pago creado correctamente' },
+            400: { description: 'Datos inválidos' },
+          },
+        },
+      },
+      '/api/v1/pagos/{id}': {
+        parameters: [
+          {
+            in: 'path',
+            name: 'id',
+            required: true,
+            description: 'Identificador del pago',
+            schema: { type: 'integer', minimum: 1 },
+          },
+        ],
+        get: {
+          tags: ['Pagos'],
+          summary: 'Consultar pago por ID',
+          responses: {
+            200: { description: 'Pago encontrado' },
+            400: { description: 'ID inválido' },
+            404: { description: 'Pago no encontrado' },
+          },
+        },
+        put: {
+          tags: ['Pagos'],
+          summary: 'Actualizar pago por ID',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  minProperties: 1,
+                  properties: {
+                    referencia_tipo: { type: 'string', example: 'PEDIDO' },
+                    referencia_id: { type: 'integer', minimum: 1, example: 1 },
+                    metodo: { type: 'string', example: 'EFECTIVO' },
+                    monto: { type: 'number', exclusiveMinimum: 0, example: 53500 },
+                    fecha: { type: 'string', format: 'date-time' },
+                    estado: { type: 'string', example: 'PENDIENTE' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: { description: 'Pago actualizado correctamente' },
+            400: { description: 'Datos inválidos' },
+            404: { description: 'Pago no encontrado' },
+          },
+        },
+        patch: {
+          tags: ['Pagos'],
+          summary: 'Actualizar parcialmente un pago',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  minProperties: 1,
+                  properties: {
+                    referencia_tipo: { type: 'string', example: 'PEDIDO' },
+                    referencia_id: { type: 'integer', minimum: 1, example: 1 },
+                    metodo: { type: 'string', example: 'EFECTIVO' },
+                    monto: { type: 'number', exclusiveMinimum: 0, example: 53500 },
+                    fecha: { type: 'string', format: 'date-time' },
+                    estado: { type: 'string', example: 'PENDIENTE' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: { description: 'Pago actualizado correctamente' },
+            400: { description: 'Datos inválidos' },
+            404: { description: 'Pago no encontrado' },
+          },
+        },
+        delete: {
+          tags: ['Pagos'],
+          summary: 'Eliminar pago por ID',
+          responses: {
+            200: { description: 'Pago eliminado correctamente' },
+            400: { description: 'ID inválido' },
+            404: { description: 'Pago no encontrado' },
+          },
+        },
+      },
+
+
+      // PuntosFidelizacion (ISS-13)
+      '/api/v1/puntos-fidelizacion': {
+        get: { tags: ['PuntosFidelizacion'], summary: 'Consultar puntos de fidelización', responses: { 200: { description: 'OK' } } },
+      },
+
+      // Autenticación & RBAC (ISS-14 a ISS-20)
       '/api/auth/login': {
         post: {
           tags: ['Autenticación'],
           summary: 'Iniciar sesión y obtener JWT Access Token',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { type: 'object', properties: { email: { type: 'string', example: 'admin@tazanorte.com' }, password: { type: 'string', example: 'Admin123456!' } } } } },
+            content: { 'application/json': { schema: { type: 'object', properties: { email: { type: 'string' }, password: { type: 'string' } } } } },
           },
           responses: { 200: { description: 'Login exitoso' } },
         },
@@ -82,10 +270,6 @@ const options: swaggerJSDoc.Options = {
         post: {
           tags: ['Autenticación'],
           summary: 'Refrescar token de acceso',
-          requestBody: {
-            required: true,
-            content: { 'application/json': { schema: { type: 'object', properties: { refresh_token: { type: 'string' } } } } },
-          },
           responses: { 200: { description: 'Token renovado' } },
         },
       },
@@ -93,10 +277,6 @@ const options: swaggerJSDoc.Options = {
         post: {
           tags: ['Autenticación'],
           summary: 'Cerrar sesión',
-          requestBody: {
-            required: true,
-            content: { 'application/json': { schema: { type: 'object', properties: { refresh_token: { type: 'string' } } } } },
-          },
           responses: { 200: { description: 'Sesión cerrada' } },
         },
       },
@@ -119,7 +299,7 @@ const options: swaggerJSDoc.Options = {
       },
       '/api/concesiones-rol': {
         get: { tags: ['Concesiones rol-recurso'], summary: 'Listar concesiones activas', responses: { 200: { description: 'OK' } } },
-        post: { tags: ['Concesiones rol-recurso'], summary: 'Conceder recurso a rol (crear permiso)', responses: { 201: { description: 'Creado' } } },
+        post: { tags: ['Concesiones rol-recurso'], summary: 'Conceder recurso a rol', responses: { 201: { description: 'Creado' } } },
       },
     },
   },

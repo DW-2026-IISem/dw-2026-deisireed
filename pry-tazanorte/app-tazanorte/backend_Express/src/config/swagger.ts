@@ -25,8 +25,21 @@ export const swaggerSpec = {
     { name: "SupplyOrderItems", description: "Insumos consumidos por pedido (ISS-11)" },
     { name: "Pagos", description: "Gestión de pagos (ISS-12)" },
     { name: "PuntosFidelizacion", description: "Puntos de fidelización (ISS-13)" },
+    { name: "Usuarios", description: "Gestión de usuarios del sistema" },
+    { name: "Roles", description: "Gestión de roles y permisos" },
+    { name: "Autentificación", description: "Inicio de sesión, renovación y cierre de sesión" },
+    { name: "Recursos", description: "Gestión de recursos protegidos" },
+    { name: "AsignacionesRolRecurso", description: "Asignación de recursos a roles" },
+    { name: "AsignacionesUsuarioRol", description: "Asignación de roles a usuarios" },
   ],
   components: {
+    securitySchemes: {
+bearerAuth: {
+type: "http",
+scheme: "bearer",
+bearerFormat: "JWT",
+},
+},
     schemas: {
       Cliente: { type: "object", properties: { id: { type: "integer" }, nombre: { type: "string" }, email: { type: "string" } } },
       Producto: { type: "object", properties: { id: { type: "integer" }, nombre: { type: "string" }, precio: { type: "number" } } },
@@ -61,6 +74,118 @@ export const swaggerSpec = {
     "/api/pagos/{id}": { get: { tags: ["Pagos"], summary: "Obtener pago por ID", responses: { 200: { description: "OK" } } }, put: { tags: ["Pagos"], summary: "Actualizar pago por ID", responses: { 200: { description: "OK" } } }, delete: { tags: ["Pagos"], summary: "Eliminar pago por ID", responses: { 200: { description: "OK" } } } },
     "/api/puntos-fidelizacion": { get: { tags: ["PuntosFidelizacion"], summary: "Listar puntos de fidelización", responses: { 200: { description: "OK" } } }, post: { tags: ["PuntosFidelizacion"], summary: "Asignar puntos a cliente", responses: { 201: { description: "Creado" } } } },
     "/api/puntos-fidelizacion/{id}": { get: { tags: ["PuntosFidelizacion"], summary: "Obtener puntos por ID", responses: { 200: { description: "OK" } } }, put: { tags: ["PuntosFidelizacion"], summary: "Actualizar puntos por ID", responses: { 200: { description: "OK" } } }, delete: { tags: ["PuntosFidelizacion"], summary: "Eliminar registro de puntos", responses: { 200: { description: "OK" } } } },
+        "/api/auth/login": {
+      post: {
+        tags: ["Autentificación"],
+        summary: "Iniciar sesión",
+        responses: {
+          200: { description: "Sesión iniciada correctamente" },
+          401: { description: "Credenciales inválidas" },
+        },
+      },
+    },
+    "/api/auth/refresh": {
+      post: {
+        tags: ["Autentificación"],
+        summary: "Renovar sesión",
+        responses: {
+          200: { description: "Sesión renovada" },
+          401: { description: "Token inválido o vencido" },
+        },
+      },
+    },
+    "/api/auth/logout": {
+      post: {
+        tags: ["Autentificación"],
+        summary: "Cerrar sesión",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: "Sesión cerrada" },
+          401: { description: "No autorizado" },
+        },
+      },
+    },
+    "/api/auth/me": {
+      get: {
+        tags: ["Autentificación"],
+        summary: "Consultar usuario autenticado",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: "Datos del usuario autenticado" },
+          401: { description: "No autorizado" },
+        },
+      },
+    },
+    "/api/usuarios": {
+      get: {
+        tags: ["Usuarios"],
+        summary: "Listar usuarios",
+        security: [{ bearerAuth: [] }],
+        responses: { 200: { description: "Lista de usuarios" } },
+      },
+      post: {
+        tags: ["Usuarios"],
+        summary: "Crear usuario",
+        security: [{ bearerAuth: [] }],
+        responses: { 201: { description: "Usuario creado" } },
+      },
+    },
+    "/api/roles": {
+      get: {
+        tags: ["Roles"],
+        summary: "Listar roles",
+        security: [{ bearerAuth: [] }],
+        responses: { 200: { description: "Lista de roles" } },
+      },
+      post: {
+        tags: ["Roles"],
+        summary: "Crear rol",
+        security: [{ bearerAuth: [] }],
+        responses: { 201: { description: "Rol creado" } },
+      },
+    },
+    "/api/recursos": {
+      get: {
+        tags: ["Recursos"],
+        summary: "Listar recursos",
+        security: [{ bearerAuth: [] }],
+        responses: { 200: { description: "Lista de recursos" } },
+      },
+      post: {
+        tags: ["Recursos"],
+        summary: "Crear recurso",
+        security: [{ bearerAuth: [] }],
+        responses: { 201: { description: "Recurso creado" } },
+      },
+    },
+    "/api/asignaciones-rol-recurso": {
+      get: {
+        tags: ["AsignacionesRolRecurso"],
+        summary: "Listar asignaciones de recursos a roles",
+        security: [{ bearerAuth: [] }],
+        responses: { 200: { description: "Lista de asignaciones" } },
+      },
+      post: {
+        tags: ["AsignacionesRolRecurso"],
+        summary: "Asignar recurso a un rol",
+        security: [{ bearerAuth: [] }],
+        responses: { 201: { description: "Asignación creada" } },
+      },
+    },
+    "/api/asignaciones-usuario-rol": {
+      get: {
+        tags: ["AsignacionesUsuarioRol"],
+        summary: "Listar asignaciones de roles a usuarios",
+        security: [{ bearerAuth: [] }],
+        responses: { 200: { description: "Lista de asignaciones" } },
+      },
+      post: {
+        tags: ["AsignacionesUsuarioRol"],
+        summary: "Asignar rol a un usuario",
+        security: [{ bearerAuth: [] }],
+        responses: { 201: { description: "Asignación creada" } },
+      },
+    },
   },
 };
 

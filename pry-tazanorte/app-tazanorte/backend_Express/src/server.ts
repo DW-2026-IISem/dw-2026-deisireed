@@ -1,10 +1,31 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import swaggerUi from 'swagger-ui-express';
-import { connectDatabase } from './shared/database';
-import { apiRouter } from './shared/routes/api.router';
-import { swaggerSpec } from './shared/config/swagger.config';
+import express, {
+  Application,
+  Request,
+  Response,
+  NextFunction,
+} from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import swaggerUi from "swagger-ui-express";
+
+import { connectDatabase } from "./shared/database";
+import { apiRouter } from "./shared/routes/api.router";
+import sessionRoutes from "./features/auth/session/session.routes";
+import { swaggerSpec } from "./shared/config/swagger.config";
+
+import "./features/business/orders/orders.associations";
+import "./features/business/order-items/order-items.associations";
+
+import { ClientsRoutes } from "./features/business/clients/clients.routes";
+import { ProductsRoutes } from "./features/business/products/products.routes";
+import { OrdersRoutes } from "./features/business/orders/orders.routes";
+import { OrderItemsRoutes } from "./features/business/order-items/order-items.routes";
+import { PaymentsRoutes } from "./features/business/payments/payments.routes";
+import { EmployeesRoutes } from "./features/business/employees/employees.routes";
+import { CashRegistersRoutes } from "./features/business/cash-registers/cash-registers.routes";
+import { LoyaltyPointsRoutes } from "./features/business/loyalty-points/loyalty-points.routes";
+import { SuppliesRoutes } from "./features/business/supplies/supplies.routes";
+import { SupplyOrderItemsRoutes } from "./features/business/supply-order-items/supply-order-items.routes";
 
 dotenv.config();
 
@@ -15,43 +36,65 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Endpoint JSON crudo de la especificación
-app.get('/api/docs.json', (_req: Request, res: Response) => {
-  res.setHeader('Content-Type', 'application/json');
+app.get("/api/docs.json", (_req: Request, res: Response) => {
+  res.setHeader("Content-Type", "application/json");
   res.send(swaggerSpec);
 });
 
-// Middleware de Swagger sin caché y con tipos explícitos
 app.use(
-  '/api/docs',
-  (_req: Request, res: Response, next: NextFunction) => {
-    res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.header('Pragma', 'no-cache');
-    res.header('Expires', '0');
-    next();
-  },
+  "/api/docs",
   swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec)
-);
+  swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+      docExpansion: "list",
+      filter: true,
+    },
+  })
+)
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+      docExpansion: "list",
+      filter: true,
+    },
+  })
 
-// Health Check
-app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({ status: 'UP', timestamp: new Date() });
+
+app.use("/api/auth", sessionRoutes);
+
+app.get("/health", (_req: Request, res: Response) => {
+  res.status(200).json({
+    status: "UP",
+    timestamp: new Date(),
+  });
 });
 
-// Router Principal
-app.use('/api', apiRouter);
+// Registrar los módulos de negocio.
+// Sus clases ya definen las rutas completas.
+new ClientsRoutes().routes(app);
+new ProductsRoutes().routes(app);
+new OrdersRoutes().routes(app);
+new OrderItemsRoutes().routes(app);
+new PaymentsRoutes().routes(app);
+new EmployeesRoutes().routes(app);
+new CashRegistersRoutes().routes(app);
+new LoyaltyPointsRoutes().routes(app);
+new SuppliesRoutes().routes(app);
+new SupplyOrderItemsRoutes().routes(app);
 
-const startServer = async () => {
+// Enrutador auxiliar
+app.use("/api", apiRouter);
+
+const startServer = async (): Promise<void> => {
   try {
     await connectDatabase();
+
     app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
-      console.log(`📍 Endpoint base: http://localhost:${PORT}/api`);
-      console.log(`📚 Documentación Swagger: http://localhost:${PORT}/api/docs`);
+      console.log(`Servidor corriendo en http://localhost:${PORT}`);
+      console.log(`Swagger UI: http://localhost:${PORT}/api/docs`);
     });
   } catch (error) {
-    console.error('❌ Error al iniciar el servidor:', error);
+    console.error("Error al iniciar el servidor:", error);
     process.exit(1);
   }
 };

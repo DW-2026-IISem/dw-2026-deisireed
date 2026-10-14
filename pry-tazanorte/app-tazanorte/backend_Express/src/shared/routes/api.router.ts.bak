@@ -1,0 +1,14 @@
+import { Router } from 'express';
+import clientesRouter from '../../routes/clientes.routes';
+import productosRouter from '../../routes/productos.routes';
+
+export const apiRouter = Router();
+
+// Módulo V1
+apiRouter.use('/v1/clientes', clientesRouter);
+apiRouter.use('/v1/productos', productosRouter);
+
+// Ruta base de prueba para verificar funcionamiento
+apiRouter.get('/v1/clientes-test', (_req, res) => {
+  res.json({ status: 'OK', message: 'Ruta de clientes respondiendo' });
+});

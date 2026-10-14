@@ -222,9 +222,7 @@
 
 ### Routes
 
-![](images/clipboard-3104889206.png)
-
-### HTTP
+### ![](images/clipboard-1841657896.png)HTTP
 
 ![](images/clipboard-4107791472.png)
 
@@ -804,7 +802,7 @@
 
 ![](images/clipboard-2606005431.png)
 
-## 16.6 Roles — Feature Resources — DTO 
+## 16.6 Roles — Feature Resources — DTO
 
 ![](images/clipboard-875774055.png)
 
@@ -830,11 +828,11 @@
 
 ## ISS-17: Features RoleUsers y ResourceRoles (Asignaciones RBAC)
 
-### 17.1 Feature RoleUsers — DTO 
+### 17.1 Feature RoleUsers — DTO
 
 ![](images/clipboard-2615660438.png)
 
-### 17.2 Feature RoleUsers — repository 
+### 17.2 Feature RoleUsers — repository
 
 ![](images/clipboard-277791435.png)
 
@@ -889,7 +887,7 @@
 \
 ![](images/clipboard-4203775094.png)
 
-##  ISS-20: Router Central y Entrypoint Server
+## ISS-20: Router Central y Entrypoint Server
 
 ![](images/clipboard-1606321169.png)
 
@@ -916,3 +914,135 @@
 ![](images/clipboard-2947370699.png)
 
 ![](images/clipboard-2340114601.png)
+
+# ANEXO — ADAPTACIÓN Y VERIFICACIÓN DEL PROYECTO TAZANORTE
+
+## 1. Descripción del proyecto
+
+TazaNorte es un sistema backend para una cafetería que gestiona pedidos en caja y para llevar, productos con variantes, pagos, turnos de caja, inventario de insumos y fidelización de clientes.
+
+La arquitectura debe respetar el siguiente recorrido:
+
+HTTP -\> Routes -\> Controller -\> Service -\> Repository -\> Model -\> Sequelize -\> Base de datos
+
+Cada feature debe mantener separadas las responsabilidades de sus capas.
+
+## 2. Entidades del dominio
+
+### 2.1 Cliente
+
+Atributos sugeridos: id, tipo_documento, numero_documento, nombre, telefono, email, is_active.
+
+El número de documento debe tener una restricción de unicidad.
+
+### 2.2 Producto
+
+Atributos sugeridos: id, sku, nombre, descripcion, precio, is_active.
+
+El SKU debe ser único. Las variantes y extras deben quedar documentados según la implementación real del proyecto.
+
+### 2.3 Pedido
+
+Atributos sugeridos: id, cliente_id, turno_caja_id, canal, fecha, subtotal, total, estado.
+
+Debe relacionarse con el cliente y el turno de caja. El origen del pedido puede ser en caja o para llevar.
+
+### 2.4 PedidoDetalle
+
+Atributos sugeridos: id, pedido_id, producto_id, cantidad, valor_unitario, total, observaciones.
+
+Debe conservar el precio aplicado y las observaciones de cada producto solicitado.
+
+### 2.5 Pago
+
+Atributos sugeridos: id, referencia_tipo, referencia_id, metodo, monto, fecha, estado.
+
+Debe permitir identificar el pago asociado a la operación. Los estados y las referencias deben validarse según las reglas implementadas.
+
+### 2.6 Empleado
+
+Atributos sugeridos: id, nombre, descripcion, is_active, created_at, updated_at.
+
+### 2.7 TurnoCaja
+
+Atributos sugeridos: id, nombre, descripcion, is_active, created_at, updated_at.
+
+Documentar apertura, cierre y responsable del turno si estas operaciones forman parte de la implementación.
+
+### 2.8 MovimientoPuntos
+
+Atributos sugeridos: id, referencia_id, tipo, fecha, cantidad, observaciones, estado.
+
+Debe conservar un historial de acumulaciones y redenciones. Los movimientos deben corresponder a operaciones válidas y no deben duplicarse por el mismo evento.
+
+### 2.9 Insumo
+
+Atributos sugeridos: id, codigo, nombre, unidad_medida, stock_minimo, is_active.
+
+El código debe ser único. Documentar las reglas de existencias y las alertas de stock mínimo.
+
+### 2.10 RecetaInsumo
+
+Atributos sugeridos: id, principal_id, relacionado_id, datos_relacion, is_active.
+
+Documentar la relación entre el producto principal y los insumos utilizados en su preparación. Ajustar los nombres y tipos a los modelos reales.
+
+## 3. Relaciones del negocio
+
+- Cliente 1:N Pedido.
+- Pedido 1:N PedidoDetalle.
+- Producto 1:N PedidoDetalle.
+- Pedido 1:N Pago, si la implementación lo establece.
+- Empleado 1:N TurnoCaja o la relación definida en el modelo.
+- TurnoCaja 1:N Pedido.
+- Cliente 1:N MovimientoPuntos.
+- Producto N:M Insumo mediante RecetaInsumo.
+
+IMPORTANTE: Verificar las claves foráneas, cardinalidades y restricciones contra los modelos Sequelize reales antes de dar por cerrada esta sección.
+
+## 4. Reglas de negocio por verificar
+
+- Validar cantidades y precios de los detalles del pedido.
+- Calcular subtotal y total en el backend.
+- Impedir que un pedido se cierre con datos inválidos.
+- Registrar los pagos con su método, monto y estado.
+- Actualizar el inventario de acuerdo con las reglas de preparación y cancelación implementadas.
+- Acumular puntos únicamente cuando se cumplan las condiciones definidas para una venta pagada.
+- Validar que una redención no exceda el saldo disponible.
+- Conservar el historial de movimientos de puntos.
+- Controlar el acceso según el rol del usuario.
+- Validar las operaciones de apertura y cierre de caja.
+
+## 5. Seguridad y autorización RBAC
+
+Roles del proyecto: ADMIN, CAJA, BARISTA, BODEGA, SUPERVISOR.
+
+Documentar la matriz real de permisos para cada rol. No copiar automáticamente los permisos del proyecto Storelab.
+
+Verificar: - Acceso sin token: HTTP 401 en rutas protegidas. - Token inválido o vencido: HTTP 401. - Usuario autenticado sin autorización: HTTP 403. - Operación autorizada: respuesta HTTP correspondiente. - Contraseñas almacenadas mediante hash. - Variables secretas configuradas fuera del código fuente. - Renovación y revocación de sesiones, si están implementadas.
+
+## 6. Evidencias de verificación
+
+### 6.1 Entorno y compilación
+
+Adjuntar evidencia de: - Versiones de Node.js y npm. - Dependencias instaladas. - Compilación de TypeScript sin errores. - Conexión con la base de datos. - Servidor iniciado correctamente.
+
+### 6.2 Base de datos
+
+Adjuntar evidencia de: - Tablas creadas. - Claves primarias y foráneas. - Restricciones únicas. - Relaciones entre las entidades. - Seeders ejecutados correctamente.
+
+### 6.3 API y documentación
+
+Adjuntar evidencia de: - Endpoints disponibles. - Operaciones GET, POST, PUT, PATCH y DELETE que estén implementadas. - Respuestas correctas y manejo de errores. - Validación de datos. - Documentación Swagger/OpenAPI.
+
+### 6.4 Pruebas funcionales
+
+Adjuntar evidencia de: - Creación de un pedido con sus detalles. - Registro y consulta de un pago. - Validación de existencias de insumos. - Acumulación de puntos por una venta válida. - Redención de puntos y consulta del historial. - Autorización y rechazo de operaciones por rol.
+
+## 7. Criterios de cierre
+
+[ ] Las entidades corresponden al dominio TazaNorte. [ ] Las relaciones y claves foráneas están verificadas. [ ] Las reglas de negocio están implementadas y probadas. [ ] Los endpoints responden según lo esperado. [ ] La autenticación y autorización funcionan. [ ] Los seeders y la base de datos funcionan. [ ] La compilación termina sin errores. [ ] El servidor inicia correctamente. [ ] Las capturas de evidencia corresponden a ejecuciones reales.
+
+## 8. Observación final
+
+Este anexo define los aspectos que se deben verificar en TazaNorte. No constituye evidencia de que las funciones ya estén implementadas. Cada criterio debe marcarse como completado únicamente después de probarlo y registrar la evidencia correspondiente.
