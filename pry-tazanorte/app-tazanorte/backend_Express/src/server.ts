@@ -1,20 +1,16 @@
-import express, {
-  Application,
-  Request,
-  Response,
-  NextFunction,
-} from "express";
+import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 
-import { connectDatabase } from "./shared/database";
+import { connectDB } from "./database/db";
 import { apiRouter } from "./shared/routes/api.router";
-import sessionRoutes from "./features/auth/session/session.routes";
-import { swaggerSpec } from "./shared/config/swagger.config";
+import { swaggerSpec } from "./config/swagger";
 
 import "./features/business/orders/orders.associations";
+import "./features/business/cash-registers/cash-registers.associations";
 import "./features/business/order-items/order-items.associations";
+import "./features/auth/rbac.associations";
 
 import { ClientsRoutes } from "./features/business/clients/clients.routes";
 import { ProductsRoutes } from "./features/business/products/products.routes";
@@ -38,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get("/api/docs.json", (_req: Request, res: Response) => {
   res.setHeader("Content-Type", "application/json");
-  res.send(swaggerSpec);
+  res.json(swaggerSpec);
 });
 
 app.use(
@@ -50,27 +46,13 @@ app.use(
       filter: true,
     },
   })
-)
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, {
-    swaggerOptions: {
-      docExpansion: "list",
-      filter: true,
-    },
-  })
-
-
-app.use("/api/auth", sessionRoutes);
+);
 
 app.get("/health", (_req: Request, res: Response) => {
-  res.status(200).json({
-    status: "UP",
-    timestamp: new Date(),
-  });
+  res.status(200).json({ status: "UP", timestamp: new Date() });
 });
 
 // Registrar los módulos de negocio.
-// Sus clases ya definen las rutas completas.
 new ClientsRoutes().routes(app);
 new ProductsRoutes().routes(app);
 new OrdersRoutes().routes(app);
@@ -82,13 +64,11 @@ new LoyaltyPointsRoutes().routes(app);
 new SuppliesRoutes().routes(app);
 new SupplyOrderItemsRoutes().routes(app);
 
-// Enrutador auxiliar
 app.use("/api", apiRouter);
 
 const startServer = async (): Promise<void> => {
   try {
-    await connectDatabase();
-
+    await connectDB();
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en http://localhost:${PORT}`);
       console.log(`Swagger UI: http://localhost:${PORT}/api/docs`);
@@ -99,4 +79,4 @@ const startServer = async (): Promise<void> => {
   }
 };
 
-startServer();
+void startServer();

@@ -23,5 +23,6 @@ export const connectDB = async () => {
     console.log("Base de datos conectada correctamente sin alterar las tablas existentes.");
   } catch (error) {
     console.error("Error al conectar la base de datos:", error);
+    throw error;
   }
 };
