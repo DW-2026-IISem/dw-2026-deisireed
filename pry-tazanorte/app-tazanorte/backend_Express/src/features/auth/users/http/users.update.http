@@ -1,0 +1,67 @@
+### Feature Users — UPDATE (PUT / PATCH) y CAMBIO DE CONTRASEÑA
+### Ni PUT ni PATCH cambian `password` ni `status`.
+@baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
+@id = 2
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
+
+### PUT — reemplazo completo
+PUT {{baseUrl}}/api/usuarios/{{id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "caja",
+  "email": "caja@tazanorte.local",
+  "avatar": "https://tazanorte.local/avatars/caja.png"
+}
+
+### PATCH — parcial. `password` y `status` se ignoran (no son del DTO)
+PATCH {{baseUrl}}/api/usuarios/{{id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "avatar": null,
+  "password": "hackeada",
+  "status": "inactive"
+}
+
+### CAMBIO DE CONTRASEÑA — exige la contraseña ACTUAL
+PATCH {{baseUrl}}/api/usuarios/{{id}}/password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "current_password": "Caja123!",
+  "new_password": "Caja456!"
+}
+
+### Devolver la contraseña original (ISS-22 hace login con Caja123!)
+PATCH {{baseUrl}}/api/usuarios/{{id}}/password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "current_password": "Caja456!",
+  "new_password": "Caja123!"
+}
+
+### 400 — contraseña actual incorrecta
+PATCH {{baseUrl}}/api/usuarios/{{id}}/password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "current_password": "otra",
+  "new_password": "Caja789!"
+}

@@ -1,0 +1,72 @@
+### Feature LoyaltyPoint — CREATE (JWT + RBAC)
+### Flujo: 1) el pedido pasa a `pagado`  2) acumula puntos  3) el cliente redime
+### @clienteId debe ser el dueño de @pedidoId (míralo en GET /api/pedidos/{{pedidoId}})
+@baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
+@pedidoId = 1
+@clienteId = 1
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
+
+### 1) Marcar el pedido como pagado (requiere al menos una línea activa)
+PATCH {{baseUrl}}/api/pedidos/{{pedidoId}}/estado
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "estado": "pagado"
+}
+
+### 2) ACUMULACIÓN -> 201 (la cantidad la calcula el backend: 1 punto por cada $1.000)
+POST {{baseUrl}}/api/puntos-fidelizacion
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "cliente_id": {{clienteId}},
+  "tipo": "acumulacion",
+  "pedido_id": {{pedidoId}},
+  "observaciones": "Compra en caja"
+}
+
+### 409 — el mismo pedido no acumula dos veces (repetir el anterior)
+POST {{baseUrl}}/api/puntos-fidelizacion
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "cliente_id": {{clienteId}},
+  "tipo": "acumulacion",
+  "pedido_id": {{pedidoId}}
+}
+
+### 3) REDENCIÓN -> 201 (canje de un café americano)
+POST {{baseUrl}}/api/puntos-fidelizacion
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "cliente_id": {{clienteId}},
+  "tipo": "redencion",
+  "cantidad": 5,
+  "observaciones": "Canje: café americano gratis"
+}
+
+### 400 — redención mayor que el saldo
+POST {{baseUrl}}/api/puntos-fidelizacion
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "cliente_id": {{clienteId}},
+  "tipo": "redencion",
+  "cantidad": 99999
+}

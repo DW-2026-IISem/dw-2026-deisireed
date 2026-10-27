@@ -2,9 +2,11 @@
 
 ##                                       **Paso a paso del Fronted**
 
-##### **Deisireed Castañeda** 
+#### **Deisireed Castañeda** 
 
-##### **Desarrollo Web**
+#### **Desarrollo Web**
+
+#                                    FASE 1
 
 #                       ISS-00 · Requisitos previos
 
@@ -83,4 +85,4 @@ curl -s http://localhost:4000/api/permisos \
 
 ![](images/clipboard-1915609307.png)
 
-##  
+#  

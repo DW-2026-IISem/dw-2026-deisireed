@@ -1,0 +1,47 @@
+### Feature Users — CREATE
+@baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
+
+### CREATE -> 201 (cajero del turno de la tarde). El `password` se guarda hasheado.
+POST {{baseUrl}}/api/usuarios
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "Jaider",
+  "email": "Jaider@tazanorte.local",
+  "password": "23456789",
+  "avatar": null
+}
+
+### 409 — username ya en uso
+POST {{baseUrl}}/api/usuarios
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "email": "otro.admin@tazanorte.local",
+  "password": "Password123!"
+}
+
+### 400 — contraseña de menos de 8 caracteres
+POST {{baseUrl}}/api/usuarios
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "barista.noche",
+  "email": "barista.noche@tazanorte.local",
+  "password": "123"
+}

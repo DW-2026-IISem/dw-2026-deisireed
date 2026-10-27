@@ -2,7 +2,7 @@
  * Documentación OpenAPI del feature OrderItem (tabla order_items).
  * Se agrega desde `src/swagger` (registry externo), no se monta aquí.
  *
- * Leyenda: todos los endpoints son **SIN AUTH**.
+ * Leyenda: todos los endpoints son **JWT + RBAC**.
  */
 
 const idParam = {
@@ -22,7 +22,7 @@ export const orderItemsSwagger = {
   tags: [
     {
       name: "DetallePedidos",
-      description: "CRUD de líneas Pedido↔Producto (tabla order_items) — **SIN AUTH**",
+      description: "CRUD de líneas Pedido↔Producto (tabla order_items) — **JWT + RBAC**",
     },
   ],
   paths: {
@@ -30,7 +30,7 @@ export const orderItemsSwagger = {
       get: {
         tags: ["DetallePedidos"],
         summary: "Listar líneas de pedido activas",
-        description: "SIN AUTH — retorna order_items con is_active=true",
+        description: "JWT + RBAC — retorna order_items con is_active=true",
         responses: {
           "200": {
             description: "Lista de líneas",
@@ -54,7 +54,7 @@ export const orderItemsSwagger = {
         tags: ["DetallePedidos"],
         summary: "Agregar línea a un pedido",
         description:
-          "SIN AUTH — el pedido debe estar 'pendiente' y el producto activo; guarda el precio como snapshot y recalcula los totales del pedido",
+          "JWT + RBAC — el pedido debe estar 'pendiente' y el producto activo; guarda el precio como snapshot y recalcula los totales del pedido",
         requestBody: {
           required: true,
           content: {
@@ -75,7 +75,7 @@ export const orderItemsSwagger = {
       get: {
         tags: ["DetallePedidos"],
         summary: "Obtener línea por id",
-        description: "SIN AUTH — 404 si no existe o tiene borrado lógico",
+        description: "JWT + RBAC — 404 si no existe o tiene borrado lógico",
         parameters: [idParam],
         responses: {
           "200": {
@@ -89,7 +89,7 @@ export const orderItemsSwagger = {
       put: {
         tags: ["DetallePedidos"],
         summary: "Actualizar línea (PUT)",
-        description: "SIN AUTH — reemplaza cantidad y observaciones; recalcula el pedido",
+        description: "JWT + RBAC — reemplaza cantidad y observaciones; recalcula el pedido",
         parameters: [idParam],
         requestBody: {
           required: true,
@@ -106,7 +106,7 @@ export const orderItemsSwagger = {
       patch: {
         tags: ["DetallePedidos"],
         summary: "Actualizar línea (PATCH — parcial)",
-        description: "SIN AUTH — cantidad y/o observaciones",
+        description: "JWT + RBAC — cantidad y/o observaciones",
         parameters: [idParam],
         requestBody: {
           required: true,
@@ -123,7 +123,7 @@ export const orderItemsSwagger = {
       delete: {
         tags: ["DetallePedidos"],
         summary: "Eliminar línea (físico)",
-        description: "SIN AUTH — recalcula el pedido (también si tiene borrado lógico)",
+        description: "JWT + RBAC — recalcula el pedido (también si tiene borrado lógico)",
         parameters: [idParam],
         responses: {
           "200": { description: "Eliminada" },
@@ -136,7 +136,7 @@ export const orderItemsSwagger = {
       patch: {
         tags: ["DetallePedidos"],
         summary: "Eliminar línea (lógico)",
-        description: "SIN AUTH — is_active = false y recalcula el pedido",
+        description: "JWT + RBAC — is_active = false y recalcula el pedido",
         parameters: [idParam],
         responses: {
           "200": { description: "Desactivada" },

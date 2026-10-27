@@ -1,0 +1,51 @@
+### Feature Payment — CREATE (JWT + RBAC)
+### referencia_id = id de un pedido existente que no esté cancelado
+@baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
+
+### CREATE -> 201 (pago en efectivo de un pedido en caja)
+POST {{baseUrl}}/api/pagos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "referencia_tipo": "PEDIDO",
+  "referencia_id": 1,
+  "metodo": "EFECTIVO",
+  "monto": 18500,
+  "estado": "COMPLETADO"
+}
+
+### 400 — método fuera del catálogo
+POST {{baseUrl}}/api/pagos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "referencia_tipo": "PEDIDO",
+  "referencia_id": 1,
+  "metodo": "BITCOIN",
+  "monto": 18500
+}
+
+### 404 — el pedido no existe
+POST {{baseUrl}}/api/pagos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "referencia_tipo": "PEDIDO",
+  "referencia_id": 99999,
+  "metodo": "NEQUI",
+  "monto": 12000
+}

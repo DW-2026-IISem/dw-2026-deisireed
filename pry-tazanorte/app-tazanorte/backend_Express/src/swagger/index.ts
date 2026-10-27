@@ -6,6 +6,17 @@ import { employeesSwagger } from "../features/business/employees/employees.swagg
 import { suppliesSwagger } from "../features/business/supplies/supplies.swagger";
 import { cashRegistersSwagger } from "../features/business/cash-registers/cash-registers.swagger";
 import { orderItemsSwagger } from "../features/business/order-items/order-items.swagger";
+import { supplyOrderItemsSwagger } from "../features/business/supply-order-items/supply-order-items.swagger";
+import { paymentsSwagger } from "../features/business/payments/payments.swagger";
+import { loyaltyPointsSwagger } from "../features/business/loyalty-points/loyalty-points.swagger";
+import { usersSwagger } from "../features/auth/users/users.swagger";
+import { rolesSwagger } from "../features/auth/roles/roles.swagger";
+import { resourcesSwagger } from "../features/auth/resources/resources.swagger";
+import { roleUsersSwagger } from "../features/auth/role-users/role-users.swagger";
+import { resourceRolesSwagger } from "../features/auth/resource-roles/resource-roles.swagger";
+import { refreshTokensSwagger } from "../features/auth/refresh-tokens/refresh-tokens.swagger";
+import { sessionSwagger } from "../features/auth/session/session.swagger";
+import { bearerSecurityScheme } from "../shared/http/swagger-security";
 import { ordersSwagger } from "../features/business/orders/orders.swagger";
 
 export type FeatureSwaggerModule = {
@@ -25,6 +36,17 @@ const featureSwaggerModules: FeatureSwaggerModule[] = [
   suppliesSwagger,
   cashRegistersSwagger,
   orderItemsSwagger,
+  supplyOrderItemsSwagger,
+  paymentsSwagger,
+  loyaltyPointsSwagger,
+  // Fase II — Auth con RBAC
+  sessionSwagger,
+  usersSwagger,
+  rolesSwagger,
+  resourcesSwagger,
+  roleUsersSwagger,
+  resourceRolesSwagger,
+  refreshTokensSwagger,
   ordersSwagger,
 ];
 
@@ -47,7 +69,7 @@ export function buildOpenApiDocument() {
       title: "TazaNorte API",
       version: "1.0.0",
       description:
-        "API TazaNorte — cafetería y fidelización (Express + Sequelize). Los endpoints de business están documentados como **SIN AUTH** (la Fase I no implementa autenticación).",
+        "API TazaNorte — cafetería y fidelización (Express + Sequelize) con **Auth con RBAC**. Modalidades: **OPEN** (login, refresh, logout), **JWT** (perfil y sesiones) y **JWT + RBAC** (todo el CRUD de negocio y de seguridad). Obtén el `access_token` en `POST /api/sesion/login` y pulsa **Authorize**. Deny by default: sin concesión, 403. Usuarios de laboratorio: admin / Admin123!, caja / Caja123!, barista / Barista123!, bodega / Bodega123!, supervisor / Supervisor123!.",
     },
     servers: [
       {
@@ -57,7 +79,13 @@ export function buildOpenApiDocument() {
     ],
     tags,
     paths,
-    components: { schemas },
+    // Secure by default: toda operación exige el access token salvo que declare `security: []`.
+    security: [{ bearerAuth: [] }],
+    components: {
+      // Esquema `bearerAuth` (Authorization: Bearer <token>) para el botón Authorize.
+      securitySchemes: bearerSecurityScheme,
+      schemas,
+    },
   };
 }
 

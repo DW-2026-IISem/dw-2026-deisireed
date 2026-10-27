@@ -1,82 +1,8 @@
-import express, { Application, Request, Response } from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import swaggerUi from "swagger-ui-express";
+import { App } from "./config/index";
 
-import { connectDB } from "./database/db";
-import { apiRouter } from "./shared/routes/api.router";
-import { swaggerSpec } from "./config/swagger";
+async function main() {
+  const app = new App();
+  await app.listen();
+}
 
-import "./features/business/orders/orders.associations";
-import "./features/business/cash-registers/cash-registers.associations";
-import "./features/business/order-items/order-items.associations";
-import "./features/auth/rbac.associations";
-
-import { ClientsRoutes } from "./features/business/clients/clients.routes";
-import { ProductsRoutes } from "./features/business/products/products.routes";
-import { OrdersRoutes } from "./features/business/orders/orders.routes";
-import { OrderItemsRoutes } from "./features/business/order-items/order-items.routes";
-import { PaymentsRoutes } from "./features/business/payments/payments.routes";
-import { EmployeesRoutes } from "./features/business/employees/employees.routes";
-import { CashRegistersRoutes } from "./features/business/cash-registers/cash-registers.routes";
-import { LoyaltyPointsRoutes } from "./features/business/loyalty-points/loyalty-points.routes";
-import { SuppliesRoutes } from "./features/business/supplies/supplies.routes";
-import { SupplyOrderItemsRoutes } from "./features/business/supply-order-items/supply-order-items.routes";
-
-dotenv.config();
-
-const app: Application = express();
-const PORT = process.env.PORT || 4000;
-
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.get("/api/docs.json", (_req: Request, res: Response) => {
-  res.setHeader("Content-Type", "application/json");
-  res.json(swaggerSpec);
-});
-
-app.use(
-  "/api/docs",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, {
-    swaggerOptions: {
-      docExpansion: "list",
-      filter: true,
-    },
-  })
-);
-
-app.get("/health", (_req: Request, res: Response) => {
-  res.status(200).json({ status: "UP", timestamp: new Date() });
-});
-
-// Registrar los módulos de negocio.
-new ClientsRoutes().routes(app);
-new ProductsRoutes().routes(app);
-new OrdersRoutes().routes(app);
-new OrderItemsRoutes().routes(app);
-new PaymentsRoutes().routes(app);
-new EmployeesRoutes().routes(app);
-new CashRegistersRoutes().routes(app);
-new LoyaltyPointsRoutes().routes(app);
-new SuppliesRoutes().routes(app);
-new SupplyOrderItemsRoutes().routes(app);
-
-app.use("/api", apiRouter);
-
-const startServer = async (): Promise<void> => {
-  try {
-    await connectDB();
-    app.listen(PORT, () => {
-      console.log(`Servidor corriendo en http://localhost:${PORT}`);
-      console.log(`Swagger UI: http://localhost:${PORT}/api/docs`);
-    });
-  } catch (error) {
-    console.error("Error al iniciar el servidor:", error);
-    process.exit(1);
-  }
-};
-
-void startServer();
+main();

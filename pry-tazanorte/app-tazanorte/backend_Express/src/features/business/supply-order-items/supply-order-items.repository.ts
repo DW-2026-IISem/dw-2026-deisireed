@@ -1,24 +1,49 @@
-import { CreationAttributes, Transaction } from "sequelize";
-import { SupplyOrderItem } from "./supply-order-item.model";
+import { CreationAttributes, Op, Transaction } from "sequelize";
+import { SupplyOrderItem, SupplyOrderItemI } from "./supply-order-item.model";
 
+/**
+ * Capa Repository del feature SupplyOrderItems.
+ * Única responsable de hablar con Sequelize (el modelo `SupplyOrderItem`).
+ */
 export class SupplyOrderItemsRepository {
-  public async findAll(): Promise<SupplyOrderItem[]> {
-    return SupplyOrderItem.findAll();
+  // ================== READ ==================
+  /** Todos los consumos activos. */
+  public async findAllActive(): Promise<SupplyOrderItem[]> {
+    return SupplyOrderItem.findAll({ where: { is_active: true } });
   }
 
+  /** Un consumo por PK (o `null`). */
   public async findById(id: number, transaction?: Transaction): Promise<SupplyOrderItem | null> {
     return SupplyOrderItem.findByPk(id, { transaction });
   }
 
-  public async create(data: CreationAttributes<SupplyOrderItem>, transaction?: Transaction): Promise<SupplyOrderItem> {
-    return SupplyOrderItem.create(data, { transaction });
+  /** Busca el par (línea de pedido, insumo), opcionalmente excluyendo un id. */
+  public async findByPair(
+    pedido_detalle_id: number,
+    insumo_id: number,
+    excludeId?: number
+  ): Promise<SupplyOrderItem | null> {
+    return SupplyOrderItem.findOne({
+      where: {
+        pedido_detalle_id,
+        insumo_id,
+        ...(excludeId !== undefined ? { id: { [Op.ne]: excludeId } } : {}),
+      },
+    });
   }
 
-  public async update(item: SupplyOrderItem, data: Partial<SupplyOrderItem>, transaction?: Transaction): Promise<SupplyOrderItem> {
-    return item.update(data, { transaction });
+  // ================== CREATE ==================
+  public async create(data: CreationAttributes<SupplyOrderItem>): Promise<SupplyOrderItem> {
+    return SupplyOrderItem.create(data);
   }
 
-  public async delete(item: SupplyOrderItem, transaction?: Transaction): Promise<void> {
-    await item.destroy({ transaction });
+  // ================== UPDATE ==================
+  public async update(item: SupplyOrderItem, data: Partial<SupplyOrderItemI>): Promise<SupplyOrderItem> {
+    return item.update(data);
+  }
+
+  // ================== DELETE ==================
+  public async delete(item: SupplyOrderItem): Promise<void> {
+    await item.destroy();
   }
 }

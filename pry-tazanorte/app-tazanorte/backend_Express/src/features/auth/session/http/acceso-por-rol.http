@@ -1,0 +1,72 @@
+### TazaNorte — evidencia de las modalidades de acceso sobre 2 tablas de negocio
+### (clientes y pedidos). Ejecutar de arriba hacia abajo.
+###
+### | Caso                         | Usuario     | Esperado |
+### |------------------------------|-------------|----------|
+### | OPEN                         | —           | 200 / 401|
+### | Sin token                    | —           | 401      |
+### | Token inválido               | —           | 401      |
+### | JWT (perfil)                 | caja        | 200      |
+### | JWT + RBAC con concesión     | caja        | 200      |
+### | JWT + RBAC sin concesión     | barista     | 403      |
+@baseUrl = http://localhost:4000
+@caja = {{loginCaja.response.body.$.access_token}}
+@barista = {{loginBarista.response.body.$.access_token}}
+
+### ── 1. OPEN: login de caja -> 200
+# @name loginCaja
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "caja",
+  "password": "Caja123!"
+}
+
+### ── 1. OPEN: login de barista -> 200
+# @name loginBarista
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "barista",
+  "password": "Barista123!"
+}
+
+### ── 2. SIN TOKEN -> 401 (clientes)
+GET {{baseUrl}}/api/clientes
+
+### ── 2. SIN TOKEN -> 401 (pedidos)
+GET {{baseUrl}}/api/pedidos
+
+### ── 3. TOKEN INVÁLIDO -> 401
+GET {{baseUrl}}/api/clientes
+Authorization: Bearer token.invalido.123
+
+### ── 4. JWT: perfil de caja -> 200 (no pasa por la matriz)
+GET {{baseUrl}}/api/sesion/perfil
+Authorization: Bearer {{caja}}
+
+### ── 5. JWT + RBAC: caja lista clientes -> 200
+GET {{baseUrl}}/api/clientes
+Authorization: Bearer {{caja}}
+
+### ── 5. JWT + RBAC: caja lista pedidos -> 200
+GET {{baseUrl}}/api/pedidos
+Authorization: Bearer {{caja}}
+
+### ── 6. JWT + RBAC: barista lista clientes -> 403 (su rol no tiene la concesión)
+GET {{baseUrl}}/api/clientes
+Authorization: Bearer {{barista}}
+
+### ── 5. JWT + RBAC: barista lista pedidos -> 200 (sí la tiene)
+GET {{baseUrl}}/api/pedidos
+Authorization: Bearer {{barista}}
+
+### ── 6. JWT + RBAC: barista intenta borrar un pedido -> 403
+DELETE {{baseUrl}}/api/pedidos/1
+Authorization: Bearer {{barista}}
+
+### ── 6. JWT + RBAC: caja intenta borrar físicamente un cliente -> 403
+DELETE {{baseUrl}}/api/clientes/1
+Authorization: Bearer {{caja}}

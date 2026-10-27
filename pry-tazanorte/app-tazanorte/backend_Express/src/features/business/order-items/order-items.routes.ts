@@ -1,24 +1,31 @@
-
 import { Application } from "express";
+import { authenticate, authorize } from "../../auth/access";
 import { OrderItemsController } from "./order-items.controller";
-import "./order-items.swagger";
 
+/** Rutas del feature OrderItems (PedidoDetalle) — JWT + RBAC en todas las operaciones (authenticate + authorize). */
 export class OrderItemsRoutes {
-  public controller: OrderItemsController = new OrderItemsController();
+  public orderItemsController: OrderItemsController = new OrderItemsController();
 
   public routes(app: Application): void {
-    app.route("/api/pedido-detalles")
-      .get(this.controller.getAll.bind(this.controller))
-      .post(this.controller.create.bind(this.controller));
+    // getAll
+    app.route("/api/detalle-pedidos").get(authenticate, authorize, this.orderItemsController.getAll.bind(this.orderItemsController));
 
-    app.route("/api/pedido-detalles/:id")
-      .get(this.controller.getOne.bind(this.controller))
-      .put(this.controller.updatePut.bind(this.controller))
-      .patch(this.controller.updatePatch.bind(this.controller))
-      .delete(this.controller.deletePhysical.bind(this.controller));
+    // getOne
+    app.route("/api/detalle-pedidos/:id").get(authenticate, authorize, this.orderItemsController.getOne.bind(this.orderItemsController));
 
-    app.route("/api/pedido-detalles/:id/deactivate")
-      .patch(this.controller.deleteLogical.bind(this.controller));
+    // create
+    app.route("/api/detalle-pedidos").post(authenticate, authorize, this.orderItemsController.create.bind(this.orderItemsController));
+
+    // update (PUT / PATCH)
+    app
+      .route("/api/detalle-pedidos/:id")
+      .put(authenticate, authorize, this.orderItemsController.updatePut.bind(this.orderItemsController))
+      .patch(authenticate, authorize, this.orderItemsController.updatePatch.bind(this.orderItemsController));
+
+    // delete físico
+    app.route("/api/detalle-pedidos/:id").delete(authenticate, authorize, this.orderItemsController.deletePhysical.bind(this.orderItemsController));
+
+    // delete lógico
+    app.route("/api/detalle-pedidos/:id/deactivate").patch(authenticate, authorize, this.orderItemsController.deleteLogical.bind(this.orderItemsController));
   }
 }
-

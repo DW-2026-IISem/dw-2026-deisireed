@@ -2,7 +2,7 @@
  * Documentación OpenAPI del feature Product.
  * Se agrega desde `src/swagger` (registry externo), no se monta aquí.
  *
- * Leyenda: todos los endpoints son **SIN AUTH** (la Fase I no implementa autenticación).
+ * Leyenda: todos los endpoints son **JWT + RBAC** (authenticate + authorize).
  */
 
 const idParam = {
@@ -21,7 +21,7 @@ export const productsSwagger = {
   tags: [
     {
       name: "Productos",
-      description: "CRUD de productos — **SIN AUTH**",
+      description: "CRUD de productos — **JWT + RBAC**",
     },
   ],
   paths: {
@@ -29,7 +29,7 @@ export const productsSwagger = {
       get: {
         tags: ["Productos"],
         summary: "Listar productos activos",
-        description: "SIN AUTH — retorna productos con is_active=true",
+        description: "JWT + RBAC — retorna productos con is_active=true",
         responses: {
           "200": {
             description: "Lista de productos",
@@ -52,7 +52,7 @@ export const productsSwagger = {
       post: {
         tags: ["Productos"],
         summary: "Crear producto",
-        description: "SIN AUTH — sku debe ser único; precio >= 0",
+        description: "JWT + RBAC — sku debe ser único; precio >= 0",
         requestBody: {
           required: true,
           content: {
@@ -84,7 +84,7 @@ export const productsSwagger = {
       get: {
         tags: ["Productos"],
         summary: "Obtener producto por id",
-        description: "SIN AUTH — 404 si no existe o tiene borrado lógico",
+        description: "JWT + RBAC — 404 si no existe o tiene borrado lógico",
         parameters: [idParam],
         responses: {
           "200": {
@@ -107,7 +107,7 @@ export const productsSwagger = {
       put: {
         tags: ["Productos"],
         summary: "Actualizar producto (PUT — reemplazo)",
-        description: "SIN AUTH — is_active no se envía; solo cambia con /deactivate",
+        description: "JWT + RBAC — is_active no se envía; solo cambia con /deactivate",
         parameters: [idParam],
         requestBody: {
           required: true,
@@ -127,7 +127,7 @@ export const productsSwagger = {
       patch: {
         tags: ["Productos"],
         summary: "Actualizar producto (PATCH — parcial)",
-        description: "SIN AUTH — solo cambia los campos enviados",
+        description: "JWT + RBAC — solo cambia los campos enviados",
         parameters: [idParam],
         requestBody: {
           required: true,
@@ -147,7 +147,7 @@ export const productsSwagger = {
       delete: {
         tags: ["Productos"],
         summary: "Eliminar producto (físico)",
-        description: "SIN AUTH — borra la fila (también si tiene borrado lógico)",
+        description: "JWT + RBAC — borra la fila (también si tiene borrado lógico)",
         parameters: [idParam],
         responses: {
           "200": { description: "Eliminado" },
@@ -160,7 +160,7 @@ export const productsSwagger = {
       patch: {
         tags: ["Productos"],
         summary: "Eliminar producto (lógico)",
-        description: "SIN AUTH — is_active = false",
+        description: "JWT + RBAC — is_active = false",
         parameters: [idParam],
         responses: {
           "200": { description: "Desactivado" },

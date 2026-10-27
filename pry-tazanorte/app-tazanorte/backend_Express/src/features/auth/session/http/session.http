@@ -1,0 +1,113 @@
+### Feature Session — las tres modalidades
+### OPEN: login, refresh, logout · JWT: perfil y permisos · JWT + RBAC: el resto de la API
+@baseUrl = http://localhost:4000
+@access = {{login.response.body.$.access_token}}
+@refresh = {{login.response.body.$.refresh_token}}
+
+### ===================== OPEN =====================
+
+### LOGIN -> 200 (caja). Guarda access_token y refresh_token.
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "Jaider",
+  "password": "23456789"
+}
+
+### 401 — contraseña incorrecta (mismo mensaje que usuario inexistente)
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "caja",
+  "password": "otra"
+}
+
+### LOGIN con el correo en lugar del username -> 200
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "caja@tazanorte.local",
+  "password": "Caja123!"
+}
+
+### ===================== JWT =====================
+
+### PERFIL
+GET {{baseUrl}}/api/sesion/perfil
+Authorization: Bearer {{access}}
+
+### MIS PERMISOS (los 30 de CAJA)
+GET {{baseUrl}}/api/permisos
+Authorization: Bearer {{access}}
+
+### 401 — perfil sin token
+GET {{baseUrl}}/api/sesion/perfil
+
+### ===================== JWT + RBAC =====================
+
+### 200 — CAJA puede listar pedidos
+GET {{baseUrl}}/api/pedidos
+Authorization: Bearer {{access}}
+
+### 403 — CAJA no administra usuarios
+GET {{baseUrl}}/api/usuarios
+Authorization: Bearer {{access}}
+
+### ===================== REFRESH Y REUSO =====================
+
+### REFRESH -> 200: par nuevo; el refresh anterior queda inválido
+# @name renovar
+POST {{baseUrl}}/api/sesion/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "{{refresh}}"
+}
+
+### 401 — REUSO: presentar otra vez el refresh ya usado revoca toda la familia
+POST {{baseUrl}}/api/sesion/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "{{refresh}}"
+}
+
+### 401 — el refresh nuevo también murió (la familia fue revocada)
+POST {{baseUrl}}/api/sesion/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "{{renovar.response.body.$.refresh_token}}"
+}
+
+### ===================== LOGOUT =====================
+
+### Nuevo login para probar el cierre de sesión
+# @name login2
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "caja",
+  "password": "Caja123!"
+}
+
+### LOGOUT -> 200
+POST {{baseUrl}}/api/sesion/logout
+Content-Type: application/json
+
+{
+  "refresh_token": "{{login2.response.body.$.refresh_token}}"
+}
+
+### 401 — ese refresh ya no renueva
+POST {{baseUrl}}/api/sesion/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "{{login2.response.body.$.refresh_token}}"
+}

@@ -1,157 +1,76 @@
+import { crudPaths } from "../../../shared/http/swagger-crud";
 
 /**
- * @swagger
- * tags:
- *   name: Pagos
- *   description: Gestión de pagos (ISS-12)
+ * Documentación OpenAPI del feature Payment (Pago).
+ * Se agrega desde `src/swagger` (registry externo), no se monta aquí.
+ * Leyenda: todos los endpoints son **JWT + RBAC** (authenticate + authorize).
  *
- * components:
- *   schemas:
- *     Pago:
- *       type: object
- *       required:
- *         - referencia_tipo
- *         - referencia_id
- *         - metodo
- *         - monto
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         referencia_tipo:
- *           type: string
- *           example: PEDIDO
- *         referencia_id:
- *           type: integer
- *           example: 1
- *         metodo:
- *           type: string
- *           example: EFECTIVO
- *         monto:
- *           type: number
- *           minimum: 0.01
- *           example: 53500
- *         fecha:
- *           type: string
- *           format: date-time
- *         estado:
- *           type: string
- *           example: COMPLETADO
- *
- *     ActualizarPago:
- *       type: object
- *       minProperties: 1
- *       properties:
- *         referencia_tipo:
- *           type: string
- *           example: PEDIDO
- *         referencia_id:
- *           type: integer
- *           minimum: 1
- *           example: 1
- *         metodo:
- *           type: string
- *           example: EFECTIVO
- *         monto:
- *           type: number
- *           exclusiveMinimum: 0
- *           example: 53500
- *         fecha:
- *           type: string
- *           format: date-time
- *         estado:
- *           type: string
- *           example: COMPLETADO
- *
- * /api/pagos:
- *   get:
- *     summary: Obtener todos los pagos
- *     tags: [Pagos]
- *     responses:
- *       200:
- *         description: Lista de pagos
- *       500:
- *         description: Error interno del servidor
- *   post:
- *     summary: Crear un nuevo pago
- *     tags: [Pagos]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Pago'
- *     responses:
- *       201:
- *         description: Pago creado exitosamente
- *       400:
- *         description: Datos inválidos
- *       500:
- *         description: Error interno del servidor
- *
- * /api/pagos/{id}:
- *   parameters:
- *     - in: path
- *       name: id
- *       required: true
- *       description: Identificador del pago
- *       schema:
- *         type: integer
- *         minimum: 1
- *   get:
- *     summary: Obtener pago por ID
- *     tags: [Pagos]
- *     responses:
- *       200:
- *         description: Pago encontrado
- *       400:
- *         description: ID inválido
- *       404:
- *         description: Pago no encontrado
- *       500:
- *         description: Error interno del servidor
- *   put:
- *     summary: Actualizar pago por ID
- *     tags: [Pagos]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ActualizarPago'
- *     tags: [Pagos]
- *     responses:
- *       200:
- *         description: Pago actualizado
- *       400:
- *         description: Datos inválidos
- *       404:
- *         description: Pago no encontrado
- *   patch:
- *     summary: Actualizar parcialmente un pago
- *     tags: [Pagos]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ActualizarPago'
- *     responses:
- *       200:
- *         description: Pago actualizado
- *       400:
- *         description: Datos inválidos
- *       404:
- *         description: Pago no encontrado
- *   delete:
- *     summary: Eliminar pago por ID
- *     tags: [Pagos]
- *     responses:
- *       200:
- *         description: Pago eliminado
- *       400:
- *         description: ID inválido
- *       404:
- *         description: Pago no encontrado
+ * Reglas extra: `referencia_id` debe ser un pedido existente (404) no cancelado (400).
  */
-
+export const paymentsSwagger = {
+  tags: [
+    {
+      name: "Pagos",
+      description: "CRUD de pagos — **JWT + RBAC** (referencia_id = pedido no cancelado)",
+    },
+  ],
+  paths: crudPaths({
+    basePath: "/api/pagos",
+    tag: "Pagos",
+    listKey: "payments",
+    itemKey: "payment",
+    schema: "Payment",
+  }),
+  components: {
+    schemas: {
+      Payment: {
+        type: "object",
+        properties: {
+          id: { type: "integer", example: 1 },
+          referencia_tipo: { type: "string", enum: ["PEDIDO"], example: "PEDIDO" },
+          referencia_id: { type: "integer", example: 3 },
+          metodo: { type: "string", enum: ["EFECTIVO", "TARJETA", "TRANSFERENCIA", "NEQUI"], example: "NEQUI" },
+          monto: { type: "number", example: 18500 },
+          fecha: { type: "string", format: "date-time" },
+          estado: { type: "string", enum: ["PENDIENTE", "COMPLETADO", "CANCELADO"], example: "COMPLETADO" },
+          is_active: { type: "boolean", example: true },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      PaymentCreate: {
+        type: "object",
+        required: ["referencia_tipo", "referencia_id", "metodo", "monto"],
+        properties: {
+          referencia_tipo: { type: "string", enum: ["PEDIDO"], example: "PEDIDO" },
+          referencia_id: { type: "integer", example: 3 },
+          metodo: { type: "string", enum: ["EFECTIVO", "TARJETA", "TRANSFERENCIA", "NEQUI"], example: "EFECTIVO" },
+          monto: { type: "number", minimum: 0.01, example: 18500 },
+          fecha: { type: "string", format: "date-time" },
+          estado: { type: "string", enum: ["PENDIENTE", "COMPLETADO", "CANCELADO"], default: "PENDIENTE" },
+          is_active: { type: "boolean", default: true },
+        },
+      },
+      PaymentUpdate: {
+        type: "object",
+        required: ["referencia_tipo", "referencia_id", "metodo", "monto", "fecha", "estado"],
+        properties: {
+          referencia_tipo: { type: "string", enum: ["PEDIDO"] },
+          referencia_id: { type: "integer" },
+          metodo: { type: "string", enum: ["EFECTIVO", "TARJETA", "TRANSFERENCIA", "NEQUI"] },
+          monto: { type: "number", minimum: 0.01 },
+          fecha: { type: "string", format: "date-time" },
+          estado: { type: "string", enum: ["PENDIENTE", "COMPLETADO", "CANCELADO"] },
+        },
+      },
+      PaymentPatch: {
+        type: "object",
+        properties: {
+          metodo: { type: "string", enum: ["EFECTIVO", "TARJETA", "TRANSFERENCIA", "NEQUI"] },
+          monto: { type: "number", minimum: 0.01 },
+          estado: { type: "string", enum: ["PENDIENTE", "COMPLETADO", "CANCELADO"], example: "COMPLETADO" },
+        },
+      },
+    },
+  },
+};

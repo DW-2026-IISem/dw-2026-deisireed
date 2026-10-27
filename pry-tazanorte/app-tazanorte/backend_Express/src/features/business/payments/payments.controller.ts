@@ -1,96 +1,78 @@
-
 import { Request, Response } from "express";
+import { BaseController } from "../../../shared/http/base-controller";
+import { CreatePaymentDto, PatchPaymentDto, UpdatePaymentDto } from "./dto";
 import { PaymentsService } from "./payments.service";
 
-export class PaymentsController {
-  private service: PaymentsService;
-
-  constructor() {
-    this.service = new PaymentsService();
+/**
+ * Capa Controller del feature Payments.
+ * Solo HTTP: lee `req`, llama al service y arma la respuesta.
+ */
+export class PaymentsController extends BaseController {
+  public constructor(
+    private readonly service: PaymentsService = new PaymentsService()
+  ) {
+    super();
   }
 
-  public async getAll(req: Request, res: Response): Promise<void> {
-    try {
+  // ================== READ ==================
+  public async getAll(_req: Request, res: Response): Promise<void> {
+    await this.run(res, async () => {
       const payments = await this.service.getAll();
-      res.status(200).json({ ok: true, data: payments });
-    } catch (error: any) {
-      res.status(500).json({ ok: false, error: error.message });
-    }
+      res.status(200).json({ payments });
+    });
   }
 
-  public async getById(req: Request, res: Response): Promise<void> {
-    try {
-      const id = Number(req.params.id);
-
-      if (!Number.isInteger(id) || id <= 0) {
-        res.status(400).json({ ok: false, error: "ID de pago inválido" });
-        return;
-      }
-
-      const payment = await this.service.getById(id);
-      res.status(200).json({ ok: true, data: payment });
-    } catch (error: any) {
-      if (error.message === "Pago no encontrado") {
-        res.status(404).json({ ok: false, error: error.message });
-        return;
-      }
-
-      res.status(500).json({ ok: false, error: error.message });
-    }
+  public async getOne(req: Request, res: Response): Promise<void> {
+    await this.run(res, async () => {
+      const payment = await this.service.getOne(this.paramId(req));
+      res.status(200).json({ payment });
+    });
   }
 
+  // ================== CREATE ==================
   public async create(req: Request, res: Response): Promise<void> {
-    try {
-      const payment = await this.service.create(req.body);
-      res.status(201).json({ ok: true, data: payment });
-    } catch (error: any) {
-      res.status(400).json({ ok: false, error: error.message });
-    }
+    await this.run(res, async () => {
+      const payment = await this.service.create(req.body as CreatePaymentDto);
+      res.status(201).json({ payment });
+    });
   }
 
-  public async update(req: Request, res: Response): Promise<void> {
-    try {
-      const id = Number(req.params.id);
-
-      if (!Number.isInteger(id) || id <= 0) {
-        res.status(400).json({ ok: false, error: "ID de pago inválido" });
-        return;
-      }
-
-      const payment = await this.service.update(id, req.body);
-      res.status(200).json({ ok: true, data: payment });
-    } catch (error: any) {
-      if (error.message === "Pago no encontrado") {
-        res.status(404).json({ ok: false, error: error.message });
-        return;
-      }
-
-      res.status(400).json({ ok: false, error: error.message });
-    }
+  // ================== UPDATE ==================
+  public async updatePut(req: Request, res: Response): Promise<void> {
+    await this.run(res, async () => {
+      const payment = await this.service.updatePut(
+        this.paramId(req),
+        req.body as UpdatePaymentDto
+      );
+      res.status(200).json({ payment });
+    });
   }
 
-  public async delete(req: Request, res: Response): Promise<void> {
-    try {
-      const id = Number(req.params.id);
+  public async updatePatch(req: Request, res: Response): Promise<void> {
+    await this.run(res, async () => {
+      const payment = await this.service.updatePatch(
+        this.paramId(req),
+        req.body as PatchPaymentDto
+      );
+      res.status(200).json({ payment });
+    });
+  }
 
-      if (!Number.isInteger(id) || id <= 0) {
-        res.status(400).json({ ok: false, error: "ID de pago inválido" });
-        return;
-      }
+  // ================== DELETE ==================
+  /** Eliminación física. */
+  public async deletePhysical(req: Request, res: Response): Promise<void> {
+    await this.run(res, async () => {
+      const id = this.paramId(req);
+      await this.service.deletePhysical(id);
+      res.status(200).json({ message: "Payment permanently deleted", id });
+    });
+  }
 
-      await this.service.delete(id);
-      res.status(200).json({
-        ok: true,
-        message: "Pago eliminado correctamente",
-      });
-    } catch (error: any) {
-      if (error.message === "Pago no encontrado") {
-        res.status(404).json({ ok: false, error: error.message });
-        return;
-      }
-
-      res.status(400).json({ ok: false, error: error.message });
-    }
+  /** Eliminación lógica -> `is_active = false`. */
+  public async deleteLogical(req: Request, res: Response): Promise<void> {
+    await this.run(res, async () => {
+      const payment = await this.service.deleteLogical(this.paramId(req));
+      res.status(200).json({ message: "Payment deactivated (logical delete)", payment });
+    });
   }
 }
-

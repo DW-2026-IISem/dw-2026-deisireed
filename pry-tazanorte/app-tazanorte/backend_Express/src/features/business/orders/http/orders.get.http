@@ -1,18 +1,34 @@
 ### Feature Order — GET ALL / GET ONE
-### Modalidad SIN AUTH. Los pedidos cancelados no se listan.
+### Modalidad JWT + RBAC. Los pedidos cancelados no se listan.
 @baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
 @id = 1
 
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "Dani",
+  "password": "12345679"
+}
+
+###
 # @name getAllOrders
 GET {{baseUrl}}/api/pedidos
+Authorization: Bearer {{token}}
 
 ###
 
 # @name getOneOrder
 GET {{baseUrl}}/api/pedidos/{{id}}
+Authorization: Bearer {{token}}
 
 ### 400 — id inválido
 GET {{baseUrl}}/api/pedidos/abc
+Authorization: Bearer {{token}}
 
 ### 404 — no existe
 GET {{baseUrl}}/api/pedidos/999999
+Authorization: Bearer {{token}}

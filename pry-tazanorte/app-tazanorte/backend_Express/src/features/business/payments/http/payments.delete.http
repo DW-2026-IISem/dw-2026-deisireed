@@ -1,0 +1,22 @@
+### Feature Payment — DELETE físico / DELETE lógico (JWT + RBAC)
+@baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
+@id = 1
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
+
+### DELETE lógico (is_active = false)
+PATCH {{baseUrl}}/api/pagos/{{id}}/deactivate
+Authorization: Bearer {{token}}
+
+### DELETE físico
+DELETE {{baseUrl}}/api/pagos/{{id}}
+Authorization: Bearer {{token}}

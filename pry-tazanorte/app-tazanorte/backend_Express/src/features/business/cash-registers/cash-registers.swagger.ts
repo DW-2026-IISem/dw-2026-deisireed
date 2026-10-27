@@ -3,7 +3,7 @@ import { crudPaths } from "../../../shared/http/swagger-crud";
 /**
  * Documentación OpenAPI del feature CashRegister (TurnoCaja).
  * Se agrega desde `src/swagger` (registry externo), no se monta aquí.
- * Leyenda: todos los endpoints son **SIN AUTH** (la Fase I no implementa autenticación).
+ * Leyenda: todos los endpoints son **JWT + RBAC** (authenticate + authorize).
  *
  * Reglas extra: `empleado_id` debe existir (404) y estar activo (400) al crear o
  * actualizar. Borrar físicamente un empleado con turnos responde 409.
@@ -12,7 +12,7 @@ export const cashRegistersSwagger = {
   tags: [
     {
       name: "TurnosCaja",
-      description: "CRUD de turnos de caja — **SIN AUTH** (empleado_id debe ser un empleado activo)",
+      description: "CRUD de turnos de caja — **JWT + RBAC** (empleado_id debe ser un empleado activo)",
     },
   ],
   paths: crudPaths({

@@ -1,24 +1,43 @@
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
+import { hash, compare } from "bcryptjs";
+import { createHash, randomBytes } from "node:crypto";
 
-export class PasswordHasher {
-  private static readonly SALT_ROUNDS = 10;
+/**
+ * Derivación y verificación de contraseñas (bcrypt) y hashes de tokens opacos.
+ *
+ * Se centraliza aquí porque lo usan tres sitios distintos y **debe** usar los
+ * mismos parámetros en los tres:
+ *  - el hook `beforeCreate/beforeUpdate` del modelo `User` (hash al persistir);
+ *  - el service de usuarios al cambiar la contraseña;
+ *  - el login, que compara la credencial en memoria (nunca la devuelve).
+ *
+ * Coste 12 rondas: compromiso entre coste de CPU del servidor y coste de fuerza
+ * bruta para un atacante que obtuviera el hash.
+ */
+const SALT_ROUNDS = 12;
 
-  static async hash(password: string): Promise<string> {
-    return bcrypt.hash(password, this.SALT_ROUNDS);
-  }
-
-  static async compare(plain: string, hashed: string): Promise<boolean> {
-    return bcrypt.compare(plain, hashed);
-  }
-
-  static hashToken(token: string): string {
-    return crypto.createHash('sha256').update(token).digest('hex');
-  }
-
-  static generateOpaqueToken(): string {
-    return crypto.randomBytes(40).toString('hex');
-  }
+/** Devuelve el hash bcrypt de una contraseña en claro. */
+export async function hashPassword(plain: string): Promise<string> {
+  return hash(plain, SALT_ROUNDS);
 }
 
-export const hashPassword = (password: string) => PasswordHasher.hash(password);
+/** `true` si la contraseña en claro corresponde al hash almacenado. */
+export async function comparePassword(plain: string, passwordHash: string): Promise<boolean> {
+  return compare(plain, passwordHash);
+}
+
+/**
+ * Hash determinista (SHA-256, hex) para credenciales de **alta entropía**.
+ *
+ * Se usa con los refresh tokens, no con contraseñas: un token aleatorio de 64
+ * bytes no es adivinable, así que no necesita un algoritmo lento; basta con
+ * impedir que el valor en claro quede en la base de datos. Permite, además,
+ * buscar por índice único (`token_hash`).
+ */
+export function sha256Hex(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+/** Genera un token opaco no adivinable (URL-safe, 64 bytes ≈ 86 caracteres). */
+export function generateOpaqueToken(): string {
+  return randomBytes(64).toString("base64url");
+}

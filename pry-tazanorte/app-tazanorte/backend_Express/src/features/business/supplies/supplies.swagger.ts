@@ -3,10 +3,10 @@ import { crudPaths } from "../../../shared/http/swagger-crud";
 /**
  * Documentación OpenAPI del feature Supply.
  * Se agrega desde `src/swagger` (registry externo), no se monta aquí.
- * Leyenda: todos los endpoints son **SIN AUTH** (la Fase I no implementa autenticación).
+ * Leyenda: todos los endpoints son **JWT + RBAC** (authenticate + authorize).
  */
 export const suppliesSwagger = {
-  tags: [{ name: "Insumos", description: "CRUD de insumos — **SIN AUTH**" }],
+  tags: [{ name: "Insumos", description: "CRUD de insumos — **JWT + RBAC**" }],
   paths: crudPaths({
     basePath: "/api/insumos",
     tag: "Insumos",

@@ -2,7 +2,7 @@
  * Documentación OpenAPI del feature Client.
  * Se agrega desde `src/swagger` (registry externo), no se monta aquí.
  *
- * Leyenda: todos los endpoints son **SIN AUTH** (la Fase I no implementa autenticación).
+ * Leyenda: todos los endpoints son **JWT + RBAC** (authenticate + authorize).
  */
 
 /** Parámetro de ruta `:id`, común a las operaciones por id. */
@@ -22,7 +22,7 @@ export const clientsSwagger = {
   tags: [
     {
       name: "Clientes",
-      description: "CRUD de clientes — **SIN AUTH**",
+      description: "CRUD de clientes — **JWT + RBAC**",
     },
   ],
   paths: {
@@ -30,7 +30,7 @@ export const clientsSwagger = {
       get: {
         tags: ["Clientes"],
         summary: "Listar clientes activos",
-        description: "SIN AUTH — retorna clientes con is_active=true",
+        description: "JWT + RBAC — retorna clientes con is_active=true",
         responses: {
           "200": {
             description: "Lista de clientes",
@@ -53,7 +53,7 @@ export const clientsSwagger = {
       post: {
         tags: ["Clientes"],
         summary: "Crear cliente",
-        description: "SIN AUTH — numero_documento debe ser único",
+        description: "JWT + RBAC — numero_documento debe ser único",
         requestBody: {
           required: true,
           content: {
@@ -85,7 +85,7 @@ export const clientsSwagger = {
       get: {
         tags: ["Clientes"],
         summary: "Obtener cliente por id",
-        description: "SIN AUTH — 404 si no existe o tiene borrado lógico",
+        description: "JWT + RBAC — 404 si no existe o tiene borrado lógico",
         parameters: [idParam],
         responses: {
           "200": {
@@ -108,7 +108,7 @@ export const clientsSwagger = {
       put: {
         tags: ["Clientes"],
         summary: "Actualizar cliente (PUT — reemplazo)",
-        description: "SIN AUTH — is_active no se envía; solo cambia con /deactivate",
+        description: "JWT + RBAC — is_active no se envía; solo cambia con /deactivate",
         parameters: [idParam],
         requestBody: {
           required: true,
@@ -128,7 +128,7 @@ export const clientsSwagger = {
       patch: {
         tags: ["Clientes"],
         summary: "Actualizar cliente (PATCH — parcial)",
-        description: "SIN AUTH — solo cambia los campos enviados",
+        description: "JWT + RBAC — solo cambia los campos enviados",
         parameters: [idParam],
         requestBody: {
           required: true,
@@ -148,7 +148,7 @@ export const clientsSwagger = {
       delete: {
         tags: ["Clientes"],
         summary: "Eliminar cliente (físico)",
-        description: "SIN AUTH — borra la fila (también si tiene borrado lógico)",
+        description: "JWT + RBAC — borra la fila (también si tiene borrado lógico)",
         parameters: [idParam],
         responses: {
           "200": { description: "Eliminado" },
@@ -161,7 +161,7 @@ export const clientsSwagger = {
       patch: {
         tags: ["Clientes"],
         summary: "Eliminar cliente (lógico)",
-        description: "SIN AUTH — is_active = false",
+        description: "JWT + RBAC — is_active = false",
         parameters: [idParam],
         responses: {
           "200": { description: "Desactivado" },

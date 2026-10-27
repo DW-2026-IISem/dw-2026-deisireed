@@ -1,0 +1,72 @@
+### Feature Roles — CRUD
+### Modalidad: JWT + RBAC (login como admin)
+### Ejecutar en orden: el CREATE guarda el id que usan los siguientes.
+@baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
+@id = 2
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
+
+### GET ALL — los 5 roles de TazaNorte
+GET {{baseUrl}}/api/roles
+Authorization: Bearer {{token}}
+
+### GET ONE
+GET {{baseUrl}}/api/roles/{{id}}
+Authorization: Bearer {{token}}
+
+### CREATE -> 201 (el nombre se guarda en MAYÚSCULAS)
+# @name crearRol
+POST {{baseUrl}}/api/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Mesero.tarde",
+  "description": "Entrega pedidos dentro del local"
+}
+
+### 409 — nombre ya en uso (sin importar mayúsculas)
+POST {{baseUrl}}/api/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "caja"
+}
+
+### PUT — reemplazo completo
+PUT {{baseUrl}}/api/roles/{{crearRol.response.body.$.role.id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "DOMICILIOS",
+  "description": "Entrega de pedidos para llevar y a domicilio"
+}
+
+### PATCH — parcial (`status` se ignora)
+PATCH {{baseUrl}}/api/roles/{{crearRol.response.body.$.role.id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "Domicilios zona norte",
+  "status": "inactive"
+}
+
+### DELETE lógico
+PATCH {{baseUrl}}/api/roles/{{crearRol.response.body.$.role.id}}/deactivate
+Authorization: Bearer {{token}}
+
+### DELETE físico
+DELETE {{baseUrl}}/api/roles/{{crearRol.response.body.$.role.id}}
+Authorization: Bearer {{token}}

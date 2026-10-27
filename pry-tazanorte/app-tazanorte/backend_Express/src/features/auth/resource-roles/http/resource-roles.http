@@ -1,0 +1,66 @@
+### Feature ResourceRoles — matriz de permisos (conceder recursos a roles)
+### Modalidad: JWT + RBAC (login como admin)
+### Ejecutar en orden. Confirma los ids con GET /api/roles y GET /api/recursos.
+@baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
+@baristaRoleId = 11
+@listarClientesId = 44
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
+
+### GET ALL — todas las concesiones activas (105 + 30 + 14 + 12 + 36 = 197)
+GET {{baseUrl}}/api/concesiones-rol
+Authorization: Bearer {{token}}
+
+### Filtrar por rol — los 14 permisos de BARISTA (no incluye GET /api/clientes)
+GET {{baseUrl}}/api/concesiones-rol?role_id={{baristaRoleId}}
+Authorization: Bearer {{token}}
+
+### Filtrar por recurso — qué roles pueden listar clientes (ADMIN, CAJA, SUPERVISOR)
+GET {{baseUrl}}/api/concesiones-rol?resource_id={{listarClientesId}}
+Authorization: Bearer {{token}}
+
+### CONCEDER -> 201: BARISTA ahora puede listar clientes
+# @name conceder
+POST {{baseUrl}}/api/concesiones-rol
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "role_id": {{baristaRoleId}},
+  "resource_id": {{listarClientesId}}
+}
+
+### 409 — ya concedido
+POST {{baseUrl}}/api/concesiones-rol
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "role_id": {{baristaRoleId}},
+  "resource_id": {{listarClientesId}}
+}
+
+### GET ONE
+GET {{baseUrl}}/api/concesiones-rol/{{conceder.response.body.$.grant.id}}
+Authorization: Bearer {{token}}
+
+### RETIRAR el permiso (revocación inmediata) — la matriz vuelve a como estaba
+PATCH {{baseUrl}}/api/concesiones-rol/{{conceder.response.body.$.grant.id}}/deactivate
+Authorization: Bearer {{token}}
+
+### REACTIVAR
+PATCH {{baseUrl}}/api/concesiones-rol/{{conceder.response.body.$.grant.id}}/reactivate
+Authorization: Bearer {{token}}
+
+### Retirarlo de nuevo (BARISTA no ve clientes según la matriz)
+PATCH {{baseUrl}}/api/concesiones-rol/{{conceder.response.body.$.grant.id}}/deactivate
+Authorization: Bearer {{token}}

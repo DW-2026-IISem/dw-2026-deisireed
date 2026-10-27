@@ -1,10 +1,22 @@
-### Feature Client — UPDATE (PUT) / UPDATE (PATCH) (SIN AUTH)
+### Feature Client — UPDATE (PUT) / UPDATE (PATCH) (JWT + RBAC)
 ### `is_active` no se envía: el estado solo cambia con PATCH /api/clientes/:id/deactivate
 @baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
 @id = 1
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
 
 ### PUT — reemplazo completo
 PUT {{baseUrl}}/api/clientes/{{id}}
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -17,6 +29,7 @@ Content-Type: application/json
 
 ### PATCH — parcial
 PATCH {{baseUrl}}/api/clientes/{{id}}
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {

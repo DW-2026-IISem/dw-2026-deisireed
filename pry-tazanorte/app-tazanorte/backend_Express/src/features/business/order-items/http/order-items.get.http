@@ -1,18 +1,34 @@
 ### Feature OrderItem — GET ALL / GET ONE
-### Modalidad SIN AUTH.
+### Modalidad JWT + RBAC.
 @baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
 @id = 1
 
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "Jaider",
+  "password": "23456789"
+}
+
+###
 # @name getAllOrderItems
 GET {{baseUrl}}/api/detalle-pedidos
+Authorization: Bearer {{token}}
 
 ###
 
 # @name getOneOrderItem
 GET {{baseUrl}}/api/detalle-pedidos/{{id}}
+Authorization: Bearer {{token}}
 
 ### 400 — id inválido
 GET {{baseUrl}}/api/detalle-pedidos/abc
+Authorization: Bearer {{token}}
 
 ### 404 — no existe
 GET {{baseUrl}}/api/detalle-pedidos/999999
+Authorization: Bearer {{token}}

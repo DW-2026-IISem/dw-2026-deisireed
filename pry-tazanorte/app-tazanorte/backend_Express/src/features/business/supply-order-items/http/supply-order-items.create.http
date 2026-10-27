@@ -1,0 +1,47 @@
+### Feature SupplyOrderItem — CREATE (JWT + RBAC)
+### Ej.: la línea de pedido 1 (un capuchino) consumió 0.25 del insumo 2 (leche entera)
+@baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
+
+### CREATE -> 201
+POST {{baseUrl}}/api/insumo-pedido-detalles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "pedido_detalle_id": 1,
+  "insumo_id": 2,
+  "cantidad_usada": 0.25
+}
+
+### 409 — el mismo insumo ya está registrado para esa línea (repetir el anterior)
+POST {{baseUrl}}/api/insumo-pedido-detalles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "pedido_detalle_id": 1,
+  "insumo_id": 2,
+  "cantidad_usada": 0.10
+}
+
+### 400 — cantidad_usada debe ser > 0
+POST {{baseUrl}}/api/insumo-pedido-detalles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "pedido_detalle_id": 1,
+  "insumo_id": 3,
+  "cantidad_usada": 0
+}

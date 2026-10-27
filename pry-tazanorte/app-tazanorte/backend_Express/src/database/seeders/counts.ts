@@ -12,6 +12,10 @@ export type SeedCounts = {
   cash_registers: number;
   orders: number;
   order_items: number;
+  payments: number;
+  supply_order_items: number;
+  loyalty_points: number;
+  users: number;
 };
 
 export const DEFAULT_SEED_COUNTS: SeedCounts = {
@@ -22,6 +26,10 @@ export const DEFAULT_SEED_COUNTS: SeedCounts = {
   cash_registers: 6,
   orders: 8,
   order_items: 15,
+  payments: 10,
+  supply_order_items: 12,
+  loyalty_points: 10,
+  users: 6,
 };
 
 export function resolveSeedCounts(argv: string[] = process.argv.slice(2)): SeedCounts {
@@ -35,6 +43,10 @@ export function resolveSeedCounts(argv: string[] = process.argv.slice(2)): SeedC
     ["cash_registers", process.env.SEED_CASH_REGISTERS],
     ["orders", process.env.SEED_ORDERS],
     ["order_items", process.env.SEED_ORDER_ITEMS],
+    ["payments", process.env.SEED_PAYMENTS],
+    ["supply_order_items", process.env.SEED_SUPPLY_ORDER_ITEMS],
+    ["loyalty_points", process.env.SEED_LOYALTY_POINTS],
+    ["users", process.env.SEED_USERS],
   ];
   for (const [key, value] of envMap) {
     if (value !== undefined && value !== "") {

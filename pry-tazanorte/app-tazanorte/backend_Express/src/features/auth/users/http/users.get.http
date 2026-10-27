@@ -1,0 +1,27 @@
+### Feature Users — GET ALL / GET ONE
+### Modalidad: JWT + RBAC (login como admin)
+@baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
+@id = 1
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
+
+### getAll — nunca devuelve `password`
+GET {{baseUrl}}/api/usuarios
+Authorization: Bearer {{token}}
+
+### getOne
+GET {{baseUrl}}/api/usuarios/{{id}}
+Authorization: Bearer {{token}}
+
+### 400 — id no es entero positivo (validado en BaseController.paramId)
+GET {{baseUrl}}/api/usuarios/abc
+Authorization: Bearer {{token}}

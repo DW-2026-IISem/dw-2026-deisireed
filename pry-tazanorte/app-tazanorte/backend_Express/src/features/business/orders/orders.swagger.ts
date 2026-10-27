@@ -2,7 +2,7 @@
  * Documentación OpenAPI del feature Order (tabla orders).
  * Se agrega desde `src/swagger` (registry externo), no se monta aquí.
  *
- * Leyenda: todos los endpoints son **SIN AUTH**.
+ * Leyenda: todos los endpoints son **JWT + RBAC**.
  */
 
 const idParam = {
@@ -22,7 +22,7 @@ export const ordersSwagger = {
   tags: [
     {
       name: "Pedidos",
-      description: "CRUD de pedidos (cabecera + líneas) y cambio de estado — **SIN AUTH**",
+      description: "CRUD de pedidos (cabecera + líneas) y cambio de estado — **JWT + RBAC**",
     },
   ],
   paths: {
@@ -30,7 +30,7 @@ export const ordersSwagger = {
       get: {
         tags: ["Pedidos"],
         summary: "Listar pedidos (no cancelados) con sus líneas",
-        description: "SIN AUTH — retorna pedidos con estado distinto de 'cancelado'",
+        description: "JWT + RBAC — retorna pedidos con estado distinto de 'cancelado'",
         responses: {
           "200": {
             description: "Lista de pedidos",
@@ -51,7 +51,7 @@ export const ordersSwagger = {
         tags: ["Pedidos"],
         summary: "Crear pedido (cabecera + líneas, transaccional)",
         description:
-          "SIN AUTH — valida cliente, turno de caja y productos activos; calcula subtotal/total; estado inicial 'pendiente'",
+          "JWT + RBAC — valida cliente, turno de caja y productos activos; calcula subtotal/total; estado inicial 'pendiente'",
         requestBody: {
           required: true,
           content: { "application/json": { schema: { $ref: "#/components/schemas/OrderCreate" } } },
@@ -72,7 +72,7 @@ export const ordersSwagger = {
       get: {
         tags: ["Pedidos"],
         summary: "Obtener pedido por id (con líneas)",
-        description: "SIN AUTH — 404 si no existe o está cancelado",
+        description: "JWT + RBAC — 404 si no existe o está cancelado",
         parameters: [idParam],
         responses: {
           "200": {
@@ -86,7 +86,7 @@ export const ordersSwagger = {
       put: {
         tags: ["Pedidos"],
         summary: "Actualizar cabecera (PUT)",
-        description: "SIN AUTH — solo pedidos 'pendiente'; canal obligatorio",
+        description: "JWT + RBAC — solo pedidos 'pendiente'; canal obligatorio",
         parameters: [idParam],
         requestBody: {
           required: true,
@@ -101,7 +101,7 @@ export const ordersSwagger = {
       patch: {
         tags: ["Pedidos"],
         summary: "Actualizar cabecera (PATCH — parcial)",
-        description: "SIN AUTH — solo pedidos 'pendiente'",
+        description: "JWT + RBAC — solo pedidos 'pendiente'",
         parameters: [idParam],
         requestBody: {
           required: true,
@@ -116,7 +116,7 @@ export const ordersSwagger = {
       delete: {
         tags: ["Pedidos"],
         summary: "Eliminar pedido (físico)",
-        description: "SIN AUTH — solo pedidos 'pendiente' o 'cancelado'; borra también sus líneas",
+        description: "JWT + RBAC — solo pedidos 'pendiente' o 'cancelado'; borra también sus líneas",
         parameters: [idParam],
         responses: {
           "200": { description: "Eliminado" },
@@ -130,7 +130,7 @@ export const ordersSwagger = {
         tags: ["Pedidos"],
         summary: "Cambiar estado del pedido",
         description:
-          "SIN AUTH — pendiente → pagado | cancelado; pagado → en_preparacion | entregado | cancelado; en_preparacion → entregado | cancelado. Para pagar necesita al menos una línea activa.",
+          "JWT + RBAC — pendiente → pagado | cancelado; pagado → en_preparacion | entregado | cancelado; en_preparacion → entregado | cancelado. Para pagar necesita al menos una línea activa.",
         parameters: [idParam],
         requestBody: {
           required: true,
@@ -147,7 +147,7 @@ export const ordersSwagger = {
       patch: {
         tags: ["Pedidos"],
         summary: "Cancelar pedido (lógico)",
-        description: "SIN AUTH — estado = 'cancelado' y desactiva sus líneas",
+        description: "JWT + RBAC — estado = 'cancelado' y desactiva sus líneas",
         parameters: [idParam],
         responses: {
           "200": { description: "Cancelado" },

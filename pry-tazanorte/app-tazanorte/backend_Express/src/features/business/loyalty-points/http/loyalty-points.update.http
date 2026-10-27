@@ -1,0 +1,33 @@
+### Feature LoyaltyPoint — UPDATE (PUT) / UPDATE (PATCH) (JWT + RBAC)
+### Solo se editan las observaciones: el movimiento es historial.
+@baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
+@id = 1
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
+
+### PUT
+PUT {{baseUrl}}/api/puntos-fidelizacion/{{id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "observaciones": "Compra en caja — promoción martes de capuchino"
+}
+
+### PATCH
+PATCH {{baseUrl}}/api/puntos-fidelizacion/{{id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "observaciones": "Revisado por supervisor"
+}

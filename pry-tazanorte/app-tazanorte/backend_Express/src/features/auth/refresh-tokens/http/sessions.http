@@ -1,0 +1,43 @@
+### Feature RefreshTokens — mis sesiones (modalidad JWT)
+### Requiere el login de ISS-22. Cada usuario solo ve y revoca SUS sesiones.
+@baseUrl = http://localhost:4000
+
+### Login como caja (crea una sesión: refresh token persistido)
+# @name loginCaja
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "caja",
+  "password": "Caja123!"
+}
+
+@token = {{loginCaja.response.body.$.access_token}}
+
+### 401 — sin token
+GET {{baseUrl}}/api/sesiones
+
+### Mis sesiones activas (nunca devuelve token_hash)
+# @name misSesiones
+GET {{baseUrl}}/api/sesiones
+Authorization: Bearer {{token}}
+
+### Consultar una de mis sesiones
+GET {{baseUrl}}/api/sesiones/{{misSesiones.response.body.$.sessions[0].id}}
+Authorization: Bearer {{token}}
+
+### 404 — sesión ajena o inexistente (no se revela si existe)
+GET {{baseUrl}}/api/sesiones/99999
+Authorization: Bearer {{token}}
+
+### Revocar una de mis sesiones
+PATCH {{baseUrl}}/api/sesiones/{{misSesiones.response.body.$.sessions[0].id}}/deactivate
+Authorization: Bearer {{token}}
+
+### Cerrar TODAS mis sesiones
+PATCH {{baseUrl}}/api/sesiones/deactivate-all
+Authorization: Bearer {{token}}
+
+### Purgar mis sesiones revocadas o expiradas (borrado físico)
+DELETE {{baseUrl}}/api/sesiones
+Authorization: Bearer {{token}}

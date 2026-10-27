@@ -1,0 +1,27 @@
+### Feature LoyaltyPoint — GET ALL / GET ONE / SALDO (JWT + RBAC)
+@baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
+@id = 1
+@clienteId = 1
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
+
+### GET ALL — historial de movimientos activos
+GET {{baseUrl}}/api/puntos-fidelizacion
+Authorization: Bearer {{token}}
+
+### GET ONE
+GET {{baseUrl}}/api/puntos-fidelizacion/{{id}}
+Authorization: Bearer {{token}}
+
+### SALDO del cliente
+GET {{baseUrl}}/api/puntos-fidelizacion/cliente/{{clienteId}}/saldo
+Authorization: Bearer {{token}}

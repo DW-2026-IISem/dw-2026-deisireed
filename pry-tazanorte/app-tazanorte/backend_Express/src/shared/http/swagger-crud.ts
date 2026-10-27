@@ -1,6 +1,11 @@
+import { bearerSecurity, forbiddenResponse, unauthorizedResponse } from "./swagger-security";
+
 /**
- * Genera los `paths` OpenAPI del CRUD estándar de un feature (SIN AUTH).
+ * Genera los `paths` OpenAPI del CRUD estándar de un feature (7 operaciones).
  * Cada feature solo declara sus esquemas (`Xxx`, `XxxCreate`, `XxxUpdate`, `XxxPatch`).
+ *
+ * `secured: true` documenta la modalidad **JWT + RBAC**: añade `security: bearerAuth`
+ * y las respuestas 401/403 a cada operación. Sin la opción, la operación es SIN AUTH.
  */
 export interface CrudSwaggerOptions {
   basePath: string;       // "/api/empleados"
@@ -9,10 +14,18 @@ export interface CrudSwaggerOptions {
   itemKey: string;        // "employee"   (clave del objeto en las demás)
   schema: string;         // "Employee"   (nombre del esquema base)
   uniqueField?: string;   // si existe, se documenta el 409
+  activeField?: string;   // campo de borrado lógico (por defecto "is_active")
+  secured?: boolean;      // por defecto true (JWT + RBAC); false -> SIN AUTH
 }
 
 export function crudPaths(o: CrudSwaggerOptions): Record<string, unknown> {
   const ref = (name: string) => ({ $ref: `#/components/schemas/${name}` });
+  const secured = o.secured !== false; // por defecto JWT + RBAC (ISS-20)
+  const mode = secured ? "JWT + RBAC" : "SIN AUTH";
+  const active = o.activeField ?? "is_active";
+  const inactive = active === "status" ? "status = inactive" : `${active} = false`;
+  const auth = secured ? { security: bearerSecurity } : {};
+  const authResponses = secured ? { "401": unauthorizedResponse, "403": forbiddenResponse } : {};
   const idParam = [
     {
       name: "id",
@@ -45,7 +58,8 @@ export function crudPaths(o: CrudSwaggerOptions): Record<string, unknown> {
       get: {
         tags: [o.tag],
         summary: "Listar activos",
-        description: "SIN AUTH — retorna registros con is_active=true",
+        description: `${mode} — retorna los registros activos`,
+        ...auth,
         responses: {
           "200": {
             description: "Lista",
@@ -53,23 +67,24 @@ export function crudPaths(o: CrudSwaggerOptions): Record<string, unknown> {
               "application/json": {
                 schema: {
                   type: "object",
-                  properties: {
-                    [o.listKey]: { type: "array", items: ref(o.schema) },
-                  },
+                  properties: { [o.listKey]: { type: "array", items: ref(o.schema) } },
                 },
               },
             },
           },
+          ...authResponses,
         },
       },
       post: {
         tags: [o.tag],
         summary: "Crear",
-        description: "SIN AUTH",
+        description: mode,
+        ...auth,
         requestBody: body(`${o.schema}Create`),
         responses: {
           "201": item("Creado"),
           "400": { description: "Datos inválidos" },
+          ...authResponses,
           ...dup,
         },
       },
@@ -78,41 +93,46 @@ export function crudPaths(o: CrudSwaggerOptions): Record<string, unknown> {
       get: {
         tags: [o.tag],
         summary: "Obtener por id",
-        description: "SIN AUTH — 404 si no existe o tiene borrado lógico",
+        description: `${mode} — 404 si no existe o tiene borrado lógico`,
+        ...auth,
         parameters: idParam,
-        responses: { "200": item("Encontrado"), "400": invalidId, "404": notFound },
+        responses: { "200": item("Encontrado"), "400": invalidId, ...authResponses, "404": notFound },
       },
       put: {
         tags: [o.tag],
         summary: "Actualizar (PUT — reemplazo)",
-        description: "SIN AUTH — is_active no se envía; solo cambia con /deactivate",
+        description: `${mode} — el estado no se envía; solo cambia con /deactivate`,
+        ...auth,
         parameters: idParam,
         requestBody: body(`${o.schema}Update`),
-        responses: { "200": item("Actualizado"), "400": invalidId, "404": notFound, ...dup },
+        responses: { "200": item("Actualizado"), "400": invalidId, ...authResponses, "404": notFound, ...dup },
       },
       patch: {
         tags: [o.tag],
         summary: "Actualizar (PATCH — parcial)",
-        description: "SIN AUTH — solo cambia los campos enviados",
+        description: `${mode} — solo cambia los campos enviados`,
+        ...auth,
         parameters: idParam,
         requestBody: body(`${o.schema}Patch`),
-        responses: { "200": item("Actualizado"), "400": invalidId, "404": notFound, ...dup },
+        responses: { "200": item("Actualizado"), "400": invalidId, ...authResponses, "404": notFound, ...dup },
       },
       delete: {
         tags: [o.tag],
         summary: "Eliminar (físico)",
-        description: "SIN AUTH — borra la fila (también si tiene borrado lógico)",
+        description: `${mode} — borra la fila (también si tiene borrado lógico)`,
+        ...auth,
         parameters: idParam,
-        responses: { "200": { description: "Eliminado" }, "400": invalidId, "404": notFound },
+        responses: { "200": { description: "Eliminado" }, "400": invalidId, ...authResponses, "404": notFound },
       },
     },
     [`${o.basePath}/{id}/deactivate`]: {
       patch: {
         tags: [o.tag],
         summary: "Eliminar (lógico)",
-        description: "SIN AUTH — is_active = false",
+        description: `${mode} — ${inactive}`,
+        ...auth,
         parameters: idParam,
-        responses: { "200": { description: "Desactivado" }, "400": invalidId, "404": notFound },
+        responses: { "200": { description: "Desactivado" }, "400": invalidId, ...authResponses, "404": notFound },
       },
     },
   };

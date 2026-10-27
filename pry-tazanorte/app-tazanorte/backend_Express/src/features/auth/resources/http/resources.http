@@ -1,0 +1,73 @@
+### Feature Resources — CRUD
+### Modalidad: JWT + RBAC (login como admin)
+### Ejecutar en orden: el CREATE guarda el id que usan los siguientes.
+@baseUrl = http://localhost:4000
+@token = {{login.response.body.$.access_token}}
+@id = 1
+
+### LOGIN como admin (ejecutar PRIMERO: guarda el token en @token)
+# @name login
+POST {{baseUrl}}/api/sesion/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "Admin123!"
+}
+
+### GET ALL — catálogo completo (105 recursos)
+GET {{baseUrl}}/api/recursos
+Authorization: Bearer {{token}}
+
+### GET ONE
+GET {{baseUrl}}/api/recursos/{{id}}
+Authorization: Bearer {{token}}
+
+### CREATE -> 201 (un reporte futuro; el path va en patrón)
+# @name crearRecurso
+POST {{baseUrl}}/api/recursos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "method": "GET",
+  "path": "/api/reportes/ventas-dia",
+  "description": "Reporte de ventas del día"
+}
+
+### 409 — el par (method, path) ya existe
+POST {{baseUrl}}/api/recursos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "method": "GET",
+  "path": "/api/pedidos/:id"
+}
+
+### 400 — verbo inválido
+POST {{baseUrl}}/api/recursos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "method": "FETCH",
+  "path": "/api/reportes/caja"
+}
+
+### PATCH — parcial
+PATCH {{baseUrl}}/api/recursos/{{crearRecurso.response.body.$.resource.id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "Reporte de ventas del día por turno de caja"
+}
+
+### DELETE lógico
+PATCH {{baseUrl}}/api/recursos/{{crearRecurso.response.body.$.resource.id}}/deactivate
+Authorization: Bearer {{token}}
+
+### DELETE físico
+DELETE {{baseUrl}}/api/recursos/{{crearRecurso.response.body.$.resource.id}}
+Authorization: Bearer {{token}}
