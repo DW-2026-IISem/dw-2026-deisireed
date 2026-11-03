@@ -1,0 +1,80 @@
+<div class="flex flex-col gap-6">
+  <header>
+    <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">demo/ejemplo · ISS-01</p>
+    <h1 class="text-3xl font-bold text-slate-900">Un objeto en un signal</h1>
+    <p class="text-slate-600">Estado, valores derivados y efecto sobre un producto.</p>
+  </header>
+
+  <!-- Tarjeta principal: el objeto y sus operaciones -->
+  <p-card header="Objeto producto">
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="text-xl font-semibold text-slate-900">{{ producto().nombre }}</p>
+        <!-- 4. Property binding booleano: el tag cambia de color según `activo`. -->
+        <p-tag [value]="estadoTexto()" [severity]="producto().activo ? 'success' : 'danger'" />
+      </div>
+
+      <div>
+        <!-- 1. Interpolación: muestra un campo del objeto. -->
+        <p class="text-2xl font-bold text-slate-900">{{ producto().precio }}</p>
+        <p class="text-sm text-slate-500">
+          Precio final con IVA (19 %): <strong>{{ precioFinal() }}</strong>
+        </p>
+      </div>
+
+      <!-- 2. Property binding + event binding sobre un campo editable. -->
+      <label class="flex flex-col gap-1 text-sm text-slate-700">
+        Nombre
+        <input pInputText [value]="producto().nombre" (input)="cambiarNombre($event)" />
+      </label>
+      <p class="text-sm text-slate-600">Vista previa: <strong>{{ producto().nombre }}</strong></p>
+
+      <!-- 3. Event binding con argumento. -->
+      <div class="flex flex-wrap gap-2">
+        <button pButton type="button" severity="secondary" (click)="variarPrecio(-1000)">
+          <span pButtonLabel>-1000</span>
+        </button>
+        <button pButton type="button" (click)="variarPrecio(1000)">
+          <span pButtonLabel>+1000</span>
+        </button>
+        <button pButton type="button" severity="contrast" [outlined]="true" (click)="alternarEstado()">
+          <span pButtonLabel>Cambiar estado</span>
+        </button>
+        <button pButton type="button" severity="secondary" [text]="true" (click)="reiniciar()">
+          <span pButtonLabel>Reiniciar</span>
+        </button>
+      </div>
+
+      @if (producto().activo) {
+        <p-message severity="success" variant="simple">
+          Producto activo: la API lo devolvería en <code>GET /api/productos</code>.
+        </p-message>
+      } @else {
+        <p-message severity="warn" variant="simple">
+          Producto inactivo: el borrado lógico lo oculta de las listas.
+        </p-message>
+      }
+    </div>
+  </p-card>
+
+  <!-- Tarjetas de explicación -->
+  <div class="grid gap-6 md:grid-cols-2">
+    <p-card header="Signals">
+      <ul class="list-disc space-y-1 pl-5 text-sm text-slate-700">
+        <li><code>signal</code> guarda el producto completo.</li>
+        <li><code>computed</code> deriva el precio con IVA y el texto del estado.</li>
+        <li><code>effect</code> escribe <code>[ejemplo]</code> en la consola en cada cambio.</li>
+      </ul>
+    </p-card>
+
+    <p-card header="Estilos">
+      <p class="text-sm text-slate-700">
+        Tailwind resuelve espaciado, tipografía y color; PrimeNG (Aura) dibuja los controles.
+      </p>
+      <div class="ejemplo-alcance mt-4 text-sm text-slate-700">
+        Esta caja usa <code>.ejemplo-alcance</code> de <code>ejemplo.css</code>. Angular la limita a
+        este componente con el atributo <code>_ngcontent-…</code>.
+      </div>
+    </p-card>
+  </div>
+</div>
