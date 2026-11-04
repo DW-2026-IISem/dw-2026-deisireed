@@ -1174,3 +1174,495 @@ curl -s http://localhost:4000/api/tipos-producto | head -c 300
 ```
 
 ![](images/clipboard-3933560280.png)
+
+# Fase I: Business — ISS-05 — CRUD de productos y relación con tipos
+
+## Objetivo
+
+Implementar `/api/productos` introduciendo la primera **relación many-to-one**: cada producto pertenece a un `ProductType`. El formulario debe cargar los tipos activos y el listado debe mostrar el nombre del tipo, no solo el `id`.
+
+> **Alcance de fase.** Fase I (Business): sin login ni permisos. La pantalla se protege en **ISS-09** y sus botones se envuelven allí con `*appHasPermission`.
+
+## 5.1 Modelo y reglas del backend
+
+```         
+export interface Product extends Timestamps {   id: number;   name: string;   brand: string;   price: Money;        // DECIMAL → number | string   min_stock: number;   quantity: number;   product_type_id: number;   status: Status; } 
+```
+
+## 5.2 Generar con CLI
+
+```         
+ng generate component features/products/product-list --skip-tests --defaults ng generate component features/products/product-form --skip-tests --defaults 
+```
+
+![](images/clipboard-933921084.png)
+
+## 5.3 Servicio
+
+```         
+cat > src/app/features/products/product-api.ts <<'EOF' import { HttpClient } from '@angular/common/http'; import { Injectable, inject } from '@angular/core'; import { Observable, map } from 'rxjs'; import { environment } from '../../../environments/environment'; import { Product, ProductPayload } from '../../core/models/product.model';  /** /api/productos — el backend valida que el ProductType esté activo. */ @Injectable({ providedIn: 'root' }) export class ProductApi {   private readonly http = inject(HttpClient);   private readonly base = `${environment.apiUrl}/productos`;    list(): Observable<Product[]> {     return this.http       .get<{ products: Product[] }>(this.base)       .pipe(map((response) => response.products));   }    get(id: number): Observable<Product> {     return this.http       .get<{ product: Product }>(`${this.base}/${id}`)       .pipe(map((response) => response.product));   }    create(payload: ProductPayload): Observable<Product> {     return this.http       .post<{ product: Product }>(this.base, payload)       .pipe(map((response) => response.product));   }    update(id: number, payload: Partial<ProductPayload>): Observable<Product> {     return this.http       .patch<{ product: Product }>(`${this.base}/${id}`, payload)       .pipe(map((response) => response.product));   }    deactivate(id: number): Observable<unknown> {     return this.http.patch(`${this.base}/${id}/deactivate`, {});   }    remove(id: number): Observable<unknown> {     return this.http.delete(`${this.base}/${id}`);   } } EOF 
+```
+
+## ![](images/clipboard-1236390418.png) 
+
+![](images/clipboard-936936378.png)
+
+## ![](images/clipboard-936936378.png)![](images/clipboard-936936378.png)5.4 Cargar productos y tipos en paralelo
+
+`forkJoin` espera a los dos observables y entrega un objeto tipado. Es más rápido que dos llamadas secuenciales y evita pintar la tabla dos veces.
+
+```         
+import { forkJoin, of } from 'rxjs';  readonly rows = signal<Product[]>([]); readonly types = signal<ProductType[]>([]);  load(): void {   this.loading.set(true);   this.error.set(null);   forkJoin({     products: this.api.list(),     // SELLER no tiene GET /api/tipos-producto: evita el 403 evitable.     types: this.session.canPermission('GET /api/tipos-producto')       ? this.typesApi.list()       : of([]),   }).subscribe({     next: ({ products, types }) => {       this.rows.set(products);       this.types.set(types);       this.loading.set(false);     },     error: (error: unknown) => {       this.error.set(toApiMessage(error));       this.loading.set(false);     },   }); } 
+```
+
+### Mapa `id → nombre` con `computed`
+
+La tabla solo tiene `product_type_id`. Para mostrar “Aseo” necesitamos resolverlo sin buscar en un arreglo por cada fila (O(n²)). Construimos un `Map` una vez:
+
+```         
+readonly typeName = computed(() => {   const map = new Map(this.types().map((type) => [type.id, type.name]));   return (id: number) => map.get(id) ?? `Tipo #${id}`; }); 
+```
+
+Uso en plantilla:
+
+```         
+<p-tag [value]="typeName()(row.product_type_id)" severity="secondary" [rounded]="true" /> 
+```
+
+> `typeName()` devuelve una función. Es intencional: `computed` reconstruye el `Map` solo cuando cambian los tipos, y la función resuelve cada fila.
+
+![](images/clipboard-3670685730.png)
+
+![](images/clipboard-2187633880.png)
+
+## 5.5 Stock bajo con `computed`
+
+```         
+readonly lowStockCount = computed(   () => this.rows().filter((product) => product.quantity <= product.min_stock).length, ); 
+```
+
+En el header:
+
+```         
+<p-tag   [value]="lowStockCount() + ' con stock bajo'"   severity="warn"   [rounded]="true" /> 
+```
+
+Esta señal se reutiliza en el dashboard de ISS-07.
+
+![](images/clipboard-98210.png)
+
+![](images/clipboard-3439259476.png)
+
+![](images/clipboard-170535967.png)
+
+## 5.6 Formulario
+
+```         
+cat > src/app/features/products/product-form/product-form.ts <<'EOF' import { MessageModule } from 'primeng/message'; import { Component, effect, inject, input, output } from '@angular/core'; import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'; import { ButtonModule } from 'primeng/button'; import { InputNumberModule } from 'primeng/inputnumber'; import { InputTextModule } from 'primeng/inputtext'; import { SelectModule } from 'primeng/select'; import { Status } from '../../../core/models/api.model'; import { Product, ProductPayload } from '../../../core/models/product.model'; import { ProductType } from '../../../core/models/product-type.model';  @Component({   host: { class: 'block' },   selector: 'app-product-form',   imports: [     MessageModule,     ReactiveFormsModule,     ButtonModule,     InputNumberModule,     InputTextModule,     SelectModule,   ],   templateUrl: './product-form.html',   styleUrl: './product-form.css', }) export class ProductForm {   readonly product = input<Product | null>(null);   readonly productTypes = input<ProductType[]>([]);   readonly saving = input(false);    readonly saved = output<ProductPayload>();   readonly cancelled = output<void>();    private readonly fb = inject(NonNullableFormBuilder);    readonly statusOptions = [     { label: 'Activo', value: 'active' },     { label: 'Inactivo', value: 'inactive' },   ];    readonly form = this.fb.group({     name: ['', [Validators.required, Validators.maxLength(120)]],     brand: ['', [Validators.required, Validators.maxLength(120)]],     price: [0, [Validators.required, Validators.min(0.01)]],     min_stock: [0, [Validators.required, Validators.min(0)]],     quantity: [0, [Validators.required, Validators.min(0)]],     product_type_id: [null as number | null, [Validators.required]],     status: ['active' as Status, [Validators.required]],   });    constructor() {     effect(() => {       const current = this.product();       this.form.reset({         name: current?.name ?? '',         brand: current?.brand ?? '',         price: Number(current?.price ?? 0),         min_stock: current?.min_stock ?? 0,         quantity: current?.quantity ?? 0,         product_type_id: current?.product_type_id ?? null,         status: current?.status ?? 'active',       });        // PATCH/PUT no aceptan `status`: el estado solo cambia con /deactivate.       if (current) {         this.form.controls.status.disable();       } else {         this.form.controls.status.enable();       }     });   }    submit(): void {     const value = this.form.getRawValue();     if (this.form.invalid || value.product_type_id === null) {       this.form.markAllAsTouched();       return;     }      this.saved.emit({       name: value.name.trim(),       brand: value.brand.trim(),       price: Number(value.price),       min_stock: Number(value.min_stock),       quantity: Number(value.quantity),       product_type_id: value.product_type_id,       ...(this.product() ? {} : { status: value.status }),     });   } } EOF 
+```
+
+### Plantilla clave
+
+```         
+<p-select [fluid]="true"   inputId="product-type"   formControlName="product_type_id"   [options]="productTypes()"   optionLabel="name"   optionValue="id"   placeholder="Selecciona un tipo activo"   [filter]="true" />  <p-inputnumber [fluid]="true"   inputId="product-price"   formControlName="price"   mode="decimal"   [min]="0.01"   [minFractionDigits]="2"   [maxFractionDigits]="2" /> 
+```
+
+`optionValue="id"` hace que el formulario guarde un **number**, no el objeto completo. Es exactamente lo que espera `product_type_id` en el payload.
+
+![](images/clipboard-2610422189.png)
+
+## 5.7 Lista: moneda y semáforo de stock
+
+```         
+import { CurrencyPipe } from '@angular/common';  @Component({   imports: [CurrencyPipe, /* … */], }) 
+```
+
+```         
+<td>{{ row.price | currency: 'USD' : 'symbol' : '1.2-2' }}</td>  <td>   <p-tag     [value]="row.quantity.toString()"     [severity]="row.quantity === 0 ? 'danger' : row.quantity <= row.min_stock ? 'warn' : 'success'"     [rounded]="true"   /> </td> 
+```
+
+## 5.8 Ruta
+
+**Debajo** de `tipos-producto`:
+
+```         
+{   path: 'productos',   title: 'Productos · StoreLab',   loadComponent: () =>     import('./features/products/product-list/product-list').then((m) => m.ProductList), }, 
+```
+
+![](images/clipboard-4179565421.png)
+
+![](images/clipboard-2698209043.png)
+
+## ![](images/clipboard-1910809306.png)
+
+![](images/clipboard-2325409344.png)
+
+![](images/clipboard-1423949876.png)
+
+## Comprobación
+
+```         
+# Tipos disponibles curl -s http://localhost:4000/api/tipos-producto | head -c 300  # Productos curl -s http://localhost:4000/api/productos | head -c 500 
+```
+
+![](images/clipboard-2035453512.png)
+
+# Fase I: Business — ISS-06 — Ventas transaccionales y detalle
+
+## Objetivo
+
+Registrar una venta completa en **una sola petición**:
+
+> **Alcance de fase.** Fase I (Business): sin login ni permisos. ISS-09 añadirá el permiso de ruta `POST /api/ventas` y el botón de registrar venta.
+
+```         
+POST /api/ventas {   "client_id": 1,   "tax": 19,   "discounts": 0,   "items": [     { "product_id": 3, "quantity": 2 },     { "product_id": 7, "quantity": 1 }   ] } 
+```
+
+## 6.1 Generar con CLI
+
+```         
+ng generate component features/sales/sale-list --skip-tests --defaults ng generate component features/sales/sale-form --skip-tests --defaults 
+```
+
+## 6.2 Servicio
+
+```         
+cat > src/app/features/sales/sale-api.ts <<'EOF' import { HttpClient } from '@angular/common/http'; import { Injectable, inject } from '@angular/core'; import { Observable, map } from 'rxjs'; import { environment } from '../../../environments/environment'; import { Sale, SaleCreatePayload, SaleUpdatePayload } from '../../core/models/sale.model';  /** /api/ventas — POST es transaccional (cabecera + detalle + stock). */ @Injectable({ providedIn: 'root' }) export class SaleApi {   private readonly http = inject(HttpClient);   private readonly base = `${environment.apiUrl}/ventas`;    list(): Observable<Sale[]> {     return this.http.get<{ sales: Sale[] }>(this.base).pipe(map((response) => response.sales));   }    get(id: number): Observable<Sale> {     return this.http       .get<{ sale: Sale }>(`${this.base}/${id}`)       .pipe(map((response) => response.sale));   }    /** POST transaccional: devuelve `{ sale, items }`; el stock ya está descontado. */   create(payload: SaleCreatePayload): Observable<Sale> {     return this.http       .post<{ sale: Sale; items: unknown[] }>(this.base, payload)       .pipe(map((response) => response.sale));   }    update(id: number, payload: SaleUpdatePayload): Observable<Sale> {     return this.http       .patch<{ sale: Sale }>(`${this.base}/${id}`, payload)       .pipe(map((response) => response.sale));   }    /** Cancelación: la venta y sus líneas pasan a inactive y el backend restaura el stock. */   deactivate(id: number): Observable<unknown> {     return this.http.patch(`${this.base}/${id}/deactivate`, {});   }    /** DELETE físico: borra primero product_sales y luego la cabecera. */   remove(id: number): Observable<unknown> {     return this.http.delete(`${this.base}/${id}`);   } } EOF 
+```
+
+## 6.3 Formulario de venta con Signals
+
+El formulario **no usa `FormGroup`**: las líneas son un arreglo dinámico y los totales son derivados. Los signals son más directos aquí.
+
+### Estado
+
+```         
+type DraftLine = { product_id: number; quantity: number };  readonly clients = signal<Client[]>([]); readonly products = signal<Product[]>([]); readonly loading = signal(true); readonly saving = signal(false); readonly error = signal<string | null>(null);  readonly clientId = signal<number | null>(null); readonly tax = signal(0); readonly discounts = signal(0);  readonly lines = signal<DraftLine[]>([]); readonly selectedProductId = signal<number | null>(null); readonly quantity = signal(1); 
+```
+
+### Mapas y totales derivados
+
+```         
+readonly productById = computed(() => {   const map = new Map(this.products().map((product) => [product.id, product]));   return map; });  readonly selectedProduct = computed(() => {   const id = this.selectedProductId();   return id === null ? null : (this.productById().get(id) ?? null); });  /** Subtotal calculado desde el precio actual del producto. */ readonly subtotal = computed(() =>   this.lines().reduce((sum, line) => {     const product = this.productById().get(line.product_id);     return sum + Number(product?.price ?? 0) * line.quantity;   }, 0), );  readonly total = computed(   () => this.subtotal() + Number(this.tax() ?? 0) - Number(this.discounts() ?? 0), ); 
+```
+
+> `Number(product?.price ?? 0)` es obligatorio porque `DECIMAL` puede llegar como string (`"12.50"`). Si sumas strings, obtienes `"012.5015.00"`.
+
+### Cargar catálogos
+
+```         
+load(): void {   this.loading.set(true);   this.error.set(null);   forkJoin({     clients: this.clientsApi.list(),     products: this.productsApi.list(),   }).subscribe({     next: ({ clients, products }) => {       this.clients.set(clients);       this.products.set(products);       this.loading.set(false);     },     error: (error: unknown) => {       this.error.set(toApiMessage(error));       this.loading.set(false);     },   }); } 
+```
+
+### Añadir línea con validación de stock
+
+La validación del cliente es **preventiva**: da feedback inmediato. El backend vuelve a validar con la transacción; si el stock cambió entre la carga y el POST, responde error y la venta no se crea.
+
+```         
+addLine(): void {   const productId = this.selectedProductId();   const requested = Number(this.quantity());   this.error.set(null);    if (productId === null) {     this.error.set('Selecciona un producto.');     return;   }   if (!Number.isFinite(requested) || requested < 1) {     this.error.set('La cantidad debe ser al menos 1.');     return;   }    const product = this.productById().get(productId);   if (!product) {     return;   }    const already = this.lines()     .filter((line) => line.product_id === productId)     .reduce((sum, line) => sum + line.quantity, 0);    if (already + requested > product.quantity) {     this.error.set(       `Stock insuficiente de «${product.name}»: disponible ${product.quantity}, solicitado ${already + requested}.`,     );     return;   }    this.lines.update((lines) => {     const found = lines.find((line) => line.product_id === productId);     if (!found) {       return [...lines, { product_id: productId, quantity: requested }];     }     return lines.map((line) =>       line.product_id === productId         ? { ...line, quantity: line.quantity + requested }         : line,     );   });    this.selectedProductId.set(null);   this.quantity.set(1); } 
+```
+
+**Por qué agrupar líneas del mismo producto:** el backend calcula una línea por `product_id`. Enviar dos líneas del mismo producto complica el descuento de stock y los totales. El frontend las suma antes de enviar.
+
+### Guardar
+
+```         
+save(): void {   const clientId = this.clientId();   if (clientId === null) {     this.error.set('Selecciona un cliente activo.');     return;   }   if (this.lines().length === 0) {     this.error.set('La venta requiere al menos una línea.');     return;   }    this.saving.set(true);   this.error.set(null);    this.api     .create({       client_id: clientId,       tax: Number(this.tax() ?? 0),       discounts: Number(this.discounts() ?? 0),       items: this.lines(),     })     .subscribe({       next: (sale) => {         this.saving.set(false);         this.notify.success(`Venta #${sale.id} registrada`, 'Stock y totales actualizados.');         void this.router.navigate(['/ventas']);       },       error: (error: unknown) => {         this.saving.set(false);         const message = toApiMessage(error);         this.error.set(message);         this.notify.error('La venta no se registró', message);       },     }); } 
+```
+
+## 6.4 Plantilla: tres bloques
+
+1.  **Cliente** — `p-select` con `[ngModel]` y `(ngModelChange)`.
+
+2.  **Líneas** — selector de producto, cantidad, botón Agregar y tabla de borrador.
+
+3.  **Totales** — resumen sticky con subtotal, impuesto, descuento y total.
+
+### Cliente
+
+```         
+<p-select [fluid]="true"   [ngModel]="clientId()"   (ngModelChange)="clientId.set($event)"   [options]="clients()"   optionLabel="name"   optionValue="id"   [filter]="true"   placeholder="Selecciona un cliente"   [loading]="loading()" /> 
+```
+
+### Agregar producto
+
+```         
+<p-select [fluid]="true"   inputId="sale-product"   [ngModel]="selectedProductId()"   (ngModelChange)="selectedProductId.set($event)"   [options]="products()"   optionLabel="name"   optionValue="id"   [filter]="true"   placeholder="Buscar producto" />  <p-inputnumber [fluid]="true"   inputId="sale-qty"   [ngModel]="quantity()"   (ngModelChange)="quantity.set($event ?? 1)"   [min]="1"   [showButtons]="true" />  <button pButton type="button" label="Agregar" icon="pi pi-plus" (click)="addLine()"></button> 
+```
+
+### Tabla de borrador
+
+```         
+<p-table [value]="lines()" tableStyleClass="min-w-3xl">   <ng-template #header>     <tr>       <th>Producto</th>       <th class="text-right">Precio</th>       <th class="text-right">Cantidad</th>       <th class="text-right">Total línea</th>       <th class="w-12"></th>     </tr>   </ng-template>   <ng-template #body let-line let-index="rowIndex">     <tr>       <td>{{ productById().get(line.product_id)?.name || ('Producto #' + line.product_id) }}</td>       <td class="text-right">{{ productById().get(line.product_id)?.price | currency: 'USD' : 'symbol' : '1.2-2' }}</td>       <td class="text-right">{{ line.quantity }}</td>       <td class="text-right">{{ lineTotal(line) | currency: 'USD' : 'symbol' : '1.2-2' }}</td>       <td class="text-right">         <button pButton text rounded severity="danger" icon="pi pi-times" (click)="removeLine(index)"></button>       </td>     </tr>   </ng-template> </p-table> 
+```
+
+> **`#header` / `#body`, no `pTemplate`.** PrimeNG 22 busca variables de plantilla; con `pTemplate` la tabla se pinta vacía sin error. El detalle está en el PARCHE de ISS-03.
+
+### Totales
+
+```         
+<dl class="mt-4 space-y-2 text-sm">   <div class="flex justify-between">     <dt class="text-slate-500">Subtotal</dt>     <dd class="font-medium">{{ subtotal() | currency: 'USD' : 'symbol' : '1.2-2' }}</dd>   </div>   <div class="flex justify-between">     <dt class="text-slate-500">Impuesto</dt>     <dd>{{ tax() | currency: 'USD' : 'symbol' : '1.2-2' }}</dd>   </div>   <div class="flex justify-between">     <dt class="text-slate-500">Descuento</dt>     <dd>-{{ discounts() | currency: 'USD' : 'symbol' : '1.2-2' }}</dd>   </div>   <div class="flex justify-between border-t border-slate-200 pt-2 text-base">     <dt class="font-semibold">Total</dt>     <dd class="font-semibold">{{ total() | currency: 'USD' : 'symbol' : '1.2-2' }}</dd>   </div> </dl> 
+```
+
+## 6.5 Listado de ventas
+
+```         
+readonly clientName = computed(() => {   const map = new Map(this.clients().map((client) => [client.id, client.name]));   return (id: number) => map.get(id) ?? `Cliente #${id}`; });  items(sale: Sale): number {   return (sale.items ?? []).reduce((sum, item) => sum + item.quantity, 0); } 
+```
+
+## 6.6 Rutas
+
+**Debajo** de `productos`:
+
+```         
+{   path: 'ventas',   title: 'Ventas · StoreLab',   loadComponent: () =>     import('./features/sales/sale-list/sale-list').then((m) => m.SaleList), }, {   path: 'ventas/nueva',   title: 'Nueva venta · StoreLab',   loadComponent: () =>     import('./features/sales/sale-form/sale-form').then((m) => m.SaleForm), }, 
+```
+
+# Fase I: Business — ISS-07 — Detalle de ventas, dashboard y cierre
+
+> **Vigencia · revisión local del 23-oct-2026.** ProductSaleList solo consulta y presenta líneas; no existe product-sale-form. SaleDetail sí obtiene una venta por ActivatedRoute y SaleApi. Los criterios de edición de líneas y diálogo de detalle describen objetivos didácticos pendientes, no pantallas entregadas. **Los criterios no cumplidos permanecen pendientes; no equivalen a evidencia de implementación.**
+>
+> **Vigencia · revisión local del 23-oct-2026.** SaleDetail es una pantalla de ruta: lee `id` con ActivatedRoute e invoca SaleApi.get. El ejemplo presentacional de la guía es un paso didáctico, no la implementación final. Dashboard usa umbral fijo 5 y consulta el permiso `GET api/product-types/`, que no coincide con `GET /api/tipos-producto` del catálogo Express. El conteo de tipos puede quedar en cero con auth activa; pendiente de corregir y probar en la aplicación. Los bloques de código de la guía pueden representar incrementos; los archivos locales citados son la referencia consolidada.
+>
+> **Vigencia · revisión local del 23-oct-2026.** Los pasos describen una construcción incremental en una copia de práctica. El código consolidado puede incluir fases posteriores. Los resultados importados son reportes de la fuente, no pruebas repetidas en esta actualización. Véase [estado y trazabilidad](https://tecnogua.com/academic/site/frontend2026/express/estado-vigente/).
+>
+> **Convención visual:** PrimeNG con Aura para controles y datos; Tailwind para flex, grid, espaciado y adaptación a pantalla. Sin CSS propio ni PrimeFlex. Las tarjetas nuevas usan `p-card` e importan `CardModule` de `primeng/card`. Si usas `p-message` para validación, importa `MessageModule` de `primeng/message`. Consulta [el patrón visual](https://tecnogua.com/academic/site/frontend2026/express/construir/patron-visual/) antes de copiar una pantalla.
+
+**Fase I — Business** · **Bloqueado por:** ISS-06 · **Cierra Fase I** · **Habilita:** ISS-08
+
+## Antes de construir: Reutilización y datos derivados
+
+Primero muestra el detalle con inputs; luego integra SaleDetail en su diálogo; finalmente incorpora el dashboard con datos derivados de la API.
+
+**Evidencia de aprendizaje:** Explica qué consulta la API y qué calcula computed; compara indicadores con datos reales.
+
+**Equipo y terminal:** Ubuntu WSL, terminal del editor, carpeta del frontend. Los ejemplos que crean o reemplazan archivos se ejecutan en una copia de práctica; en el workspace consolidado inspecciona y ajusta los archivos existentes.
+
+## Objetivo
+
+Cerrar la Fase I con tres piezas:
+
+1.  **Detalle de ventas** (`/api/detalle-ventas`) como CRUD independiente de líneas.
+
+2.  **Componente `SaleDetail`** que presenta cabecera + `items`.
+
+3.  **Dashboard** que agrega clientes, tipos, productos y ventas con signals.
+
+Al terminar, la aplicación cubre todo el negocio. Contra el backend **antes de su ISS-13** funciona sin autenticación. Si apuntas al backend consolidado verás `401`: es lo esperado; el login llega en **ISS-08**, al abrir la Fase II.
+
+## 7.1 Detalle de ventas: endpoint delicado
+
+| **Operación** | **Ruta** | **Efecto en stock/totales** |
+|:-----------------------|:-----------------------|:-----------------------|
+| `GET /api/detalle-ventas` | Lista líneas | Ninguno |
+| `POST /api/detalle-ventas` | Crea línea | Descuenta stock y recalcula la venta |
+| `PATCH /api/detalle-ventas/:id` | Cambia `quantity` (único campo editable) | Ajusta stock y totales |
+| `PATCH /api/detalle-ventas/:id/deactivate` | Baja lógica | Restaura stock y recalcula la venta |
+| `DELETE /api/detalle-ventas/:id` | Baja física | Elimina la línea y restaura stock |
+
+> **Decisión de diseño:** el flujo normal de negocio es crear la venta completa con `POST /api/ventas` (ISS-06). `/detalle-ventas` existe para el laboratorio y para corregir líneas. Si agregas una línea aquí, el backend recalcula la cabecera. No lo uses para “crear una venta desde cero”.
+>
+> **Frontera con Fase II.** Las rutas Express de escritura existen, pero el catálogo RBAC del backend **solo concede `GET /api/detalle-ventas`**. Contra el backend consolidado, `POST`/`PATCH`/`DELETE` de esta pantalla responderán `403` incluso con `admin`. En Fase I se implementan y se prueban completos; ISS-09 los oculta por permiso (solo lectura) y deja la escritura en `POST /api/ventas`. Si tu entrega necesita CRUD de detalle en Fase II, primero amplía `resource-catalog.ts` en el backend.
+
+## 7.2 Generar con CLI
+
+```         
+ng generate component features/product-sales/product-sale-list --skip-tests --defaults ng generate component features/product-sales/product-sale-form --skip-tests --defaults ng generate component features/sales/sale-detail --skip-tests --defaults ng generate component features/dashboard --skip-tests --defaults 
+```
+
+## 7.3 Servicio de detalle
+
+```         
+cat > src/app/features/product-sales/product-sale-api.ts <<'EOF' import { HttpClient } from '@angular/common/http'; import { Injectable, inject } from '@angular/core'; import { Observable, map } from 'rxjs'; import { environment } from '../../../environments/environment'; import { ProductSale, ProductSalePayload } from '../../core/models/product-sale.model';  /** /api/detalle-ventas — agregar/editar líneas ajusta stock y totales. */ @Injectable({ providedIn: 'root' }) export class ProductSaleApi {   private readonly http = inject(HttpClient);   private readonly base = `${environment.apiUrl}/detalle-ventas`;    list(): Observable<ProductSale[]> {     return this.http       .get<{ product_sales: ProductSale[] }>(this.base)       .pipe(map((response) => response.product_sales));   }    get(id: number): Observable<ProductSale> {     return this.http       .get<{ product_sale: ProductSale }>(`${this.base}/${id}`)       .pipe(map((response) => response.product_sale));   }    create(payload: ProductSalePayload): Observable<ProductSale> {     return this.http       .post<{ product_sale: ProductSale }>(this.base, payload)       .pipe(map((response) => response.product_sale));   }    /** PATCH solo acepta `quantity`: el estado se cambia con `/deactivate`. */   update(id: number, payload: { quantity: number }): Observable<ProductSale> {     return this.http       .patch<{ product_sale: ProductSale }>(`${this.base}/${id}`, payload)       .pipe(map((response) => response.product_sale));   }    deactivate(id: number): Observable<unknown> {     return this.http.patch(`${this.base}/${id}/deactivate`, {});   }    remove(id: number): Observable<unknown> {     return this.http.delete(`${this.base}/${id}`);   } } EOF 
+```
+
+## 7.4 Formulario de línea
+
+En **edición** solo se permite cambiar `quantity`; `sale_id`, `product_id` y `status` se deshabilitan porque el backend no los actualiza por PATCH (el estado solo cambia con `PATCH /:id/deactivate`).
+
+```         
+readonly form = this.fb.group({   sale_id: [null as number | null, [Validators.required]],   product_id: [null as number | null, [Validators.required]],   quantity: [1, [Validators.required, Validators.min(1)]],   status: ['active' as Status, [Validators.required]], });  constructor() {   effect(() => {     const current = this.line();     this.form.reset({       sale_id: current?.sale_id ?? null,       product_id: current?.product_id ?? null,       quantity: current?.quantity ?? 1,       status: current?.status ?? 'active',     });      if (current) {       this.form.controls.sale_id.disable();       this.form.controls.product_id.disable();       this.form.controls.status.disable();     } else {       this.form.controls.sale_id.enable();       this.form.controls.product_id.enable();       this.form.controls.status.enable();     }   }); } 
+```
+
+El payload de edición se construye solo con lo editable:
+
+```         
+this.saved.emit({   sale_id: value.sale_id,   product_id: value.product_id,   quantity: Number(value.quantity),   // `status` solo al crear; en edición se usa /deactivate.   ...(this.line() ? {} : { status: value.status }), }); 
+```
+
+En `ProductSaleList.save(value)`:
+
+```         
+const request = current   ? this.api.update(current.id, { quantity: value.quantity })   : this.api.create(value); 
+```
+
+## 7.5 `SaleDetail`: cabecera + líneas
+
+`SaleDetail` es un componente **presentacional** (no llama al backend). Recibe la venta ya cargada desde `SaleList` y resuelve nombres de producto con un `Map`.
+
+```         
+export class SaleDetail {   readonly sale = input.required<Sale>();   readonly products = input<Product[]>([]);    readonly productName = computed(() => {     const map = new Map(this.products().map((product) => [product.id, product.name]));     return (id: number) => map.get(id) ?? `Producto #${id}`;   });    readonly itemCount = computed(() =>     (this.sale().items ?? []).reduce((sum, item) => sum + item.quantity, 0),   ); } 
+```
+
+Uso desde `SaleList`:
+
+```         
+<p-dialog   [visible]="detailVisible()"   (visibleChange)="detailVisible.set($event)"   [header]="detailTitle()"   [modal]="true"   styleClass="w-full max-w-2xl mx-4" >   @if (selected(); as sale) {     <app-sale-detail [sale]="sale" [products]="products()" />   } </p-dialog> 
+```
+
+> `input.required<Sale>()` garantiza que el padre no olvide pasar la venta. Si el `@if` es falso, el componente no se instancia y no hay error.
+
+## 7.6 Dashboard: cuatro peticiones en paralelo
+
+```         
+readonly loading = signal(true); readonly error = signal<string | null>(null);  readonly clients = signal<Client[]>([]); readonly products = signal<Product[]>([]); readonly sales = signal<Sale[]>([]); readonly typeCount = signal(0);  readonly lowStock = computed(() =>   this.products().filter((product) => product.quantity <= product.min_stock), );  readonly revenue = computed(() =>   this.sales().reduce((sum, sale) => sum + toNumber(sale.total), 0), );  readonly latestSales = computed(() =>   [...this.sales()]     .sort((a, b) => new Date(b.sale_date).getTime() - new Date(a.sale_date).getTime())     .slice(0, 5), ); 
+```
+
+Carga:
+
+```         
+forkJoin({   clients: this.clientsApi.list(),   // SELLER no tiene GET /api/tipos-producto: evita el 403 y deja el KPI en 0.   types: this.session.canPermission('GET /api/tipos-producto')     ? this.typesApi.list()     : of([]),   products: this.productsApi.list(),   sales: this.salesApi.list(), }).subscribe({   next: ({ clients, types, products, sales }) => {     this.clients.set(clients);     this.typeCount.set(types.length);     this.products.set(products);     this.sales.set(sales);     this.loading.set(false);   },   error: (error: unknown) => {     this.error.set(toApiMessage(error));     this.loading.set(false);   }, }); 
+```
+
+### `toNumber`: normalizar DECIMAL
+
+```         
+export function toNumber(value: Money | null | undefined): number {   if (value === null || value === undefined) {     return 0;   }   return typeof value === 'number' ? value : Number.parseFloat(value) || 0; } 
+```
+
+Sin `toNumber`, `revenue()` podría concatenar strings y mostrar un total absurdo. Es la misma trampa que en ISS-06, pero aquí se centraliza.
+
+## 7.7 Tarjetas del dashboard
+
+```         
+@if (loading()) {   <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">     @for (i of [1, 2, 3, 4]; track i) {       <p-skeleton height="6rem" borderRadius="1rem" />     }   </div> } @else {   <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">     <!-- Clientes, Productos, Ventas, Ingresos -->   </div> } 
+```
+
+Secciones:
+
+1.  **KPIs**: clientes, productos, ventas, ingresos.
+
+2.  **Stock bajo**: tabla de productos con `quantity <= min_stock`.
+
+3.  **Últimas ventas**: enlace al listado y estado.
+
+4.  **Sesión** (solo Fase II): usuario, roles y número de permisos.
+
+## 7.8 Rutas de cierre de Fase I
+
+**Debajo** de `ventas/nueva`:
+
+```         
+{   path: 'detalle-ventas',   title: 'Detalle de ventas · StoreLab',   loadComponent: () =>     import('./features/product-sales/product-sale-list/product-sale-list').then(       (m) => m.ProductSaleList,     ), }, 
+```
+
+La ruta del dashboard debe existir desde ISS-02:
+
+```         
+{   path: 'dashboard',   title: 'Panel · StoreLab',   loadComponent: () =>     import('./features/dashboard/dashboard').then((m) => m.Dashboard), }, 
+```
+
+## Criterios de aceptación (ISS-07)
+
+1.  `/detalle-ventas` lista las líneas con venta y producto resueltos.
+
+2.  Crear una línea actualiza stock y totales de la venta (verifícalo con `curl`).
+
+3.  Editar una línea solo permite cantidad; el estado se gestiona con la baja lógica.
+
+4.  El diálogo de detalle de venta muestra cabecera, líneas y total.
+
+5.  El dashboard carga sin errores y los KPIs coinciden con los listados.
+
+6.  `lowStock()` y `revenue()` se recalculan al recargar los datos.
+
+7.  **Fase I completa:** con el backend antes de su ISS-13 funcionan sin autenticación. `requireAuth` no se lee hasta ISS-08, así que no hay que cambiarlo para esta comprobación. Si usas el backend consolidado, su mitad del interruptor es `AUTH_ENABLED=false` en el `.env` (ISS-11 §11.1); con `AUTH_ENABLED=true` estas rutas responden `401` y eso se resuelve en Fase II.
+
+8.  `ng serve` compila sin errores.
+
+## Comprobación de cierre de Fase I
+
+```         
+# 1. Build de producción ng build  # 2. Endpoints de negocio for path in clientes tipos-producto productos ventas detalle-ventas; do   echo "== $path"   curl -s -o /dev/null -w "%{http_code}\n" "http://localhost:4000/api/$path" done 
+```
+
+Todos deben responder `200`. Si responden `401`, el backend ya está en modo Fase II: no es un fallo de Fase I, es la señal de continuar con ISS-08.
+
+### Cierre de Fase I
+
+Antes de abrir ISS-08, confirma que **no** existe ninguna pieza de Fase II en el código. La Fase I se cierra cuando:
+
+- [ ] Las cinco pantallas de negocio (`clientes`, `tipos-producto`, `productos`, `ventas`, `detalle-ventas`) hacen su CRUD contra `/api/*`.
+
+- [ ] El dashboard agrega datos sin llamadas duplicadas.
+
+- [ ] No hay `interceptor`, `guard`, `SessionStore` ni `*appHasPermission`.
+
+- [ ] No hay `Authorization` en ninguna petición (Network).
+
+- [ ] `npm test -- --watch=false` y `ng build` pasan.
+
+- [ ] El menú del Shell tiene las entradas de negocio, sin filtrar.
+
+Checklist visual en [`http://localhost:4200`](http://localhost:4200):
+
+- [ ] `/dashboard` muestra KPIs y tablas.
+
+- [ ] `/clientes` permite CRUD completo.
+
+- [ ] `/tipos-producto` permite CRUD completo.
+
+- [ ] `/productos` muestra tipo, precio y stock con semáforo.
+
+- [ ] `/ventas` lista y cancela.
+
+- [ ] `/ventas/nueva` crea una venta con varias líneas.
+
+- [ ] `/detalle-ventas` lista y edita líneas.
+
+**Siguiente:** ISS-08 abre la **Fase II** con el formulario de sesión, JWT y refresh rotation.
+
+## Integración con el esqueleto
+
+Mantén Header, Aside y Footer en Shell. Agrega la ruta de esta entidad en `children` y su entrada `routerLink` en el menú de Shell. La pantalla no vuelve a declarar el layout. En el proyecto consolidado el menú se llama `NAV` y se filtra por permisos; el recorrido de práctica empieza con `items` estático.
+
+## Correspondencia con el código
+
+Esta guía es la que contiene los comandos (`ng new`, `ng generate`, `cat >`) y la explicación paso a paso para construir el frontend desde cero. El código no se duplica en `docs/`: la referencia completa son los archivos reales del proyecto, enlazados al final de esta ISS.
+
+Los ejemplos breves muestran incrementos y no sustituyen todos los archivos del componente. Las configuraciones de las primeras etapas omiten deliberadamente la sesión y las rutas que se construyen después; en el proyecto consolidado la seguridad final está activa. No combines imports de una etapa final con stubs que todavía no implementaste.
+
+## Código completo de referencia
+
+Los fragmentos de esta ISS se estudian por incrementos. Estos archivos contienen la implementación consolidada, incluida la seguridad de la fase final:
+
+- src/app/features/dashboard/dashboard.css (`src/app/features/dashboard/dashboard.css`).
+
+- src/app/features/dashboard/dashboard.html (`src/app/features/dashboard/dashboard.html`).
+
+- src/app/features/dashboard/dashboard.ts (`src/app/features/dashboard/dashboard.ts`).
+
+- src/app/features/product-sales/product-sale-api.ts (`src/app/features/product-sales/product-sale-api.ts`).
+
+- src/app/features/product-sales/product-sale-form/product-sale-form.css (`src/app/features/product-sales/product-sale-form/product-sale-form.css` — no existe en la copia inspeccionada).
+
+- src/app/features/product-sales/product-sale-form/product-sale-form.html (`src/app/features/product-sales/product-sale-form/product-sale-form.html` — no existe en la copia inspeccionada).
+
+- src/app/features/product-sales/product-sale-form/product-sale-form.ts (`src/app/features/product-sales/product-sale-form/product-sale-form.ts` — no existe en la copia inspeccionada).
+
+- src/app/features/product-sales/product-sale-list/product-sale-list.css (`src/app/features/product-sales/product-sale-list/product-sale-list.css`).
+
+- src/app/features/product-sales/product-sale-list/product-sale-list.html (`src/app/features/product-sales/product-sale-list/product-sale-list.html`).
+
+- src/app/features/product-sales/product-sale-list/product-sale-list.ts (`src/app/features/product-sales/product-sale-list/product-sale-list.ts`).
+
+- src/app/features/sales/sale-detail/sale-detail.css (`src/app/features/sales/sale-detail/sale-detail.css`).
+
+- src/app/features/sales/sale-detail/sale-detail.html (`src/app/features/sales/sale-detail/sale-detail.html`).
+
+- src/app/features/sales/sale-detail/sale-detail.ts (`src/app/features/sales/sale-detail/sale-detail.ts`).
+
+> **Unidad ISS-08 · Autenticación JWT, perfil y permisos efectivos** — capa **🛠 CONSTRUIR**
+>
+> [🧠 Comprender este bloque →](https://tecnogua.com/academic/site/frontend2026/express/aprender/ISS-08-autenticacion-jwt-y-refresh/) · [↑ Ruta Frontend-Express](https://tecnogua.com/academic/site/frontend2026/express/)

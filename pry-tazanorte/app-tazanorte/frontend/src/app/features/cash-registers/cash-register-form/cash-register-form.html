@@ -1,0 +1,70 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+  <div>
+    <label for="register-name" class="mb-1 block text-sm font-medium text-slate-700">
+      Nombre <span class="text-red-500">*</span>
+    </label>
+    <input
+      id="register-name"
+      pInputText
+      formControlName="nombre"
+      placeholder="Turno mañana"
+      class="w-full"
+    />
+    @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+        El nombre es obligatorio (máximo 255 caracteres).
+      </p-message>
+    }
+  </div>
+
+  <div>
+    <label for="register-employee" class="mb-1 block text-sm font-medium text-slate-700">
+      Empleado <span class="text-red-500">*</span>
+    </label>
+    <p-select
+      [fluid]="true"
+      inputId="register-employee"
+      formControlName="empleado_id"
+      [options]="employees()"
+      optionLabel="nombre"
+      optionValue="id"
+      placeholder="Selecciona un empleado activo"
+      [filter]="true"
+      filterBy="nombre"
+    />
+    @if (form.controls.empleado_id.touched && form.controls.empleado_id.invalid) {
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+        Elige el empleado responsable del turno.
+      </p-message>
+    }
+    @if (employees().length === 0) {
+      <p class="mt-1 text-xs text-slate-500">
+        No hay empleados activos. Crea uno primero en la pantalla de Empleados.
+      </p>
+    }
+  </div>
+
+  <div>
+    <label for="register-description" class="mb-1 block text-sm font-medium text-slate-700">
+      Descripción
+    </label>
+    <textarea
+      id="register-description"
+      pTextarea
+      formControlName="descripcion"
+      rows="3"
+      placeholder="Caja principal, 6:00 a. m. a 2:00 p. m."
+      class="w-full"
+    ></textarea>
+  </div>
+
+  <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
+    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()">
+      <span pButtonLabel>Cancelar</span>
+    </button>
+    <button pButton type="submit" [loading]="saving()">
+      <i pButtonIcon class="pi pi-check"></i>
+      <span pButtonLabel>Guardar</span>
+    </button>
+  </div>
+</form>

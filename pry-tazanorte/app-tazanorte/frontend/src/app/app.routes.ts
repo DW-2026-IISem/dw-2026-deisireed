@@ -16,13 +16,28 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
     children: [
-      // La primera pantalla de negocio es la redirección por defecto.
       { path: '', pathMatch: 'full', redirectTo: 'clientes' },
       {
         path: 'clientes',
         title: 'Clientes · TazaNorte',
         loadComponent: () =>
           import('./features/clients/client-list/client-list').then((m) => m.ClientList),
+      },
+      {
+        path: 'empleados',
+        title: 'Empleados · TazaNorte',
+        loadComponent: () =>
+          import('./features/employees/employee-list/employee-list').then(
+            (m) => m.EmployeeList,
+          ),
+      },
+      {
+        path: 'turnos-caja',
+        title: 'Turnos de caja · TazaNorte',
+        loadComponent: () =>
+          import('./features/cash-registers/cash-register-list/cash-register-list').then(
+            (m) => m.CashRegisterList,
+          ),
       },
     ],
   },

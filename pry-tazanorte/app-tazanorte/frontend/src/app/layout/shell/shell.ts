@@ -35,6 +35,8 @@ export class Shell {
   /** Menú mínimo de la Fase I; crece con cada CRUD. */
   readonly items: MenuItem[] = [
     { label: 'Clientes', icon: 'pi pi-users', routerLink: '/clientes' },
+    { label: 'Empleados', icon: 'pi pi-id-card', routerLink: '/empleados' },
+    { label: 'Turnos de caja', icon: 'pi pi-clock', routerLink: '/turnos-caja' },
     { label: 'Prototipo', icon: 'pi pi-desktop', routerLink: '/construir' },
   ];
 
