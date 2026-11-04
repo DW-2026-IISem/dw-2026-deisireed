@@ -1,0 +1,54 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+  <div>
+    <label for="employee-name" class="mb-1 block text-sm font-medium text-slate-700">
+      Nombre <span class="text-red-500">*</span>
+    </label>
+    <input
+      id="employee-name"
+      pInputText
+      formControlName="nombre"
+      placeholder="María Rodríguez"
+      class="w-full"
+    />
+    @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+        El nombre es obligatorio (máximo 255 caracteres).
+      </p-message>
+    }
+  </div>
+
+  <div>
+    <label for="employee-description" class="mb-1 block text-sm font-medium text-slate-700">
+      Descripción
+    </label>
+    <textarea
+      id="employee-description"
+      pTextarea
+      formControlName="descripcion"
+      rows="3"
+      placeholder="Barista del turno de la mañana"
+      class="w-full"
+    ></textarea>
+    @if (form.controls.descripcion.touched && form.controls.descripcion.invalid) {
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+        La descripción admite máximo 255 caracteres.
+      </p-message>
+    }
+  </div>
+
+  @if (employee()) {
+    <p class="text-xs text-slate-500">
+      El estado de un empleado existente solo cambia con la baja lógica.
+    </p>
+  }
+
+  <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
+    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()">
+      <span pButtonLabel>Cancelar</span>
+    </button>
+    <button pButton type="submit" [loading]="saving()">
+      <i pButtonIcon class="pi pi-check"></i>
+      <span pButtonLabel>Guardar</span>
+    </button>
+  </div>
+</form>

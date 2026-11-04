@@ -1092,3 +1092,85 @@ En DevTools → Network, la petición `PATCH /api/clientes/1` debe llevar el cue
 ![![](images/clipboard-3710513080.png)](images/clipboard-1789096749.png)
 
 ![](images/clipboard-2502362928.png)
+
+# Fase I: Business — ISS-04 — CRUD de tipos de producto
+
+> 
+
+## Objetivo
+
+Repetir el patrón de ISS-03 con una entidad más simple (`/api/tipos-producto`). El objetivo didáctico es **interiorizar el patrón** (servicio → estado con signals → formulario → lista) antes de añadir relaciones en ISS-05.
+
+> **Alcance de fase.** Todo lo de esta ISS es **Fase I (Business)**: sin login, interceptor, guards ni `*appHasPermission`. La protección de esta pantalla se añade en **ISS-09**, sin reescribir el componente.
+
+## 4.1 Endpoint y contrato
+
+## 4.2 Generar con CLI
+
+```         
+ng generate component features/product-types/product-type-list --skip-tests --defaults ng generate component features/product-types/product-type-form --skip-tests --defaults 
+```
+
+![](images/clipboard-2897319042.png)
+
+## 4.3 Servicio
+
+```         
+cat > src/app/features/product-types/product-type-api.ts <<'EOF' import { HttpClient } from '@angular/common/http'; import { Injectable, inject } from '@angular/core'; import { Observable, map } from 'rxjs'; import { environment } from '../../../environments/environment'; import { ProductType, ProductTypePayload } from '../../core/models/product-type.model';  /** /api/tipos-producto — la respuesta usa snake_case `product_types`. */ @Injectable({ providedIn: 'root' }) export class ProductTypeApi {   private readonly http = inject(HttpClient);   private readonly base = `${environment.apiUrl}/tipos-producto`;    list(): Observable<ProductType[]> {     return this.http       .get<{ product_types: ProductType[] }>(this.base)       .pipe(map((response) => response.product_types));   }    get(id: number): Observable<ProductType> {     return this.http       .get<{ product_type: ProductType }>(`${this.base}/${id}`)       .pipe(map((response) => response.product_type));   }    create(payload: ProductTypePayload): Observable<ProductType> {     return this.http       .post<{ product_type: ProductType }>(this.base, payload)       .pipe(map((response) => response.product_type));   }    update(id: number, payload: Partial<ProductTypePayload>): Observable<ProductType> {     return this.http       .patch<{ product_type: ProductType }>(`${this.base}/${id}`, payload)       .pipe(map((response) => response.product_type));   }    deactivate(id: number): Observable<unknown> {     return this.http.patch(`${this.base}/${id}/deactivate`, {});   }    remove(id: number): Observable<unknown> {     return this.http.delete(`${this.base}/${id}`);   } } EOF 
+```
+
+![](images/clipboard-2037668329.png)
+
+## 4.4 Formulario
+
+```         
+cat > src/app/features/product-types/product-type-form/product-type-form.ts <<'EOF' import { MessageModule } from 'primeng/message'; import { Component, effect, inject, input, output } from '@angular/core'; import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'; import { ButtonModule } from 'primeng/button'; import { InputTextModule } from 'primeng/inputtext'; import { SelectModule } from 'primeng/select'; import { TextareaModule } from 'primeng/textarea'; import { Status } from '../../../core/models/api.model'; import { ProductType, ProductTypePayload } from '../../../core/models/product-type.model';  @Component({   host: { class: 'block' },   selector: 'app-product-type-form',   imports: [     MessageModule,     ReactiveFormsModule,     ButtonModule,     InputTextModule,     SelectModule,     TextareaModule,   ],   templateUrl: './product-type-form.html',   styleUrl: './product-type-form.css', }) export class ProductTypeForm {   readonly productType = input<ProductType | null>(null);    /** Llave para reiniciar el formulario al reabrir «Nuevo tipo». */   readonly resetKey = input(0);   readonly saving = input(false);    readonly saved = output<ProductTypePayload>();   readonly cancelled = output<void>();    private readonly fb = inject(NonNullableFormBuilder);    readonly statusOptions = [     { label: 'Activo', value: 'active' },     { label: 'Inactivo', value: 'inactive' },   ];    readonly form = this.fb.group({     name: ['', [Validators.required, Validators.maxLength(120)]],     description: [''],     status: ['active' as Status, [Validators.required]],   });    constructor() {     effect(() => {       const current = this.productType();       this.resetKey(); // reabrir el diálogo debe vaciar el formulario       this.form.reset({         name: current?.name ?? '',         description: current?.description ?? '',         status: current?.status ?? 'active',       });        // PATCH/PUT no aceptan `status`: el estado solo cambia con /deactivate.       if (current) {         this.form.controls.status.disable();       } else {         this.form.controls.status.enable();       }     });   }    submit(): void {     if (this.form.invalid) {       this.form.markAllAsTouched();       return;     }     const value = this.form.getRawValue();     this.saved.emit({       name: value.name.trim(),       description: value.description.trim() || null,       ...(this.productType() ? {} : { status: value.status }),     });   } } EOF 
+```
+
+```         
+cat > src/app/features/product-types/product-type-form/product-type-form.html <<'EOF' <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">   <div>     <label for="type-name" class="mb-1 block text-sm font-medium">Nombre *</label>     <input id="type-name" pInputText formControlName="name" placeholder="Aseo" class="w-full" />     @if (form.controls.name.touched && form.controls.name.invalid) {       <p-message severity="error" size="small" variant="simple"         >El nombre es obligatorio.</p-message       >     }   </div>    <div>     <label for="type-description" class="mb-1 block text-sm font-medium">Descripción</label>     <textarea       id="type-description"       pTextarea       formControlName="description"       rows="3"       placeholder="Productos de limpieza y cuidado personal"       class="w-full"     ></textarea>   </div>    <div>     <label for="type-status" class="mb-1 block text-sm font-medium">Estado</label>     <p-select       [fluid]="true"       inputId="type-status"       formControlName="status"       [options]="statusOptions"       optionLabel="label"       optionValue="value"     />   </div>    <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">     <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()">       <span pButtonLabel>Cancelar</span>     </button>     <button pButton type="submit" [loading]="saving()">       <i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Guardar</span>     </button>   </div> </form> EOF 
+```
+
+![](images/clipboard-275830776.png)
+
+## 4.5 Lista
+
+La lista es idéntica en estructura a `ClientList`. Cambia solo:
+
+Estado:
+
+```         
+readonly rows = signal<ProductType[]>([]); readonly filter = signal(''); readonly visibleRows = computed(() =>   filterRows(this.rows(), this.filter(), (row) => [row.name, row.description]), ); readonly dialogVisible = signal(false); readonly editing = signal<ProductType | null>(null); readonly resetKey = signal(0); readonly title = computed(() => (this.editing() ? 'Editar tipo' : 'Nuevo tipo')); 
+```
+
+`resetKey` cumple el mismo papel que en ISS-03: `editing()` vuelve a `null` al reabrir «Nuevo tipo», así que sin una llave que cambie el `effect()` del formulario no se reinicia y conservaría lo último escrito.
+
+Plantilla (resumen):
+
+```         
+<app-page-header title="Tipos de producto" subtitle="Catálogo base de los productos.">   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />   <button pButton label="Nuevo tipo" icon="pi pi-plus" (click)="openCreate()"></button> </app-page-header>  <p-table [value]="visibleRows()" [loading]="loading()" dataKey="id">   <ng-template #header>     <tr>       <th pSortableColumn="name">Nombre <p-sort-icon field="name" /></th>       <th>Descripción</th>       <th>Estado</th>       <th class="text-right">Acciones</th>     </tr>   </ng-template>   <ng-template #body let-row>     <tr>       <td>{{ row.name }}</td>       <td>{{ row.description || '—' }}</td>       <td><app-status-tag [status]="row.status" /></td>       <td class="text-right">         <button pButton text rounded icon="pi pi-pencil" (click)="openEdit(row)"></button>       </td>     </tr>   </ng-template> </p-table> 
+```
+
+> **Dos cosas que no se copian de ISS-03 sin pensar.** 1. La directiva `*appHasPermission` **no** aparece aquí: es de Fase II (ISS-09). En Fase I los botones se ven siempre; ISS-09 los envuelve sin tocar la lógica. 2. Las plantillas de `p-table` en PrimeNG 22 son variables (`#header`, `#body`). Con `pTemplate` la tabla se pinta vacía y sin error. Ver el PARCHE de ISS-03.
+
+![](images/clipboard-51600806.png)
+
+![](images/clipboard-3668199826.png)
+
+![](images/clipboard-3905927918.png)
+
+## 4.6 Ruta
+
+**Debajo** de la ruta `clientes`:
+
+```         
+{   path: 'tipos-producto',   title: 'Tipos de producto · StoreLab',   loadComponent: () =>     import('./features/product-types/product-type-list/product-type-list').then(       (m) => m.ProductTypeList,     ), }, 
+```
+
+## Comprobación
+
+```         
+curl -s http://localhost:4000/api/tipos-producto | head -c 300 
+```
+
+![](images/clipboard-3933560280.png)
