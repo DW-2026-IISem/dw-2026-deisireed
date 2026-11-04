@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="TazaNorte">
+  <rect width="64" height="64" rx="14" fill="#78350f"/>
+  <path d="M16 26h28v12a10 10 0 0 1-10 10h-8a10 10 0 0 1-10-10V26z" fill="#fef3c7"/>
+  <path d="M44 29h3a5 5 0 0 1 0 10h-3" fill="none" stroke="#fef3c7" stroke-width="3" stroke-linecap="round"/>
+  <path d="M25 11c-2 3 2 4 0 8M33 11c-2 3 2 4 0 8" fill="none" stroke="#fde68a" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
