@@ -571,113 +571,7 @@ npm start
 
 # Fase I: Frontend — ISS-02 — Núcleo: environment, modelos, servicios y layout
 
-> **Vigencia · revisión local del 23-oct-2026.** En el incremento didáctico se registra HttpClient sin interceptores de sesión. El consolidado ya incorpora la Fase II: authInterceptor y errorInterceptor. Shell reutiliza Header/Aside/Footer. `requireAuth=true` existe en ambos entornos; no demuestra que el backend activo tenga AUTH_ENABLED=true. Los bloques de código de la guía pueden representar incrementos; los archivos locales citados son la referencia consolidada.
->
-> **Vigencia · revisión local del 23-oct-2026.** Los pasos describen una construcción incremental en una copia de práctica. El código consolidado puede incluir fases posteriores. Los resultados importados son reportes de la fuente, no pruebas repetidas en esta actualización. Véase [estado y trazabilidad](https://tecnogua.com/academic/site/frontend2026/express/estado-vigente/).
->
-> **Contexto mínimo (autosuficiente).** Si abres este archivo aislado —o lo llevas a otra IA—, esto es lo que hay que saber antes de ejecutarlo. - **Proyecto:** `front-storelab-express-ii` — Angular 22 (standalone + zoneless + signals), **PrimeNG 22 en modo styled con Aura** y **Tailwind CSS 4**. Sin CSS de negocio ni PrimeFlex. - **Backend:** `app-storelab-express-ii` (Express + TypeScript + Sequelize) en [`http://localhost:4000`](http://localhost:4000), prefijo `/api`. - **Estado al terminar ISS-01B:** existe `features/construir` con el prototipo (Header, Aside con PanelMenu, Drawer, Footer), `App` es solo `<router-outlet />` y la ruta `construir` se carga diferida. No hay HTTP ni modelos. - **Patrón visual:** [`PATRON-VISUAL.md`](https://tecnogua.com/academic/site/frontend2026/express/construir/patron-visual/).
->
-> | **Este ISS** |   |
-> |:-----------------------------------|:-----------------------------------|
-> | **Título** | Núcleo: environment, modelos, servicios y layout |
-> | **Feature / tabla** | `core/models`, `core/services`, `core/utils`, un `feature/*-api` por entidad, `shared/ui`, `layout/shell` |
-> | **API** | contrato REST completo (solo se declara; todavía no se consume en pantalla) |
-> | **Depende de** | [ISS-01B — Menú PrimeNG e interacción](https://tecnogua.com/academic/site/frontend2026/express/construir/ISS-01-bootstrap-angular-22/#iss-01b) |
-> | **Habilita** | [ISS-03 — CRUD de clientes](https://tecnogua.com/academic/site/frontend2026/express/construir/ISS-03-crud-de-clientes/) |
-
-## Contenido de este ISS
-
-- 2.1 `environment`: una sola URL para todo el frente
-
-- 2.2 Modelos: reflejar el backend, no inventarlo
-
-- 2.3 Servicios HTTP por feature: desenvolver la respuesta
-
-- 2.4 Utilidades transversales: `toApiMessage` y `NotificationService`
-
-- 2.5 Componentes compartidos: `PageHeader`, `EmptyState`, `StatusTag`
-
-- 2.6 `Shell`: conservar el esqueleto al navegar
-
-- 2.7 Registrar `HttpClient` sin interceptores de sesión
-
-- 2.8 Comprobar antes de avanzar
-
-- Verificación del ISS
-
-- Cierre del ISS
-
-**Objetivo:** dejar lista la **capa de infraestructura** del frontend antes de tocar pantallas de negocio:
-
-1.  `environment` con la URL del backend y el interruptor de autenticación.
-
-2.  Interfaces TypeScript que reflejan el contrato REST de Express.
-
-3.  Servicios HTTP que devuelven `Observable<T>` **ya desenvuelto**.
-
-4.  Utilidades transversales (`toApiMessage`, `NotificationService`).
-
-5.  Componentes de UI reutilizables y el layout `Shell`.
-
-**Bloqueado por:** [ISS-01B](https://tecnogua.com/academic/site/frontend2026/express/construir/ISS-01-bootstrap-angular-22/#iss-01b).
-
-**Evidencia de aprendizaje:** dibuja y explica la cadena *plantilla → componente → `ClientApi` → Express → respuesta → signal*, e indica en qué eslabón se desenvuelve la respuesta.
-
-**Equipo y terminal:** Ubuntu WSL, terminal del editor, carpeta del frontend. Los ejemplos con `cat >` se ejecutan en una copia de práctica; en el workspace consolidado inspecciona y ajusta los archivos existentes.
-
-### Criterios de aceptación (ISS-02) — consolidados
-
-- [ ] **2.1** `environment.apiUrl === 'http://localhost:4000/api'`, sin slash final
-
-- [ ] **2.1** `environment` y `environment.development.ts` existen y `angular.json` aplica `fileReplacements`
-
-- [ ] **2.2** Los 13 modelos compilan y coinciden campo a campo con las tablas del backend
-
-- [ ] **2.2** `Money` acepta `number | string` y `toNumber()` normaliza DECIMAL
-
-- [ ] **2.2** `status` no viaja en los DTO de edición: solo el backend lo cambia con `/deactivate`
-
-- [ ] **2.3** Cada servicio usa `this.base` construido desde `environment.apiUrl`
-
-- [ ] **2.3** `list()`/`get()`/`create()` devuelven la entidad, **no** la envoltura (`{ clients }` → `Client[]`)
-
-- [ ] **2.3** Las envolturas pivote son `{ assignments }` y `{ grants }`, no `{ role_users }`
-
-- [ ] **2.4** `toApiMessage` distingue `status === 0` (backend caído) de un `403`
-
-- [ ] **2.4** `NotificationService` traduce a `MessageService` con duraciones por severidad
-
-- [ ] **2.5** `PageHeader`, `EmptyState` y `StatusTag` compilan como standalone y no añaden CSS
-
-- [ ] **2.5** `StatusTag` se repinta al cambiar el `input` gracias a `computed`
-
-- [ ] **2.6** `Shell` compone Header/aside/`router-outlet`/Footer **una sola vez**; el botón del Header alterna el Aside en escritorio y abre el Drawer en móvil
-
-- [ ] **2.6** `app.routes.ts` carga `Shell` con `loadComponent` y conserva el prototipo
-
-- [ ] **2.7** `provideHttpClient()` está registrado y **no** hay interceptores de sesión
-
-- [ ] **2.8** `ng build` termina con código 0 y `shell` aparece como chunk diferido
-
-- [ ] **2.8** Las pruebas pasan: 8 archivos, 33 casos
-
-> **`demo/ejemplo` sigue fuera.** La introducción a Angular quedó en ISS-01: no tiene ruta, no está en el menú y no se compone aquí.
-
 ## 2.1 `environment`: una sola URL para todo el frente
-
-**Criterios de este sub-ítem**
-
-- [ ] `apiUrl` termina en `/api`, nunca en `/`
-
-- [ ] Existen `environment.ts` (build) y `environment.development.ts` (`ng serve`)
-
-- [ ] `angular.json` sustituye el archivo en la configuración `development`
-
-- [ ] `primeUiLicense` está documentado en ambos archivos (clave Community PrimeUI; ISS-01 §1.4.1)
-
-```         
-ng generate environments 
-```
 
 Crea los dos archivos y registra el reemplazo. Si ya existen, edítalos sin repetir el generador.
 
@@ -692,6 +586,8 @@ Crea los dos archivos y registra el reemplazo. Si ya existen, edítalos sin repe
 ```         
 /**  * En el día a día del laboratorio es **este** archivo el que importa Angular  * (vía `fileReplacements`). Pega aquí la misma `primeUiLicense` que en producción.  */ export const environment = {   production: false,   appName: 'StoreLab Express II',   apiUrl: 'http://localhost:4000/api',   requireAuth: true,   primeUiLicense: '', }; 
 ```
+
+![](images/clipboard-2681727612.png)
 
 ### 2.1.1 Licencia PrimeUI (`primeUiLicense`)
 
@@ -721,40 +617,15 @@ Si trabajas sin clave, mantén `primeUiLicense: ''` y documenta el aviso en la e
 "development": {   "optimization": false,   "extractLicenses": false,   "sourceMap": true,   "fileReplacements": [     {       "replace": "src/environments/environment.ts",       "with": "src/environments/environment.development.ts"     }   ] } 
 ```
 
-| **Idea** | **Consecuencia** |
-|:-----------------------------------|:-----------------------------------|
-| `environment.ts` es el **base** | El build de producción no necesita reemplazo |
-| `development` reemplaza por `environment.development.ts` | `ng serve` compila con `production: false` |
-| Solo cambia lo que difiere | `apiUrl` aparece **una vez** por archivo; los servicios la importan |
-
-> **El slash final no es cosmético.** Con `apiUrl = 'http://localhost:4000/api/'`, el servicio armaría `${apiUrl}/clientes` y la URL real sería [`http://localhost:4000/api//clientes`](http://localhost:4000/api//clientes). Express compara rutas literales: `//clientes` no coincide con `/api/clientes` y responde 404.
-
-**Sobre `requireAuth`.** En ISS-02 nadie lo lee todavía: es el interruptor que ISS-08 consumirá desde `SessionStore`. Se declara ahora para que la URL y la configuración vivan en el mismo lugar. Es **la mitad frontal** de un interruptor de dos piezas:
-
-| **Pieza** | **Repositorio** | **Efecto** |
-|:-----------------------|:-----------------------|:-----------------------|
-| `requireAuth` | Frontend (`environment*.ts`) | Guards, directiva, menú y refresh |
-| `AUTH_ENABLED` | Backend (`.env`) | `authenticate` y `authorize` de las rutas de negocio |
-
-Con el backend consolidado (JWT + RBAC activo) las dos valen `true`. Si cambias solo el frontend a `false`, las peticiones salen sin `Bearer` y Express responde `401`: no existe forma de «abrir» la API desde el cliente. Las dos banderas se mueven juntas (ISS-11 §11.1). No es lo que hace que la Fase I funcione: la Fase I simplemente no tiene guards, directiva ni interceptor.
-
 ## 2.2 Modelos: reflejar el backend, no inventarlo
-
-**Criterios de este sub-ítem**
-
-- [ ] Cada entidad tiene su interfaz y su `Payload` de escritura
-
-- [ ] Los modelos de lectura **no** exponen `password`
-
-- [ ] `Money` cubre `number | string`; `toNumber()` normaliza
-
-- [ ] Los campos son los del backend, en `snake_case`
 
 ```         
 ng generate interface core/models/api --type=model --defaults ng generate interface core/models/client --type=model --defaults ng generate interface core/models/product-type --type=model --defaults ng generate interface core/models/product --type=model --defaults ng generate interface core/models/sale --type=model --defaults ng generate interface core/models/product-sale --type=model --defaults ng generate interface core/models/user --type=model --defaults ng generate interface core/models/role --type=model --defaults ng generate interface core/models/resource --type=model --defaults ng generate interface core/models/role-user --type=model --defaults ng generate interface core/models/resource-role --type=model --defaults ng generate interface core/models/auth --type=model --defaults ng generate interface core/models/dashboard --type=model --defaults 
 ```
 
 Cada comando crea un `*.model.ts` con una interfaz vacía. **Reemplaza también el nombre exportado**: el archivo se llama `client.model.ts`, pero el export es `Client`, no `Client`.
+
+![](images/clipboard-360442929.png)
 
 ### `api.model.ts` — los tipos que comparten todos
 
@@ -830,42 +701,21 @@ export interface DashboardStats {   clients: number;   productTypes: number;   p
 
 **La regla que se repite en todos los modelos.** `status` aparece en la interfaz de lectura y como opcional en el `Payload` de **creación**, pero los DTO de `PUT`/`PATCH` lo excluyen: el estado solo cambia con `PATCH /:id/deactivate`. Si el formulario de edición enviara `status`, el backend lo ignoraría o respondería 400 — y la UI estaría prometiendo algo que no puede hacer.
 
-## 2.3 Servicios HTTP por feature: desenvolver la respuesta
+![](images/clipboard-1784922843.png)
 
-**Criterios de este sub-ítem**
+## ![](images/clipboard-2176840762.png)
 
-- [ ] Cada servicio es `@Injectable({ providedIn: 'root' })` y usa `inject(HttpClient)`
+![](images/clipboard-862008589.png)
 
-- [ ] `base` se construye **una vez** desde `environment.apiUrl`
+![](images/clipboard-2912154914.png)
 
-- [ ] Los métodos devuelven `Observable<Entidad>`, no `Observable<{ entidad }>`
-
-- [ ] Ninguna URL se escribe completa dentro de un método
+##  2.3 Servicios HTTP por feature: desenvolver la respuesta
 
 ```         
 ng generate service features/clients/client-api --skip-tests --defaults ng generate service features/product-types/product-type-api --skip-tests --defaults ng generate service features/products/product-api --skip-tests --defaults ng generate service features/sales/sale-api --skip-tests --defaults ng generate service features/product-sales/product-sale-api --skip-tests --defaults ng generate service features/admin/users/user-api --skip-tests --defaults ng generate service features/admin/roles/role-api --skip-tests --defaults ng generate service features/admin/resources/resource-api --skip-tests --defaults ng generate service features/admin/role-users/role-user-api --skip-tests --defaults ng generate service features/admin/resource-roles/resource-role-api --skip-tests --defaults ng generate service core/services/notification --skip-tests --defaults 
 ```
 
 > **`--skip-tests` aquí sí es deliberado:** los servicios se prueban en un mismo `client-api.spec.ts` con `HttpTestingController` (más abajo), no con un stub vacío por archivo.
-
-### El contrato real del backend
-
-Express responde **envolturas**, y el nombre de la clave no siempre coincide con el nombre de la tabla. Esta tabla es la fuente de verdad:
-
-| **Recurso** | **Ruta** | **Colección** | **Elemento** |
-|:-----------------|:-----------------|:-----------------|:-----------------|
-| Clientes | `/api/clientes` | `clients` | `client` |
-| Tipos de producto | `/api/tipos-producto` | `product_types` | `product_type` |
-| Productos | `/api/productos` | `products` | `product` |
-| Ventas | `/api/ventas` | `sales` | `sale` |
-| Detalle de ventas | `/api/detalle-ventas` | `product_sales` | `product_sale` |
-| Usuarios | `/api/usuarios` | `users` | `user` |
-| Roles | `/api/roles` | `roles` | `role` |
-| Recursos | `/api/recursos` | `resources` | `resource` |
-| Asignaciones | `/api/asignaciones-rol` | **`assignments`** | **`assignment`** |
-| Concesiones | `/api/concesiones-rol` | **`grants`** | **`grant`** |
-
-Las dos últimas filas son la trampa del contrato: la tabla se llama `role_users` y `resource_roles`, pero la respuesta usa `assignments` y `grants`. Escribir `{ role_users }` compila —TypeScript no valida el nombre que tú declaras— y falla en ejecución con `undefined`.
 
 ### `client-api.ts` — el patrón completo
 
@@ -913,30 +763,21 @@ import { provideHttpClient } from '@angular/common/http'; import {   HttpTesting
 
 `HttpTestingController` no necesita el backend levantado: simula la respuesta y permite afirmar **dos** cosas: la URL construida y que la envoltura desaparece. `http.verify()` falla si quedó una petición sin responder, así que también detecta llamadas de más.
 
+![](images/clipboard-2816302886.png)
+
+![](images/clipboard-3005191093.png)
+
+![](images/clipboard-2803158478.png)
+
+![](images/clipboard-2477863062.png)
+
 ## 2.4 Utilidades transversales: `toApiMessage` y `NotificationService`
-
-**Criterios de este sub-ítem**
-
-- [ ] Un único lugar traduce el error HTTP a texto legible
-
-- [ ] `status === 0` se explica como backend caído
-
-- [ ] `NotificationService` fija la duración por severidad
 
 `src/app/core/utils/api-error.ts`
 
 ```         
 import { HttpErrorResponse } from '@angular/common/http';  /**  * Traduce el error HTTP del backend a un texto para el usuario.  * Express responde `{ error, detail? }`; los 403 de RBAC son opacos a propósito.  */ export function toApiMessage(error: unknown): string {   if (error instanceof HttpErrorResponse) {     const body = error.error as { error?: string; detail?: string } | string | null;      if (error.status === 0) {       return 'No se pudo conectar con el backend. Verifica que esté en http://localhost:4000.';     }     if (typeof body === 'string' && body.trim()) {       return body;     }     if (body && typeof body === 'object' && body.error) {       return body.detail ? `${body.error} — ${body.detail}` : body.error;     }     return error.message;   }   return error instanceof Error ? error.message : 'Error inesperado'; } 
 ```
-
-Los cuatro casos que importan:
-
-| **Situación** | **`status`** | **Mensaje** |
-|:-----------------------|:-----------------------|:-----------------------|
-| Backend apagado o CORS rechazado | `0` | «No se pudo conectar con el backend…» |
-| Validación de Express | `400` | `Validation error — name must be a string` |
-| Permiso denegado por RBAC | `403` | Solo `Forbidden` |
-| Cuerpo de texto plano | cualquiera | El texto tal cual |
 
 `status === 0` merece su propia rama porque **no** es un error del servidor: es un error de red o de CORS. Mostrar «Unknown Error» ahí deja al estudiante buscando el fallo en el lugar equivocado.
 
@@ -948,17 +789,11 @@ import { Injectable, inject } from '@angular/core'; import { MessageService } fr
 
 `NotificationService` **no** reemplaza a `MessageService`: lo envuelve. La diferencia es que la duración deja de ser una decisión repetida en cada componente —un error debe leerse más tiempo que un «guardado»— y queda en un solo archivo.
 
+![](images/clipboard-931352710.png)
+
+![](images/clipboard-2932877518.png)
+
 ## 2.5 Componentes compartidos: `PageHeader`, `EmptyState`, `StatusTag`
-
-**Criterios de este sub-ítem**
-
-- [ ] Los tres son standalone y usan `input()` con valor por defecto o `input.required`
-
-- [ ] `PageHeader` y `EmptyState` proyectan contenido con `<ng-content />`
-
-- [ ] `StatusTag` deriva texto y color con `computed`
-
-- [ ] Los tres `.css` quedan vacíos
 
 ```         
 ng generate component shared/ui/page-header --skip-tests --defaults ng generate component shared/ui/empty-state --skip-tests --defaults ng generate component shared/ui/status-tag --skip-tests --defaults 
@@ -1010,21 +845,13 @@ import { Component, computed, input } from '@angular/core'; import { TagModule }
 it('should react when the input changes to inactive', async () => {   const fixture = TestBed.createComponent(StatusTag);   fixture.componentRef.setInput('status', 'active');   await fixture.whenStable();    fixture.componentRef.setInput('status', 'inactive');   await fixture.whenStable();    expect(fixture.componentInstance.label()).toBe('Inactivo');   expect(fixture.componentInstance.severity()).toBe('danger'); }); 
 ```
 
+![](images/clipboard-2875980782.png)
+
+![](images/clipboard-3902349148.png)
+
+![](images/clipboard-2128753167.png)
+
 ## 2.6 `Shell`: conservar el esqueleto al navegar
-
-**Criterios de este sub-ítem**
-
-- [ ] `Shell` monta Header, Aside, `router-outlet` y Footer
-
-- [ ] Solo el contenido central cambia al navegar
-
-- [ ] El Drawer móvil reutiliza el mismo `Aside` y la misma lista `items`
-
-- [ ] El botón de menú está siempre visible y alterna el Aside en escritorio (misma lógica que ISS-01B)
-
-- [ ] `<p-toast />` y `<p-confirmdialog />` viven en el Shell, una sola vez
-
-- [ ] En Fase I no inyecta `AuthService` ni `SessionStore`
 
 ```         
 ng generate component layout/shell --skip-tests --defaults 
@@ -1042,22 +869,6 @@ import { Component, signal } from '@angular/core'; import { RouterOutlet } from 
 <div class="flex min-h-screen flex-col bg-slate-100">   <app-header (menuRequested)="onMenuToggle()" />    <div class="flex flex-1">     <!--       Escritorio: Aside fijo que el botón del Header puede ocultar.       Por debajo de lg no se pinta: el menú vive en el Drawer.     -->     @if (!sidebarCollapsed()) {       <aside class="hidden w-72 shrink-0 lg:block">         <app-aside [items]="items" (navigated)="mobileOpen.set(false)" />       </aside>     }      <main id="contenido" class="min-w-0 flex-1 p-4 sm:p-6">       <div class="mx-auto w-full max-w-7xl">         <router-outlet />       </div>     </main>   </div>    <app-footer /> </div>  <!-- Móvil: el mismo Aside, otra disposición. --> <p-drawer [(visible)]="mobileOpen" header="Menú" position="left" styleClass="w-72">   <app-aside [items]="items" (navigated)="mobileOpen.set(false)" /> </p-drawer>  <!-- Anfitriones de las notificaciones y confirmaciones del CRUD (ISS-03). --> <p-toast position="top-right" /> <p-confirmdialog /> 
 ```
 
-### Qué cambia respecto a `Construir`
-
-| **Pieza** | **`Construir` (ISS-01B)** | **`Shell` (ISS-02)** |
-|:-----------------------|:-----------------------|:-----------------------|
-| Layout | Lo compone el propio prototipo | Lo compone el layout, una vez |
-| Contenido | Fijo dentro del componente | `<router-outlet />` |
-| Menú | `command` que cambia un título | `routerLink` que navega |
-| Sesión | No | No (ISS-08) |
-| Botón de menú | `onMenuToggle()` con `watchMediaQuery` | El mismo método y el mismo helper |
-
-`Shell` es la razón por la que el prototipo no se borra: sirve de referencia visual mientras el layout real gana pantallas.
-
-> **El helper se reutiliza, no se copia.** `watchMediaQuery('(min-width: 1024px)')` se creó en ISS-01B (`core/utils/media-query.ts`) y aquí se vuelve a usar. Si la frontera cambiara —por ejemplo a `xl`— se cambia en la llamada y no hay dos `@media` desincronizadas con Tailwind.
->
-> **`Shell` nace sin hijos y los gana en ISS-03.** En ISS-02 la ruta `''` monta el Shell y su única hija redirige a `/construir`, así que al abrir `/` se veía el prototipo. Desde ISS-03 esa misma hija redirige a `clientes`: ahora `/` sí monta el Shell con su primera pantalla de negocio. La composición del Shell se verifica además con pruebas (`shell.spec.ts`) y con el chunk diferido del build.
-
 ### Rutas
 
 `src/app/app.routes.ts`
@@ -1065,13 +876,6 @@ import { Component, signal } from '@angular/core'; import { RouterOutlet } from 
 ```         
 import { Routes } from '@angular/router';  export const routes: Routes = [   {     path: 'construir',     loadComponent: () =>       import('./features/construir/construir').then((m) => m.Construir),   },   {     path: '',     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),     children: [       // La primera pantalla de negocio es la redirección por defecto.       // ISS-07 la cambiará por el dashboard.       { path: '', pathMatch: 'full', redirectTo: 'clientes' },       {         path: 'clientes',         title: 'Clientes · StoreLab',         loadComponent: () =>           import('./features/clients/client-list/client-list').then((m) => m.ClientList),       },     ],   },   { path: '**', redirectTo: 'construir' }, ]; 
 ```
-
-| **Ruta** | **Qué hace** |
-|:-----------------------------------|:-----------------------------------|
-| `construir` | Prototipo con su propio layout (ISS-01B) |
-| `''` | Monta `Shell`; sus hijas son las pantallas de negocio |
-| `''` hija con `pathMatch: 'full'` | Entra a la primera entidad (`clientes`) |
-| `**` | Cualquier URL desconocida vuelve a `/construir` |
 
 `Shell` se carga con `loadComponent`: el build lo confirma emitiendo un chunk `shell` aparte del bundle inicial.
 
@@ -1081,17 +885,11 @@ import { Routes } from '@angular/router';  export const routes: Routes = [   {  
 it('should compose header, aside, main, footer and the router outlet', async () => {   const { compilado } = await crearShell();    expect(compilado.querySelector('app-header')).toBeTruthy();   expect(compilado.querySelector('aside app-aside')).toBeTruthy();   expect(compilado.querySelector('main#contenido router-outlet')).toBeTruthy();   expect(compilado.querySelector('app-footer')).toBeTruthy(); });  it('should open the mobile drawer from the header button', async () => {   const { fixture, compilado } = await crearShell();    const boton = compilado.querySelector(     'app-header button[aria-label="Mostrar u ocultar el menú"]',   ) as HTMLButtonElement;   boton.click();   fixture.detectChanges();   await fixture.whenStable();    expect(fixture.componentInstance.mobileOpen()).toBe(true); }); 
 ```
 
-La prueba necesita `provideRouter([])` (por `<router-outlet />`) y los proveedores de PrimeNG (`MessageService`, `ConfirmationService`) que consumen `<p-toast />` y `<p-confirmdialog />`. Como jsdom no implementa `matchMedia`, `watchMediaQuery` devuelve `false` y la prueba ejercita la rama móvil; la rama de escritorio se cubre en `construir.spec.ts` sustituyendo `window.matchMedia`.
+![](images/clipboard-2144051447.png)
+
+![](images/clipboard-1427371388.png)
 
 ## 2.7 Registrar `HttpClient` sin interceptores de sesión
-
-**Criterios de este sub-ítem**
-
-- [ ] `provideHttpClient()` está en `app.config.ts`
-
-- [ ] No hay `withInterceptors(...)` todavía
-
-- [ ] `MessageService` y `ConfirmationService` siguen registrados (los usan los hosts del Shell)
 
 `src/app/app.config.ts` — debajo de los imports y antes de `MessageService`:
 
@@ -1099,39 +897,21 @@ La prueba necesita `provideRouter([])` (por `<router-outlet />`) y los proveedor
 import { provideHttpClient } from '@angular/common/http';  // ...      // Habilita la inyección de HttpClient en los servicios `*Api`.     // Sin interceptores de sesión: el authInterceptor llega en ISS-08.     provideHttpClient(),      MessageService,     ConfirmationService, 
 ```
 
-`provideHttpClient()` habilita la **inyección** de `HttpClient`; no configura autenticación. El `authInterceptor` (adjuntar el Bearer, refrescar el token en 401) es ISS-08. Añadirlo ahora significaría escribir un interceptor que lee un `SessionStore` que aún no existe.
+![](images/clipboard-2755803899.png)
 
 ## 2.8 Comprobar antes de avanzar
-
-**Criterios de este sub-ítem**
-
-- [ ] `ng build` termina con código 0 y sin `✘ [ERROR]`
-
-- [ ] `shell` aparece como chunk diferido
-
-- [ ] `npm test` pasa completo
-
-- [ ] `/` redirige a `/construir` y la pantalla del prototipo sigue funcionando
-
-- [ ] Network no registra llamadas `/api` en ninguna pantalla
 
 ```         
 ng build npm test -- --watch=false npm start 
 ```
 
-**Problemas frecuentes**
+![](images/clipboard-3947405256.png)
 
-| **Síntoma** | **Causa** | **Solución** |
-|:-----------------------|:-----------------------|:-----------------------|
-| `Cannot find module '../../core/models/...'` | Profundidad de `../` incorrecta | Cuenta carpetas desde el archivo del servicio |
-| `Cannot find name 'Injectable'` | Falta el import de Angular | Importa `Injectable` desde `@angular/core` |
-| `NG8001: 'p-tag' is not a known element` | Falta `TagModule` en `imports` | Añádelo al array `imports` del componente |
-| `NullInjectorError: No provider for HttpClient!` | Falta `provideHttpClient()` | Regístralo en `app.config.ts` |
-| `resultado` es `undefined` en la prueba del servicio | No se llamó `flush` | Responde la petición con `peticion.flush({...})` |
-| `list()` devuelve `undefined` en ejecución | Envoltura mal escrita (`role_users` en vez de `assignments`) | Revisa la tabla de envolturas |
-| 404 en todas las llamadas | `apiUrl` con slash final | Deja `.../api`, sin `/` |
+![](images/clipboard-918935403.png)
 
-**Siguiente:** [ISS-03 — CRUD de clientes](https://tecnogua.com/academic/site/frontend2026/express/construir/ISS-03-crud-de-clientes/) usa `ClientApi` en una pantalla real, como hija de `Shell`.
+![](images/clipboard-196423302.png)
+
+![](images/clipboard-363654791.png)
 
 ## Verificación del ISS
 
@@ -1139,170 +919,7 @@ ng build npm test -- --watch=false npm start
 # 1. Compila y separa los chunks diferidos ng build  # 2. La URL del backend existe una sola vez grep -n "apiUrl" src/environments/environment.ts src/environments/environment.development.ts  # 3. Los modelos existen y coinciden con el backend ls src/app/core/models/*.model.ts  # 4. Los servicios desenvuelven con map grep -rn "\.pipe(map" src/app/features src/app/core | wc -l  # 5. HttpClient registrado, sin interceptores grep -n "provideHttpClient" src/app/app.config.ts grep -rn "withInterceptors" src/app/app.config.ts || echo "sin interceptores: correcto"  # 6. Las envolturas especiales están bien escritas grep -n "assignments\|grants" src/app/features/admin/*/*-api.ts  # 7. Los CSS compartidos no tienen reglas for f in src/app/shared/ui/*/*.css src/app/layout/shell/shell.css; do   grep -q '[{}]' "$f" && echo "REGLAS EN $f" done  # 8. Pruebas npm test -- --watch=false 
 ```
 
-### Resultado reportado por la fuente (23-oct-2026)
-
-| **Comprobación** | **Resultado** |
-|:-----------------------------------|:-----------------------------------|
-| `ng build` | código **0**; `Initial total` **548.57 kB** (\< 750 kB, sin warning) |
-| Chunks diferidos | `client-list` **568.09 kB** · `shell` **60.26 kB** · `construir` **7.76 kB** |
-| `npm test -- --watch=false` | **11 archivos, 55 pruebas** |
-| `/` | Redirige a `/clientes` (ISS-03); `/construir` sigue accesible |
-| `/construir` | Prototipo intacto: Header, Aside con 5 opciones, Drawer y Footer |
-| Shell en escritorio 1280 px | `aside` **288 px**, `main#contenido router-outlet`, Footer al borde inferior (800 px), `scrollWidth = clientWidth = 1280` |
-| Shell en escritorio, botón de menú | `display: flex`: visible también a 1280 px (antes `lg:hidden` lo escondía) |
-| Shell en escritorio, clic en el botón | `aside` sale del DOM; no aparece Drawer; el contenido ocupa el ancho |
-| Shell en móvil 390 px | Aside oculto; el botón abre el Drawer con el mismo menú |
-| Menú del Shell | Enlaces reales `href="/clientes"` y `href="/construir"` |
-| Hosts del CRUD | `p-toast` y `p-confirmdialog` presentes en el DOM |
-| Network | **0** peticiones `/api` en `/` y `/construir` |
-| Envolturas pivote | `assignments` y `grants` verificadas en su servicio |
-
-> La verificación visual del Shell se hizo exponiendo el componente en una ruta temporal (`/shell-preview`), que se **retiró** antes del build final. El estado entregado es el de la tabla anterior: desde `/` se monta el Shell con la pantalla de clientes de ISS-03, y el Shell se valida además con `shell.spec.ts`.
-
-## Cierre del ISS
-
-La capa de infraestructura está completa: una URL de backend, 13 modelos que reflejan las tablas, 11 servicios que desenvuelven la respuesta de Express, dos utilidades transversales, tres componentes de UI y un `Shell` que conserva el layout al navegar.
-
-No hay pantallas de negocio todavía y **no se ha hecho ni una petición HTTP real**: eso empieza en ISS-03. `SessionStore`, `AuthService` y la directiva `*appHasPermission` pertenecen a ISS-08/ISS-09 y se documentan allí; adelantarlos aquí dejaría código que nadie consume.
-
-**Siguiente:** [ISS-03 — CRUD de clientes](https://tecnogua.com/academic/site/frontend2026/express/construir/ISS-03-crud-de-clientes/).
-
-## Correspondencia con el código
-
-Esta guía es la que contiene los comandos (`ng generate`, `cat >`) y la explicación paso a paso para construir el frontend desde cero. El código no se duplica en `docs/`: la referencia completa son los archivos reales del proyecto, enlazados al final de esta ISS.
-
-Los ejemplos breves muestran incrementos y no sustituyen todos los archivos del componente. Las configuraciones de las primeras etapas omiten deliberadamente la sesión y las pantallas que se construyen después; en el proyecto consolidado la seguridad final está activa. No combines imports de una etapa final con stubs que todavía no implementaste.
-
-> **Lo que este ISS no construye.** `SessionStore` (§2.8 del material de ampliación), `AuthService` y la directiva `*appHasPermission` pertenecen a ISS-08 y ISS-09. Aquí solo se declaran los modelos que consumirán (`auth.model.ts`, `resource.model.ts`).
-
-## Código completo de referencia
-
-Los fragmentos de esta ISS se estudian por incrementos. Estos archivos contienen la implementación consolidada:
-
-- angular.json (`angular.json`).
-
-- src/environments/environment.ts (`src/environments/environment.ts`).
-
-- src/environments/environment.development.ts (`src/environments/environment.development.ts`).
-
-- src/app/app.config.ts (`src/app/app.config.ts`).
-
-- src/app/app.routes.ts (`src/app/app.routes.ts`).
-
-- src/app/core/models/api.model.ts (`src/app/core/models/api.model.ts`).
-
-- src/app/core/models/auth.model.ts (`src/app/core/models/auth.model.ts`).
-
-- src/app/core/models/client.model.ts (`src/app/core/models/client.model.ts`).
-
-- src/app/core/models/dashboard.model.ts (`src/app/core/models/dashboard.model.ts`).
-
-- src/app/core/models/product-sale.model.ts (`src/app/core/models/product-sale.model.ts`).
-
-- src/app/core/models/product-type.model.ts (`src/app/core/models/product-type.model.ts`).
-
-- src/app/core/models/product.model.ts (`src/app/core/models/product.model.ts`).
-
-- src/app/core/models/resource-role.model.ts (`src/app/core/models/resource-role.model.ts`).
-
-- src/app/core/models/resource.model.ts (`src/app/core/models/resource.model.ts`).
-
-- src/app/core/models/role-user.model.ts (`src/app/core/models/role-user.model.ts`).
-
-- src/app/core/models/role.model.ts (`src/app/core/models/role.model.ts`).
-
-- src/app/core/models/sale.model.ts (`src/app/core/models/sale.model.ts`).
-
-- src/app/core/models/user.model.ts (`src/app/core/models/user.model.ts`).
-
-- src/app/core/utils/media-query.ts (`src/app/core/utils/media-query.ts`).
-
-- src/app/core/utils/media-query.spec.ts (`src/app/core/utils/media-query.spec.ts` — no existe en la copia inspeccionada).
-
-- src/app/core/services/notification.ts (`src/app/core/services/notification.ts`).
-
-- src/app/core/utils/api-error.ts (`src/app/core/utils/api-error.ts`).
-
-- src/app/core/utils/api-error.spec.ts (`src/app/core/utils/api-error.spec.ts` — no existe en la copia inspeccionada).
-
-- src/app/features/clients/client-api.ts (`src/app/features/clients/client-api.ts`).
-
-- src/app/features/clients/client-api.spec.ts (`src/app/features/clients/client-api.spec.ts`).
-
-- src/app/features/product-types/product-type-api.ts (`src/app/features/product-types/product-type-api.ts`).
-
-- src/app/features/products/product-api.ts (`src/app/features/products/product-api.ts`).
-
-- src/app/features/sales/sale-api.ts (`src/app/features/sales/sale-api.ts`).
-
-- src/app/features/product-sales/product-sale-api.ts (`src/app/features/product-sales/product-sale-api.ts`).
-
-- src/app/features/admin/users/user-api.ts (`src/app/features/admin/users/user-api.ts`).
-
-- src/app/features/admin/roles/role-api.ts (`src/app/features/admin/roles/role-api.ts`).
-
-- src/app/features/admin/resources/resource-api.ts (`src/app/features/admin/resources/resource-api.ts`).
-
-- src/app/features/admin/role-users/role-user-api.ts (`src/app/features/admin/role-users/role-user-api.ts`).
-
-- src/app/features/admin/resource-roles/resource-role-api.ts (`src/app/features/admin/resource-roles/resource-role-api.ts`).
-
-- src/app/layout/shell/shell.ts (`src/app/layout/shell/shell.ts`).
-
-- src/app/layout/shell/shell.html (`src/app/layout/shell/shell.html`).
-
-- src/app/layout/shell/shell.css (`src/app/layout/shell/shell.css`).
-
-- src/app/layout/shell/shell.spec.ts (`src/app/layout/shell/shell.spec.ts`).
-
-- src/app/shared/ui/empty-state/empty-state.ts (`src/app/shared/ui/empty-state/empty-state.ts`).
-
-- src/app/shared/ui/empty-state/empty-state.html (`src/app/shared/ui/empty-state/empty-state.html`).
-
-- src/app/shared/ui/empty-state/empty-state.css (`src/app/shared/ui/empty-state/empty-state.css`).
-
-- src/app/shared/ui/page-header/page-header.ts (`src/app/shared/ui/page-header/page-header.ts`).
-
-- src/app/shared/ui/page-header/page-header.html (`src/app/shared/ui/page-header/page-header.html`).
-
-- src/app/shared/ui/page-header/page-header.css (`src/app/shared/ui/page-header/page-header.css`).
-
-- src/app/shared/ui/status-tag/status-tag.ts (`src/app/shared/ui/status-tag/status-tag.ts`).
-
-- src/app/shared/ui/status-tag/status-tag.html (`src/app/shared/ui/status-tag/status-tag.html`).
-
-- src/app/shared/ui/status-tag/status-tag.css (`src/app/shared/ui/status-tag/status-tag.css`).
-
-- src/app/shared/ui/status-tag/status-tag.spec.ts (`src/app/shared/ui/status-tag/status-tag.spec.ts`).
-
-> **Unidad ISS-03 · CRUD de clientes con Signals** — capa **🛠 CONSTRUIR**
->
-> [🧠 Comprender este bloque →](https://tecnogua.com/academic/site/frontend2026/express/aprender/ISS-03-crud-de-clientes/) · [↑ Ruta Frontend-Express](https://tecnogua.com/academic/site/frontend2026/express/)
->
-> | **Capa** | **Página** | **Para qué** |
-> |:-----------------------|:-----------------------|:-----------------------|
-> | 🧠 **Aprender** | [CRUD de clientes con Signals](https://tecnogua.com/academic/site/frontend2026/express/aprender/ISS-03-crud-de-clientes/) | comprender, explicar y relacionar |
-> | 🛠 **Construir** | esta página | ejecutar, verificar y entregar |
-
 # ISS-03 · CRUD de clientes con Signals
-
-> **Vigencia · revisión local del 23-oct-2026.** ClientList sí implementa carga, búsqueda, diálogo, creación, edición y bajas. Sin embargo, no importa HasPermission y su plantilla no usa appHasPermission: el filtrado de botones de ISS-09 sigue pendiente. Express mantiene la autorización de cada petición. **Los criterios no cumplidos permanecen pendientes; no equivalen a evidencia de implementación.**
->
-> **Vigencia · revisión local del 23-oct-2026.** El recorrido parte de datos locales, añade tabla y GET, y después formulario y escrituras. Los formularios emiten el resultado y la lista de clientes coordina la API. La protección de botones pertenece a ISS-09 y aún no está integrada en ClientList. Los bloques de código de la guía pueden representar incrementos; los archivos locales citados son la referencia consolidada.
->
-> **Vigencia · revisión local del 23-oct-2026.** Los pasos describen una construcción incremental en una copia de práctica. El código consolidado puede incluir fases posteriores. Los resultados importados son reportes de la fuente, no pruebas repetidas en esta actualización. Véase [estado y trazabilidad](https://tecnogua.com/academic/site/frontend2026/express/estado-vigente/).
->
-> **Convención visual:** PrimeNG con Aura para controles y datos; Tailwind para flex, grid, espaciado y adaptación a pantalla. Sin CSS propio ni PrimeFlex. Las tarjetas nuevas usan `p-card` e importan `CardModule` de `primeng/card`. Si usas `p-message` para validación, importa `MessageModule` de `primeng/message`. Consulta [el patrón visual](https://tecnogua.com/academic/site/frontend2026/express/construir/patron-visual/) antes de copiar una pantalla.
-
-**Fase:** I · **Bloqueado por:** ISS-02 · **Habilita:** ISS-04
-
-## Antes de construir: Primer CRUD por incrementos
-
-Primero muestra `Client[]` local con `@for`; después sustituye la lista por `p-table`; conecta el `GET`; agrega búsqueda; construye el formulario; por último `POST`, `PATCH` y bajas.
-
-**Evidencia de aprendizaje:** Prueba cada incremento por separado y explica `input(client)` y `output(saved)` antes de conectar el diálogo.
-
-**Equipo y terminal:** Ubuntu WSL, terminal del editor, carpeta del frontend. Los ejemplos que crean o reemplazan archivos se ejecutan en una copia de práctica; en el workspace consolidado inspecciona y ajusta los archivos existentes.
 
 ## Objetivo
 
@@ -1328,6 +945,8 @@ El `--skip-tests` no es para evitar pruebas: las dos pruebas de esta ISS son má
 
 **Criterio de aceptación:** los componentes existen y son standalone (`imports: [...]` en el decorador, sin `NgModule`).
 
+![](images/clipboard-3512360173.png)
+
 ## 3.2 Utilidad de filtro local
 
 PrimeNG 22 eliminó el input `globalFilter` de `p-table`. En su lugar filtramos el arreglo con una función pura y entregamos el resultado a `[value]`.
@@ -1338,13 +957,11 @@ PrimeNG 22 eliminó el input `globalFilter` de `p-table`. En su lugar filtramos 
 /**  * Filtro local reutilizable para tablas PrimeNG 22.  *  * PrimeNG 22 eliminó el input `globalFilter` de `p-table`, así que filtramos el  * arreglo **antes** de entregarlo a `[value]`. Es una función pura: no depende  * del DOM, de la tabla ni de Angular, y por eso se prueba sin montar nada.  */ export function filterRows<T>(   rows: readonly T[],   query: string,   pick: (row: T) => Array<string | number | null | undefined>, ): T[] {   const term = query.trim().toLowerCase();    // Sin término se devuelve una copia: el llamador puede mutar el resultado sin   // tocar el arreglo original que vive en el signal.   if (!term) {     return [...rows];   }    return rows.filter((row) =>     pick(row).some((value) => (value ?? '').toString().toLowerCase().includes(term)),   ); } 
 ```
 
-| **Decisión** | **Por qué** |
-|:-----------------------------------|:-----------------------------------|
-| `pick` recibe la fila | La utilidad no adivina qué campos son buscables; lo decide el llamador |
-| `[...rows]` sin término | El `computed` no comparte referencia con el signal original |
-| `(value ?? '')` | `email` y `phone` son `null` en la base y no deben romper el filtro |
-
 Ventaja didáctica: el filtro es **una función pura**, fácil de testear, sin depender de la tabla ni del DOM.
+
+![](images/clipboard-488411021.png)
+
+![](images/clipboard-3806800315.png)
 
 ## 3.3 Formulario reactivo reutilizable
 
@@ -1364,23 +981,9 @@ import { Component, effect, inject, input, output } from '@angular/core'; import
 
 `client-form.css` queda **sin reglas**.
 
-### Conceptos clave
+![](images/clipboard-1201020194.png)
 
-| **Concepto** | **Uso en este archivo** |
-|:-----------------------------------|:-----------------------------------|
-| `input<T>()` | `client` y `resetKey` entran desde el padre; Angular los actualiza como signals |
-| `output<T>()` | `saved` y `cancelled` avisan al padre |
-| `NonNullableFormBuilder` | Evita `null` en los controles; `getRawValue()` es tipado |
-| `effect()` | Rellena el formulario cuando cambia el cliente seleccionado |
-| `markAllAsTouched()` | Muestra los mensajes de validación al intentar guardar |
-
-> **No uses `ngOnChanges`** para esto: con signals, `effect()` reacciona a `client()` sin comparar objetos ni implementar `OnChanges`.
->
-> **PARCHE — por qué existe `resetKey`.** El `p-dialog` de PrimeNG 22 mantiene su contenido montado al cerrarse (ya no tiene `destroyOnHide`), así que abrir «Nuevo cliente», escribir algo, cancelar y volver a abrir dejaba los valores anteriores: `client` seguía siendo `null` y el `effect()` no volvía a ejecutarse. Un contador que el padre incrementa en cada apertura obliga al efecto a correr. Es más explícito que exponer un método `reset()` del hijo y llamarlo por `viewChild()`, y se comprueba en una prueba.
->
-> **`status` deshabilitado al editar.** `PATCH /api/clientes/:id` no debe cambiar el estado: para eso existe `PATCH /:id/deactivate`. Con el control deshabilitado el formulario no ofrece una acción que el backend va a ignorar, y `getRawValue()` sigue leyendo el valor para mostrarlo.
->
-> **Sin campo `password` en la UI.** El `CreateClientDto` de Express declara `password`, pero la columna es `allowNull: true` y el service no lo exige: un cliente puede crearse desde el panel sin contraseña (`null`). Pedirla aquí confundiría al usuario, porque la contraseña del cliente solo sirve para un eventual portal externo, no para este panel. El formulario no la incluye y el `POST` funciona igual.
+![](images/clipboard-3765524085.png)
 
 ## 3.4 Lista con estado en Signals
 
@@ -1396,4 +999,96 @@ rows            → Client[]      datos del backend loading         → boolean 
 import { Component, computed, inject, signal } from '@angular/core'; import { ConfirmationService } from 'primeng/api'; import { ButtonModule } from 'primeng/button'; import { DialogModule } from 'primeng/dialog'; import { InputTextModule } from 'primeng/inputtext'; import { MessageModule } from 'primeng/message'; import { TableModule } from 'primeng/table'; import { TagModule } from 'primeng/tag'; import { TooltipModule } from 'primeng/tooltip'; import { Client, ClientPayload } from '../../../core/models/client.model'; import { NotificationService } from '../../../core/services/notification'; import { toApiMessage } from '../../../core/utils/api-error'; import { filterRows } from '../../../core/utils/filter-rows'; import { EmptyState } from '../../../shared/ui/empty-state/empty-state'; import { PageHeader } from '../../../shared/ui/page-header/page-header'; import { StatusTag } from '../../../shared/ui/status-tag/status-tag'; import { ClientApi } from '../client-api'; import { ClientForm } from '../client-form/client-form';  /**  * Lista de clientes con todas las operaciones del CRUD.  *  * Todo el estado vive en signals: la tabla y los contadores se repintan solos y  * `visibleRows` se recalcula solo cuando cambian `rows()` o `filter()`.  */ @Component({   host: { class: 'block' },   selector: 'app-client-list',   imports: [     ButtonModule,     DialogModule,     EmptyState,     InputTextModule,     MessageModule,     PageHeader,     StatusTag,     TableModule,     TagModule,     TooltipModule,     ClientForm,   ],   templateUrl: './client-list.html',   styleUrl: './client-list.css', }) export class ClientList {   private readonly api = inject(ClientApi);   private readonly notify = inject(NotificationService);   private readonly confirmation = inject(ConfirmationService);    /** Datos del backend (`GET /api/clientes` solo devuelve `active`). */   readonly rows = signal<Client[]>([]);   readonly loading = signal(true);   readonly saving = signal(false);   readonly error = signal<string | null>(null);   readonly filter = signal('');    /** Resultado de aplicar el buscador; `computed` lo memoriza. */   readonly visibleRows = computed(() =>     filterRows(this.rows(), this.filter(), (client) => [       client.name,       client.email,       client.phone,       client.address,     ]),   );    readonly dialogVisible = signal(false);   readonly editing = signal<Client | null>(null);   readonly resetKey = signal(0);    readonly title = computed(() => (this.editing() ? 'Editar cliente' : 'Nuevo cliente'));    constructor() {     this.load();   }    /** `GET /api/clientes`: recarga la tabla y limpia el error anterior. */   load(): void {     this.loading.set(true);     this.error.set(null);      this.api.list().subscribe({       next: (rows) => {         this.rows.set(rows);         this.loading.set(false);       },       error: (error: unknown) => {         this.rows.set([]);         this.error.set(toApiMessage(error));         this.loading.set(false);       },     });   }    openCreate(): void {     this.editing.set(null);     this.resetKey.update((key) => key + 1);     this.dialogVisible.set(true);   }    openEdit(client: Client): void {     this.editing.set(client);     this.resetKey.update((key) => key + 1);     this.dialogVisible.set(true);   }    /**    * El mismo manejador para crear y editar: el `editing()` decide el verbo.    * Tras el éxito se cierra el diálogo y se recarga (el backend es la verdad).    */   save(payload: ClientPayload): void {     const current = this.editing();     this.saving.set(true);      const request = current ? this.api.update(current.id, payload) : this.api.create(payload);      request.subscribe({       next: () => {         this.saving.set(false);         this.dialogVisible.set(false);         this.notify.success(current ? 'Cliente actualizado' : 'Cliente creado');         this.load();       },       error: (error: unknown) => {         this.saving.set(false);         this.notify.error('No se pudo guardar', toApiMessage(error));       },     });   } } 
 ```
 
-### ¿Por qué `computed` y no una propiedad normal?
+![](images/clipboard-2604843105.png)
+
+## 3.5 Plantilla de la lista
+
+`src/app/features/clients/client-list/client-list.html`
+
+```         
+<app-page-header   title="Clientes"   subtitle="El backend solo lista los clientes activos; la baja lógica cambia su estado." >   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />   <button pButton type="button" (click)="openCreate()">     <i pButtonIcon class="pi pi-plus"></i>     <span pButtonLabel>Nuevo cliente</span>   </button> </app-page-header>  @if (error()) {   <p-message severity="error" styleClass="mb-4 w-full">     {{ error() }}   </p-message> }  <div class="rounded-xl border border-slate-200 bg-white">   <p-table     [value]="visibleRows()"     [loading]="loading()"     [paginator]="visibleRows().length > 10"     [rows]="10"     dataKey="id"     tableStyleClass="min-w-3xl"   >     <ng-template #caption>       <div class="flex items-center gap-2">         <i class="pi pi-search text-slate-400"></i>         <input           pInputText           type="search"           aria-label="Buscar clientes"           placeholder="Buscar por nombre, email, teléfono o dirección…"           [value]="filter()"           (input)="filter.set($any($event.target).value)"           class="w-full"         />       </div>       @if (filter()) {         <p class="mt-2 text-xs text-slate-500">           {{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».         </p>       }     </ng-template>      <ng-template #header>       <tr>         <th pSortableColumn="name">           <div class="flex items-center gap-1">Nombre <p-sort-icon field="name" /></div>         </th>         <th pSortableColumn="email">           <div class="flex items-center gap-1">Contacto <p-sort-icon field="email" /></div>         </th>         <th>Dirección</th>         <th>Estado</th>         <th class="w-40 text-right">Acciones</th>       </tr>     </ng-template>      <ng-template #body let-client>       <tr>         <td>           <p class="font-medium text-slate-800">{{ client.name }}</p>           <p class="text-xs text-slate-400">#{{ client.id }}</p>         </td>         <td>           <p class="text-sm text-slate-700">{{ client.email || '—' }}</p>           <p class="text-xs text-slate-400">{{ client.phone || 'Sin teléfono' }}</p>         </td>         <td class="text-sm text-slate-600">{{ client.address || '—' }}</td>         <td><app-status-tag [status]="client.status" /></td>         <td>           <div class="flex justify-end gap-1">             <button               pButton               type="button"               text               rounded               severity="secondary"               icon="pi pi-pencil"               aria-label="Editar cliente"               pTooltip="Editar"               (click)="openEdit(client)"             ></button>             <button               pButton               type="button"               text               rounded               severity="warn"               icon="pi pi-ban"               aria-label="Dar de baja al cliente"               pTooltip="Baja lógica"               (click)="deactivate(client)"             ></button>             <button               pButton               type="button"               text               rounded               severity="danger"               icon="pi pi-trash"               aria-label="Eliminar cliente"               pTooltip="Eliminar"               (click)="remove(client)"             ></button>           </div>         </td>       </tr>     </ng-template>      <ng-template #emptymessage>       <tr>         <td colspan="5">           @if (filter()) {             <app-empty-state               icon="pi pi-search"               title="Sin coincidencias"               message="Ningún cliente coincide con la búsqueda. Borra el filtro para ver todos."             />           } @else {             <app-empty-state               icon="pi pi-users"               title="Sin clientes activos"               message="Crea el primero con el botón «Nuevo cliente» o ejecuta el seeder del backend."             />           }         </td>       </tr>     </ng-template>   </p-table> </div> 
+```
+
+### `p-dialog` para crear/editar
+
+**Debajo** de la tabla:
+
+```         
+<p-dialog   [visible]="dialogVisible()"   (visibleChange)="dialogVisible.set($event)"   [header]="title()"   [modal]="true"   [draggable]="false"   [resizable]="false"   [dismissableMask]="true"   styleClass="w-full max-w-2xl mx-4" >   <app-client-form     [client]="editing()"     [saving]="saving()"     [resetKey]="resetKey()"     (saved)="save($event)"     (cancelled)="dialogVisible.set(false)"   /> </p-dialog> 
+```
+
+> ![](images/clipboard-59271665.png)
+
+## 3.6 Baja lógica vs baja física
+
+```         
+/** Baja lógica: `PATCH /:id/deactivate`. El registro deja de listarse. */ deactivate(client: Client): void {   this.confirmation.confirm({     header: 'Baja lógica',     message: `¿Desactivar a ${client.name}? Su estado pasará a inactivo.`,     icon: 'pi pi-exclamation-triangle',     acceptLabel: 'Desactivar',     rejectLabel: 'Cancelar',     acceptButtonStyleClass: 'p-button-warning',     accept: () => {       this.api.deactivate(client.id).subscribe({         next: () => {           this.notify.warn('Cliente desactivado');           this.load();         },         error: (error: unknown) => {           this.notify.error('No se pudo desactivar', toApiMessage(error));         },       });     },   }); }  /** Baja física: `DELETE /:id`. No se puede deshacer. */ remove(client: Client): void {   this.confirmation.confirm({     header: 'Eliminar definitivamente',     message: `Se borrará ${client.name} de la base de datos. Esta acción no se puede deshacer.`,     icon: 'pi pi-trash',     acceptLabel: 'Eliminar',     rejectLabel: 'Cancelar',     acceptButtonStyleClass: 'p-button-danger',     accept: () => {       this.api.remove(client.id).subscribe({         next: () => {           this.notify.success('Cliente eliminado');           this.load();         },         error: (error: unknown) => {           this.notify.error('No se pudo eliminar', toApiMessage(error));         },       });     },   }); } 
+```
+
+**Criterio de aceptación:** el listado posterior a `deactivate` ya no muestra el cliente (el backend filtra `status: active`). El `remove` sí lo borra de la tabla para siempre.
+
+![](images/clipboard-3176618076.png)
+
+## 3.7 Ruta y menú
+
+**Dentro de `children` de `Shell`, como primera hija** en `app.routes.ts`:
+
+```         
+{   path: '',   loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),   children: [     { path: '', pathMatch: 'full', redirectTo: 'clientes' },     {       path: 'clientes',       title: 'Clientes · StoreLab',       loadComponent: () =>         import('./features/clients/client-list/client-list').then((m) => m.ClientList),     },   ], }, 
+```
+
+La redirección vacía deja de apuntar al prototipo: ahora `/` abre la primera pantalla de negocio. ISS-07 la cambiará por el dashboard.
+
+En `shell.ts`, el menú gana la entrada real:
+
+```         
+readonly items: MenuItem[] = [   { label: 'Clientes', icon: 'pi pi-users', routerLink: '/clientes' },   { label: 'Prototipo', icon: 'pi pi-desktop', routerLink: '/construir' }, ]; 
+```
+
+`routerLink` (no `command`) es lo que hace que PanelMenu navegue de verdad y marque la opción activa. El prototipo se conserva como referencia visual hasta que ISS-07 traiga el dashboard.
+
+En **Fase II** (ISS-09) se le añade `canActivate: [permissionGuard]` y `data: { permission: 'GET /api/clientes' }` a la ruta, y el menú se filtra.
+
+![](images/clipboard-72319428.png)
+
+![](images/clipboard-3006070618.png)
+
+## Pruebas
+
+Tres archivos, cada uno con una responsabilidad distinta:
+
+Las peticiones se simulan con `HttpTestingController`: se verifica **el verbo, la URL y el cuerpo** que el componente envía, sin backend ni base de datos.
+
+```         
+it('should PATCH the edited client and send no status', async () => {   const { lista } = await crearLista();    lista.openEdit(CLIENTES[0]);   lista.save({ name: 'Tienda La Esquina', phone: '3100000000' });    const cambio = http.expectOne(`${BASE}/1`);   expect(cambio.request.method).toBe('PATCH');   expect(cambio.request.body).toEqual({ name: 'Tienda La Esquina', phone: '3100000000' });   cambio.flush({ client: CLIENTES[0] });    http.expectOne(BASE).flush({ clients: CLIENTES }); // recarga posterior }); 
+```
+
+```         
+it('should call deactivate after the confirmation is accepted', async () => {   const { lista } = await crearLista();   aceptarConfirmacion(); // espía que ejecuta `accept()` de inmediato    lista.deactivate(CLIENTES[0]);    const baja = http.expectOne(`${BASE}/1/deactivate`);   expect(baja.request.method).toBe('PATCH');   baja.flush({ message: 'Client deactivated (logical delete)' });   http.expectOne(BASE).flush({ clients: CLIENTES.slice(1) }); }); 
+```
+
+> **`ConfirmationService.confirm` devuelve el servicio.** El espía debe hacer `return confirmation` o TypeScript rechaza el `mockImplementation`: la firma es `confirm(confirmation): ConfirmationService` porque es encadenable.
+
+## Comprobación funcional (Fase I, sin auth)
+
+```         
+# 1. Listar. Contra el stub o el backend anterior a ISS-13: 200 sin cabeceras. curl -s http://localhost:4000/api/clientes | head -c 400  # 2. Comprobar un cliente concreto curl -s http://localhost:4000/api/clientes/1 
+```
+
+En DevTools → Network, la petición `PATCH /api/clientes/1` debe llevar el cuerpo correcto y responder `200`. **Sin** cabecera `Authorization`: en Fase I no existe todavía.
+
+> **Si usas el backend consolidado**, la misma llamada responde `401 {"error":"Missing Bearer token"}`. No añadas el token a mano para «hacer pasar» la Fase I: el objetivo es que el CRUD esté terminado y probado antes de abrir la Fase II. El token, el interceptor y el login son ISS-08.
+
+## Verificación del ISS
+
+```         
+# 1. La utilidad de filtro es pura y está probada grep -n "export function filterRows" src/app/core/utils/filter-rows.ts  # 2. El formulario no llama a la API: solo emite grep -n "output<ClientPayload>\|output<void>" \   src/app/features/clients/client-form/client-form.ts  # 3. La lista usa computed y no tiene métodos de filtrado imperativos grep -n "computed(" src/app/features/clients/client-list/client-list.ts grep -n "applyFilter" src/app/features/clients/client-list/client-list.ts || echo "sin applyFilter: correcto"  # 4. Las plantillas de la tabla usan la API de PrimeNG 22 grep -n "#caption\|#header\|#body\|#emptymessage" \   src/app/features/clients/client-list/client-list.html grep -n "pTemplate=" src/app/features/clients/client-list/client-list.html || echo "sin pTemplate: correcto"  # 5. La ruta existe y el menú apunta a ella grep -n "clientes" src/app/app.routes.ts src/app/layout/shell/shell.ts  # 6. Los CSS siguen sin reglas (ninguno contiene llaves) for f in src/app/features/clients/**/*.css; do   grep -q '[{}]' "$f" && echo "REGLAS EN $f" done  # 7. Pruebas y build npm test -- --watch=false ng build 
+```
+
+![](images/clipboard-3838539378.png)
+
+![](images/clipboard-1570149323.png)
+
+![![](images/clipboard-3710513080.png)](images/clipboard-1789096749.png)
+
+![](images/clipboard-2502362928.png)

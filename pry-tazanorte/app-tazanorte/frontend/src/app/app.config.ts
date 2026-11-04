@@ -1,3 +1,4 @@
+import { provideHttpClient } from '@angular/common/http';
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
@@ -37,6 +38,10 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
+
+    // Habilita HttpClient para los servicios `*Api`.
+    // Sin interceptores de sesión: el authInterceptor llega en ISS-08.
+    provideHttpClient(),
 
     MessageService,
     ConfirmationService,

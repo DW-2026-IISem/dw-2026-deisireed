@@ -1,0 +1,106 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+  <div class="grid gap-4 sm:grid-cols-3">
+    <div>
+      <label for="client-doc-type" class="mb-1 block text-sm font-medium text-slate-700">
+        Tipo de documento <span class="text-red-500">*</span>
+      </label>
+      <p-select
+        inputId="client-doc-type"
+        formControlName="tipo_documento"
+        [options]="documentTypes"
+        optionLabel="label"
+        optionValue="value"
+        [fluid]="true"
+      />
+    </div>
+
+    <div class="sm:col-span-2">
+      <label for="client-doc-number" class="mb-1 block text-sm font-medium text-slate-700">
+        Número de documento <span class="text-red-500">*</span>
+      </label>
+      <input
+        id="client-doc-number"
+        pInputText
+        formControlName="numero_documento"
+        placeholder="1020304050"
+        class="w-full"
+      />
+      @if (form.controls.numero_documento.touched && form.controls.numero_documento.invalid) {
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+          El número de documento es obligatorio (máximo 30 caracteres).
+        </p-message>
+      }
+    </div>
+  </div>
+
+  <div>
+    <label for="client-name" class="mb-1 block text-sm font-medium text-slate-700">
+      Nombre <span class="text-red-500">*</span>
+    </label>
+    <input
+      id="client-name"
+      pInputText
+      formControlName="nombre"
+      placeholder="Ana Pérez"
+      autocomplete="name"
+      class="w-full"
+    />
+    @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+        El nombre es obligatorio.
+      </p-message>
+    }
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="client-phone" class="mb-1 block text-sm font-medium text-slate-700">
+        Teléfono
+      </label>
+      <input
+        id="client-phone"
+        pInputText
+        formControlName="telefono"
+        placeholder="300 000 0000"
+        autocomplete="tel"
+        class="w-full"
+      />
+    </div>
+
+    <div>
+      <label for="client-email" class="mb-1 block text-sm font-medium text-slate-700">
+        Email
+      </label>
+      <input
+        id="client-email"
+        type="email"
+        pInputText
+        formControlName="email"
+        placeholder="cliente@correo.com"
+        autocomplete="email"
+        class="w-full"
+      />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+          Formato de email inválido.
+        </p-message>
+      }
+    </div>
+  </div>
+
+  @if (client()) {
+    <p class="text-xs text-slate-500">
+      El estado de un cliente existente solo cambia con la baja lógica.
+    </p>
+  }
+
+  <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
+    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()">
+      <span pButtonLabel>Cancelar</span>
+    </button>
+    <button pButton type="submit" [loading]="saving()">
+      <i pButtonIcon class="pi pi-check"></i>
+      <span pButtonLabel>Guardar</span>
+    </button>
+  </div>
+</form>
