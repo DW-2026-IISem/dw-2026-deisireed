@@ -1489,6 +1489,8 @@ ng generate component features/product-sales/product-sale-list --skip-tests --de
 cat > src/app/features/product-sales/product-sale-api.ts <<'EOF' import { HttpClient } from '@angular/common/http'; import { Injectable, inject } from '@angular/core'; import { Observable, map } from 'rxjs'; import { environment } from '../../../environments/environment'; import { ProductSale, ProductSalePayload } from '../../core/models/product-sale.model';  /** /api/detalle-ventas — agregar/editar líneas ajusta stock y totales. */ @Injectable({ providedIn: 'root' }) export class ProductSaleApi {   private readonly http = inject(HttpClient);   private readonly base = `${environment.apiUrl}/detalle-ventas`;    list(): Observable<ProductSale[]> {     return this.http       .get<{ product_sales: ProductSale[] }>(this.base)       .pipe(map((response) => response.product_sales));   }    get(id: number): Observable<ProductSale> {     return this.http       .get<{ product_sale: ProductSale }>(`${this.base}/${id}`)       .pipe(map((response) => response.product_sale));   }    create(payload: ProductSalePayload): Observable<ProductSale> {     return this.http       .post<{ product_sale: ProductSale }>(this.base, payload)       .pipe(map((response) => response.product_sale));   }    /** PATCH solo acepta `quantity`: el estado se cambia con `/deactivate`. */   update(id: number, payload: { quantity: number }): Observable<ProductSale> {     return this.http       .patch<{ product_sale: ProductSale }>(`${this.base}/${id}`, payload)       .pipe(map((response) => response.product_sale));   }    deactivate(id: number): Observable<unknown> {     return this.http.patch(`${this.base}/${id}/deactivate`, {});   }    remove(id: number): Observable<unknown> {     return this.http.delete(`${this.base}/${id}`);   } } EOF 
 ```
 
+![](images/clipboard-703992120.png)
+
 ## 7.4 Formulario de línea
 
 En **edición** solo se permite cambiar `quantity`; `sale_id`, `product_id` y `status` se deshabilitan porque el backend no los actualiza por PATCH (el estado solo cambia con `PATCH /:id/deactivate`).
@@ -1509,6 +1511,8 @@ En `ProductSaleList.save(value)`:
 const request = current   ? this.api.update(current.id, { quantity: value.quantity })   : this.api.create(value); 
 ```
 
+![](images/clipboard-2772702732.png)
+
 ## 7.5 `SaleDetail`: cabecera + líneas
 
 `SaleDetail` es un componente **presentacional** (no llama al backend). Recibe la venta ya cargada desde `SaleList` y resuelve nombres de producto con un `Map`.
@@ -1524,6 +1528,8 @@ Uso desde `SaleList`:
 ```
 
 > `input.required<Sale>()` garantiza que el padre no olvide pasar la venta. Si el `@if` es falso, el componente no se instancia y no hay error.
+
+![](images/clipboard-591930629.png)
 
 ## 7.6 Dashboard: cuatro peticiones en paralelo
 
@@ -1545,6 +1551,8 @@ export function toNumber(value: Money | null | undefined): number {   if (value 
 
 Sin `toNumber`, `revenue()` podría concatenar strings y mostrar un total absurdo. Es la misma trampa que en ISS-06, pero aquí se centraliza.
 
+![](images/clipboard-1689129133.png)
+
 ## 7.7 Tarjetas del dashboard
 
 ```         
@@ -1561,120 +1569,4 @@ Secciones:
 
 4.  **Sesión** (solo Fase II): usuario, roles y número de permisos.
 
-## 7.8 Rutas de cierre de Fase I
-
-**Debajo** de `ventas/nueva`:
-
-```         
-{   path: 'detalle-ventas',   title: 'Detalle de ventas · StoreLab',   loadComponent: () =>     import('./features/product-sales/product-sale-list/product-sale-list').then(       (m) => m.ProductSaleList,     ), }, 
-```
-
-La ruta del dashboard debe existir desde ISS-02:
-
-```         
-{   path: 'dashboard',   title: 'Panel · StoreLab',   loadComponent: () =>     import('./features/dashboard/dashboard').then((m) => m.Dashboard), }, 
-```
-
-## Criterios de aceptación (ISS-07)
-
-1.  `/detalle-ventas` lista las líneas con venta y producto resueltos.
-
-2.  Crear una línea actualiza stock y totales de la venta (verifícalo con `curl`).
-
-3.  Editar una línea solo permite cantidad; el estado se gestiona con la baja lógica.
-
-4.  El diálogo de detalle de venta muestra cabecera, líneas y total.
-
-5.  El dashboard carga sin errores y los KPIs coinciden con los listados.
-
-6.  `lowStock()` y `revenue()` se recalculan al recargar los datos.
-
-7.  **Fase I completa:** con el backend antes de su ISS-13 funcionan sin autenticación. `requireAuth` no se lee hasta ISS-08, así que no hay que cambiarlo para esta comprobación. Si usas el backend consolidado, su mitad del interruptor es `AUTH_ENABLED=false` en el `.env` (ISS-11 §11.1); con `AUTH_ENABLED=true` estas rutas responden `401` y eso se resuelve en Fase II.
-
-8.  `ng serve` compila sin errores.
-
-## Comprobación de cierre de Fase I
-
-```         
-# 1. Build de producción ng build  # 2. Endpoints de negocio for path in clientes tipos-producto productos ventas detalle-ventas; do   echo "== $path"   curl -s -o /dev/null -w "%{http_code}\n" "http://localhost:4000/api/$path" done 
-```
-
-Todos deben responder `200`. Si responden `401`, el backend ya está en modo Fase II: no es un fallo de Fase I, es la señal de continuar con ISS-08.
-
-### Cierre de Fase I
-
-Antes de abrir ISS-08, confirma que **no** existe ninguna pieza de Fase II en el código. La Fase I se cierra cuando:
-
-- [ ] Las cinco pantallas de negocio (`clientes`, `tipos-producto`, `productos`, `ventas`, `detalle-ventas`) hacen su CRUD contra `/api/*`.
-
-- [ ] El dashboard agrega datos sin llamadas duplicadas.
-
-- [ ] No hay `interceptor`, `guard`, `SessionStore` ni `*appHasPermission`.
-
-- [ ] No hay `Authorization` en ninguna petición (Network).
-
-- [ ] `npm test -- --watch=false` y `ng build` pasan.
-
-- [ ] El menú del Shell tiene las entradas de negocio, sin filtrar.
-
-Checklist visual en [`http://localhost:4200`](http://localhost:4200):
-
-- [ ] `/dashboard` muestra KPIs y tablas.
-
-- [ ] `/clientes` permite CRUD completo.
-
-- [ ] `/tipos-producto` permite CRUD completo.
-
-- [ ] `/productos` muestra tipo, precio y stock con semáforo.
-
-- [ ] `/ventas` lista y cancela.
-
-- [ ] `/ventas/nueva` crea una venta con varias líneas.
-
-- [ ] `/detalle-ventas` lista y edita líneas.
-
-**Siguiente:** ISS-08 abre la **Fase II** con el formulario de sesión, JWT y refresh rotation.
-
-## Integración con el esqueleto
-
-Mantén Header, Aside y Footer en Shell. Agrega la ruta de esta entidad en `children` y su entrada `routerLink` en el menú de Shell. La pantalla no vuelve a declarar el layout. En el proyecto consolidado el menú se llama `NAV` y se filtra por permisos; el recorrido de práctica empieza con `items` estático.
-
-## Correspondencia con el código
-
-Esta guía es la que contiene los comandos (`ng new`, `ng generate`, `cat >`) y la explicación paso a paso para construir el frontend desde cero. El código no se duplica en `docs/`: la referencia completa son los archivos reales del proyecto, enlazados al final de esta ISS.
-
-Los ejemplos breves muestran incrementos y no sustituyen todos los archivos del componente. Las configuraciones de las primeras etapas omiten deliberadamente la sesión y las rutas que se construyen después; en el proyecto consolidado la seguridad final está activa. No combines imports de una etapa final con stubs que todavía no implementaste.
-
-## Código completo de referencia
-
-Los fragmentos de esta ISS se estudian por incrementos. Estos archivos contienen la implementación consolidada, incluida la seguridad de la fase final:
-
-- src/app/features/dashboard/dashboard.css (`src/app/features/dashboard/dashboard.css`).
-
-- src/app/features/dashboard/dashboard.html (`src/app/features/dashboard/dashboard.html`).
-
-- src/app/features/dashboard/dashboard.ts (`src/app/features/dashboard/dashboard.ts`).
-
-- src/app/features/product-sales/product-sale-api.ts (`src/app/features/product-sales/product-sale-api.ts`).
-
-- src/app/features/product-sales/product-sale-form/product-sale-form.css (`src/app/features/product-sales/product-sale-form/product-sale-form.css` — no existe en la copia inspeccionada).
-
-- src/app/features/product-sales/product-sale-form/product-sale-form.html (`src/app/features/product-sales/product-sale-form/product-sale-form.html` — no existe en la copia inspeccionada).
-
-- src/app/features/product-sales/product-sale-form/product-sale-form.ts (`src/app/features/product-sales/product-sale-form/product-sale-form.ts` — no existe en la copia inspeccionada).
-
-- src/app/features/product-sales/product-sale-list/product-sale-list.css (`src/app/features/product-sales/product-sale-list/product-sale-list.css`).
-
-- src/app/features/product-sales/product-sale-list/product-sale-list.html (`src/app/features/product-sales/product-sale-list/product-sale-list.html`).
-
-- src/app/features/product-sales/product-sale-list/product-sale-list.ts (`src/app/features/product-sales/product-sale-list/product-sale-list.ts`).
-
-- src/app/features/sales/sale-detail/sale-detail.css (`src/app/features/sales/sale-detail/sale-detail.css`).
-
-- src/app/features/sales/sale-detail/sale-detail.html (`src/app/features/sales/sale-detail/sale-detail.html`).
-
-- src/app/features/sales/sale-detail/sale-detail.ts (`src/app/features/sales/sale-detail/sale-detail.ts`).
-
-> **Unidad ISS-08 · Autenticación JWT, perfil y permisos efectivos** — capa **🛠 CONSTRUIR**
->
-> [🧠 Comprender este bloque →](https://tecnogua.com/academic/site/frontend2026/express/aprender/ISS-08-autenticacion-jwt-y-refresh/) · [↑ Ruta Frontend-Express](https://tecnogua.com/academic/site/frontend2026/express/)
+![](images/clipboard-234915787.png)
