@@ -42,12 +42,12 @@ export class Login {
     const { identifier, password } = this.form.getRawValue();
     this.auth.login({ identifier: identifier.trim(), password }).subscribe({
       next: () => {
-        const requested = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
+        const requested = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
         // Solo rutas internas: evita open redirects.
         const returnUrl =
           requested.startsWith('/') && !requested.startsWith('//') && !requested.startsWith('/login')
             ? requested
-            : '/dashboard';
+            : '/';
         void this.router.navigateByUrl(returnUrl);
       },
       error: (error: unknown) => {

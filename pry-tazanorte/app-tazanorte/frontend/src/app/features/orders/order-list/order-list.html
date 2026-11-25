@@ -7,7 +7,7 @@
     <i pButtonIcon class="pi pi-refresh"></i>
     <span pButtonLabel>Recargar</span>
   </button>
-  <a pButton routerLink="/pedidos/nuevo">
+  <a pButton *appHasPermission="'POST /api/pedidos'" routerLink="/pedidos/nuevo">
     <i pButtonIcon class="pi pi-plus"></i>
     <span pButtonLabel>Nuevo pedido</span>
   </a>
@@ -81,7 +81,7 @@
                 size="small"
                 severity="secondary"
                 outlined
-                (click)="advance(order, next)"
+                *appHasPermission="'PATCH /api/pedidos/:id/estado'" (click)="advance(order, next)"
               >
                 <span pButtonLabel>{{ stateText(next) }}</span>
               </button>
@@ -107,7 +107,7 @@
                 icon="pi pi-ban"
                 aria-label="Cancelar pedido"
                 pTooltip="Cancelar"
-                (click)="cancel(order)"
+                *appHasPermission="'PATCH /api/pedidos/:id/deactivate'" (click)="cancel(order)"
               ></button>
             }
             @if (order.estado === 'pendiente') {
@@ -120,7 +120,7 @@
                 icon="pi pi-trash"
                 aria-label="Eliminar pedido"
                 pTooltip="Eliminar"
-                (click)="remove(order)"
+                *appHasPermission="'DELETE /api/pedidos/:id'" (click)="remove(order)"
               ></button>
             }
           </div>

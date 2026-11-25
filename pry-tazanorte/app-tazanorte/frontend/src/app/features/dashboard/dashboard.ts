@@ -7,7 +7,8 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { SessionStore } from '../../core/services/session-store';
 import { ClientRef, Order, OrderState, ProductRef } from '../../core/models/order.model';
 import { ORDER_STATE_LABEL, httpMessage, orderSeverity, toNumber } from '../../core/utils/order-utils';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
@@ -40,6 +41,7 @@ const PAID_STATES: OrderState[] = ['pagado', 'en_preparacion', 'entregado'];
 export class Dashboard {
   private readonly ordersApi = inject(OrderApi);
   private readonly catalog = inject(OrderCatalogApi);
+  private readonly session = inject(SessionStore);
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -108,7 +110,7 @@ export class Dashboard {
     this.loading.set(true);
     this.error.set(null);
     forkJoin({
-      clients: this.catalog.clients(),
+      clients: this.session.canPermission('GET /api/clientes') ? this.catalog.clients() : of([]),
       products: this.catalog.products(),
       orders: this.ordersApi.list(),
     }).subscribe({

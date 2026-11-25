@@ -8,7 +8,7 @@
     severity="secondary"
     [rounded]="true"
   />
-  <button pButton type="button" (click)="openCreate()">
+  <button pButton type="button" *appHasPermission="'POST /api/productos'" (click)="openCreate()">
     <i pButtonIcon class="pi pi-plus"></i>
     <span pButtonLabel>Nuevo producto</span>
   </button>
@@ -77,11 +77,11 @@
         <td>
           <div class="flex justify-end gap-1">
             <button pButton type="button" text rounded severity="secondary" icon="pi pi-pencil"
-              aria-label="Editar producto" pTooltip="Editar" (click)="openEdit(product)"></button>
+              aria-label="Editar producto" pTooltip="Editar" *appHasPermission="'PATCH /api/productos/:id'" (click)="openEdit(product)"></button>
             <button pButton type="button" text rounded severity="warn" icon="pi pi-ban"
-              aria-label="Dar de baja el producto" pTooltip="Baja lógica" (click)="deactivate(product)"></button>
+              aria-label="Dar de baja el producto" pTooltip="Baja lógica" *appHasPermission="'PATCH /api/productos/:id/deactivate'" (click)="deactivate(product)"></button>
             <button pButton type="button" text rounded severity="danger" icon="pi pi-trash"
-              aria-label="Eliminar producto" pTooltip="Eliminar" (click)="remove(product)"></button>
+              aria-label="Eliminar producto" pTooltip="Eliminar" *appHasPermission="'DELETE /api/productos/:id'" (click)="remove(product)"></button>
           </div>
         </td>
       </tr>

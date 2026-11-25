@@ -7,7 +7,7 @@
     <i pButtonIcon class="pi pi-refresh"></i>
     <span pButtonLabel>Recargar</span>
   </button>
-  <button pButton type="button" (click)="openCreate()">
+  <button pButton type="button" *appHasPermission="'POST /api/detalle-pedidos'" (click)="openCreate()">
     <i pButtonIcon class="pi pi-plus"></i>
     <span pButtonLabel>Agregar línea</span>
   </button>
@@ -77,13 +77,13 @@
           <div class="flex justify-end gap-1">
             <button pButton type="button" text rounded severity="secondary" icon="pi pi-pencil"
               aria-label="Editar línea" pTooltip="Editar" [disabled]="!isEditable(item)"
-              (click)="openEdit(item)"></button>
+              *appHasPermission="'PATCH /api/detalle-pedidos/:id'" (click)="openEdit(item)"></button>
             <button pButton type="button" text rounded severity="warn" icon="pi pi-ban"
               aria-label="Desactivar línea" pTooltip="Baja lógica" [disabled]="!isEditable(item)"
-              (click)="deactivate(item)"></button>
+              *appHasPermission="'PATCH /api/detalle-pedidos/:id/deactivate'" (click)="deactivate(item)"></button>
             <button pButton type="button" text rounded severity="danger" icon="pi pi-trash"
               aria-label="Eliminar línea" pTooltip="Eliminar" [disabled]="!isEditable(item)"
-              (click)="remove(item)"></button>
+              *appHasPermission="'DELETE /api/detalle-pedidos/:id'" (click)="remove(item)"></button>
           </div>
         </td>
       </tr>

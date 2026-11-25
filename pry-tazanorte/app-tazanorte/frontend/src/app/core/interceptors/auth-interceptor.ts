@@ -67,6 +67,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
 function redirectToLogin(session: SessionStore, router: Router): void {
   session.clear();
-  const returnUrl = router.url.startsWith('/login') ? '/dashboard' : router.url;
+  const returnUrl = router.url.startsWith('/login') ? '/' : router.url;
   void router.navigate(['/login'], { queryParams: { returnUrl } });
 }

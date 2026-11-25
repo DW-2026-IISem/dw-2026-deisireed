@@ -11,6 +11,7 @@ import { watchMediaQuery } from '../../core/utils/media-query';
 import { Aside } from '../aside/aside';
 import { Footer } from '../footer/footer';
 import { Header } from '../header/header';
+import { NAV } from './nav.config';
 
 @Component({
   host: { class: 'block' },
@@ -30,16 +31,21 @@ export class Shell {
   readonly sidebarCollapsed = signal(false);
   readonly mobileOpen = signal(false);
 
-  /** Menú estático; ISS-09 lo filtra por permisos. */
-  readonly items: MenuItem[] = [
-    { label: 'Panel', icon: 'pi pi-chart-bar', routerLink: '/dashboard' },
-    { label: 'Pedidos', icon: 'pi pi-shopping-cart', routerLink: '/pedidos' },
-    { label: 'Detalle de pedidos', icon: 'pi pi-list', routerLink: '/detalle-pedidos' },
-    { label: 'Productos', icon: 'pi pi-box', routerLink: '/productos' },
-    { label: 'Clientes', icon: 'pi pi-users', routerLink: '/clientes' },
-    { label: 'Empleados', icon: 'pi pi-id-card', routerLink: '/empleados' },
-    { label: 'Turnos de caja', icon: 'pi pi-clock', routerLink: '/turnos-caja' },
-  ];
+  /** Se recalcula cuando cambian los permisos (login o «Actualizar permisos»). */
+  readonly navGroups = computed<MenuItem[]>(() =>
+    NAV.map((group) => ({
+      label: group.label,
+      expanded: true,
+      items: group.items
+        .filter((item) => !item.permission || this.session.canPermission(item.permission))
+        .map<MenuItem>((item) => ({
+          label: item.label,
+          icon: item.icon,
+          routerLink: item.routerLink,
+          routerLinkActiveOptions: { exact: true },
+        })),
+    })).filter((group) => (group.items?.length ?? 0) > 0),
+  );
 
   readonly username = computed(() => this.session.user()?.username ?? '');
 

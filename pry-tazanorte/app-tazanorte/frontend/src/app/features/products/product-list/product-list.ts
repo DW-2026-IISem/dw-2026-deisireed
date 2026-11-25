@@ -1,3 +1,4 @@
+import { HasPermission } from '../../../shared/directives/has-permission';
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
@@ -24,6 +25,7 @@ import { ProductForm } from '../product-form/product-form';
   host: { class: 'block' },
   selector: 'app-product-list',
   imports: [
+    HasPermission,
     CurrencyPipe,
     ButtonModule,
     DialogModule,

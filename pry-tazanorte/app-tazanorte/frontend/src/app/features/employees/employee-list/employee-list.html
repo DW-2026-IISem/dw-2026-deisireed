@@ -3,7 +3,7 @@
   subtitle="Personal de la cafetería. Cada turno de caja se asigna a un empleado activo."
 >
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
-  <button pButton type="button" (click)="openCreate()">
+  <button pButton type="button" *appHasPermission="'POST /api/empleados'" (click)="openCreate()">
     <i pButtonIcon class="pi pi-plus"></i>
     <span pButtonLabel>Nuevo empleado</span>
   </button>
@@ -74,7 +74,7 @@
               icon="pi pi-pencil"
               aria-label="Editar empleado"
               pTooltip="Editar"
-              (click)="openEdit(row)"
+              *appHasPermission="'PATCH /api/empleados/:id'" (click)="openEdit(row)"
             ></button>
             <button
               pButton
@@ -85,7 +85,7 @@
               icon="pi pi-ban"
               aria-label="Dar de baja al empleado"
               pTooltip="Baja lógica"
-              (click)="deactivate(row)"
+              *appHasPermission="'PATCH /api/empleados/:id/deactivate'" (click)="deactivate(row)"
             ></button>
             <button
               pButton
@@ -96,7 +96,7 @@
               icon="pi pi-trash"
               aria-label="Eliminar empleado"
               pTooltip="Eliminar"
-              (click)="remove(row)"
+              *appHasPermission="'DELETE /api/empleados/:id'" (click)="remove(row)"
             ></button>
           </div>
         </td>

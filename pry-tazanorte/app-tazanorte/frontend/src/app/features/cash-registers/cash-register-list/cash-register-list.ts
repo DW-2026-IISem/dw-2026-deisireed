@@ -1,3 +1,4 @@
+import { HasPermission } from '../../../shared/directives/has-permission';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -7,7 +8,8 @@ import { MessageModule } from 'primeng/message';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { SessionStore } from '../../../core/services/session-store';
 import {
   CashRegister,
   CashRegisterPayload,
@@ -27,6 +29,7 @@ import { CashRegisterForm } from '../cash-register-form/cash-register-form';
   host: { class: 'block' },
   selector: 'app-cash-register-list',
   imports: [
+    HasPermission,
     ButtonModule,
     DialogModule,
     EmptyState,
@@ -45,6 +48,7 @@ import { CashRegisterForm } from '../cash-register-form/cash-register-form';
 export class CashRegisterList {
   private readonly api = inject(CashRegisterApi);
   private readonly employeesApi = inject(EmployeeApi);
+  private readonly session = inject(SessionStore);
   private readonly notify = inject(NotificationService);
   private readonly confirmation = inject(ConfirmationService);
 
@@ -91,7 +95,7 @@ export class CashRegisterList {
 
     forkJoin({
       registers: this.api.list(),
-      employees: this.employeesApi.list(),
+      employees: this.session.canPermission('GET /api/empleados') ? this.employeesApi.list() : of([]),
     }).subscribe({
       next: ({ registers, employees }) => {
         this.rows.set(registers);

@@ -1,3 +1,4 @@
+import { HasPermission } from '../../../shared/directives/has-permission';
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -11,7 +12,8 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { SessionStore } from '../../../core/services/session-store';
 import { OrderItem } from '../../../core/models/order-item.model';
 import { ClientRef, Order, OrderState, ProductRef } from '../../../core/models/order.model';
 import { NotificationService } from '../../../core/services/notification';
@@ -30,6 +32,7 @@ import { OrderItemApi } from '../order-item-api';
   host: { class: 'block' },
   selector: 'app-order-item-list',
   imports: [
+    HasPermission,
     CurrencyPipe,
     FormsModule,
     ButtonModule,
@@ -51,6 +54,7 @@ export class OrderItemList {
   private readonly api = inject(OrderItemApi);
   private readonly ordersApi = inject(OrderApi);
   private readonly catalog = inject(OrderCatalogApi);
+  private readonly session = inject(SessionStore);
   private readonly notify = inject(NotificationService);
   private readonly confirmation = inject(ConfirmationService);
 
@@ -114,7 +118,7 @@ export class OrderItemList {
     forkJoin({
       items: this.api.list(),
       orders: this.ordersApi.list(),
-      clients: this.catalog.clients(),
+      clients: this.session.canPermission('GET /api/clientes') ? this.catalog.clients() : of([]),
       products: this.catalog.products(),
     }).subscribe({
       next: ({ items, orders, clients, products }) => {

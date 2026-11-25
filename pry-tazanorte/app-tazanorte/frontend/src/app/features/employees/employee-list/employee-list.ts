@@ -1,3 +1,4 @@
+import { HasPermission } from '../../../shared/directives/has-permission';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -21,6 +22,7 @@ import { EmployeeForm } from '../employee-form/employee-form';
   host: { class: 'block' },
   selector: 'app-employee-list',
   imports: [
+    HasPermission,
     ButtonModule,
     DialogModule,
     EmptyState,

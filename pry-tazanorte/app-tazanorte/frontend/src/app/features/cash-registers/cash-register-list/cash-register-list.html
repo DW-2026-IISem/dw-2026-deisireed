@@ -3,7 +3,7 @@
   subtitle="Cada turno pertenece a un empleado activo. Los pedidos se registran sobre un turno."
 >
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
-  <button pButton type="button" (click)="openCreate()">
+  <button pButton type="button" *appHasPermission="'POST /api/turnos-caja'" (click)="openCreate()">
     <i pButtonIcon class="pi pi-plus"></i>
     <span pButtonLabel>Nuevo turno</span>
   </button>
@@ -79,7 +79,7 @@
               icon="pi pi-pencil"
               aria-label="Editar turno"
               pTooltip="Editar"
-              (click)="openEdit(row)"
+              *appHasPermission="'PATCH /api/turnos-caja/:id'" (click)="openEdit(row)"
             ></button>
             <button
               pButton
@@ -90,7 +90,7 @@
               icon="pi pi-ban"
               aria-label="Dar de baja al turno"
               pTooltip="Baja lógica"
-              (click)="deactivate(row)"
+              *appHasPermission="'PATCH /api/turnos-caja/:id/deactivate'" (click)="deactivate(row)"
             ></button>
             <button
               pButton
@@ -101,7 +101,7 @@
               icon="pi pi-trash"
               aria-label="Eliminar turno"
               pTooltip="Eliminar"
-              (click)="remove(row)"
+              *appHasPermission="'DELETE /api/turnos-caja/:id'" (click)="remove(row)"
             ></button>
           </div>
         </td>
