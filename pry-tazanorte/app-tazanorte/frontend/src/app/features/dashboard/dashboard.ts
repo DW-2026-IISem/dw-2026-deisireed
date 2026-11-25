@@ -8,16 +8,19 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { forkJoin } from 'rxjs';
-import { ClientRef, Order, ProductRef } from '../../core/models/order.model';
-import {
-  ORDER_STATE_LABEL,
-  httpMessage,
-  orderSeverity,
-  toNumber,
-} from '../../core/utils/order-utils';
+import { ClientRef, Order, OrderState, ProductRef } from '../../core/models/order.model';
+import { ORDER_STATE_LABEL, httpMessage, orderSeverity, toNumber } from '../../core/utils/order-utils';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { OrderApi, OrderCatalogApi } from '../orders/order-api';
 
+const PAID_STATES: OrderState[] = ['pagado', 'en_preparacion', 'entregado'];
+
+/**
+ * Panel: 3 peticiones en paralelo (forkJoin) y todo lo demás es `computed`.
+ * La API entrega datos crudos; los indicadores se derivan en el cliente.
+ */
 @Component({
+  host: { class: 'block' },
   selector: 'app-dashboard',
   imports: [
     CurrencyPipe,
@@ -26,6 +29,7 @@ import { OrderApi, OrderCatalogApi } from '../orders/order-api';
     ButtonModule,
     CardModule,
     MessageModule,
+    PageHeader,
     SkeletonModule,
     TableModule,
     TagModule,
@@ -44,23 +48,20 @@ export class Dashboard {
   readonly products = signal<ProductRef[]>([]);
   readonly orders = signal<Order[]>([]);
 
-  readonly stateLabel = ORDER_STATE_LABEL;
-
   readonly severity = orderSeverity;
 
-  stateText(state: Order['estado']): string {
-    return ORDER_STATE_LABEL[state];
-  }
+  /** Pedidos por atender (sustituye al «stock bajo» de la guía). */
+  readonly pending = computed(() => this.orders().filter((o) => o.estado === 'pendiente'));
 
+  readonly paid = computed(() => this.orders().filter((o) => PAID_STATES.includes(o.estado)));
 
-  /** Reemplaza el "stock bajo" de la guía: aquí no hay stock, sí pedidos por atender. */
-  readonly pending = computed(() => this.orders().filter((order) => order.estado === 'pendiente'));
-
-  /** Ingresos = pedidos ya pagados (pagado, en preparación o entregado). */
+  /** Ingresos = pedidos pagados, en preparación o entregados. */
   readonly revenue = computed(() =>
-    this.orders()
-      .filter((order) => ['pagado', 'en_preparacion', 'entregado'].includes(order.estado))
-      .reduce((sum, order) => sum + toNumber(order.total), 0),
+    this.paid().reduce((sum, order) => sum + toNumber(order.total), 0),
+  );
+
+  readonly avgTicket = computed(() =>
+    this.paid().length ? this.revenue() / this.paid().length : 0,
   );
 
   readonly latestOrders = computed(() =>
@@ -79,7 +80,7 @@ export class Dashboard {
     return (id: number) => map.get(id) ?? `Cliente #${id}`;
   });
 
-  /** Top 5 de productos por unidades vendidas (líneas activas de pedidos no cancelados). */
+  /** Top 5 por unidades (líneas activas de pedidos no cancelados). */
   readonly topProducts = computed(() => {
     const totals = new Map<number, number>();
     for (const order of this.orders()) {
@@ -97,6 +98,10 @@ export class Dashboard {
 
   constructor() {
     this.load();
+  }
+
+  stateText(state: OrderState): string {
+    return ORDER_STATE_LABEL[state];
   }
 
   load(): void {

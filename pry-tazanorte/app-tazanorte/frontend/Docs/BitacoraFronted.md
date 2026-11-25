@@ -1489,7 +1489,7 @@ ng generate component features/product-sales/product-sale-list --skip-tests --de
 cat > src/app/features/product-sales/product-sale-api.ts <<'EOF' import { HttpClient } from '@angular/common/http'; import { Injectable, inject } from '@angular/core'; import { Observable, map } from 'rxjs'; import { environment } from '../../../environments/environment'; import { ProductSale, ProductSalePayload } from '../../core/models/product-sale.model';  /** /api/detalle-ventas — agregar/editar líneas ajusta stock y totales. */ @Injectable({ providedIn: 'root' }) export class ProductSaleApi {   private readonly http = inject(HttpClient);   private readonly base = `${environment.apiUrl}/detalle-ventas`;    list(): Observable<ProductSale[]> {     return this.http       .get<{ product_sales: ProductSale[] }>(this.base)       .pipe(map((response) => response.product_sales));   }    get(id: number): Observable<ProductSale> {     return this.http       .get<{ product_sale: ProductSale }>(`${this.base}/${id}`)       .pipe(map((response) => response.product_sale));   }    create(payload: ProductSalePayload): Observable<ProductSale> {     return this.http       .post<{ product_sale: ProductSale }>(this.base, payload)       .pipe(map((response) => response.product_sale));   }    /** PATCH solo acepta `quantity`: el estado se cambia con `/deactivate`. */   update(id: number, payload: { quantity: number }): Observable<ProductSale> {     return this.http       .patch<{ product_sale: ProductSale }>(`${this.base}/${id}`, payload)       .pipe(map((response) => response.product_sale));   }    deactivate(id: number): Observable<unknown> {     return this.http.patch(`${this.base}/${id}/deactivate`, {});   }    remove(id: number): Observable<unknown> {     return this.http.delete(`${this.base}/${id}`);   } } EOF 
 ```
 
-![](images/clipboard-703992120.png)
+![](images/clipboard-932630858.png)
 
 ## 7.4 Formulario de línea
 
@@ -1511,7 +1511,7 @@ En `ProductSaleList.save(value)`:
 const request = current   ? this.api.update(current.id, { quantity: value.quantity })   : this.api.create(value); 
 ```
 
-![](images/clipboard-2772702732.png)
+![](images/clipboard-3340356166.png)
 
 ## 7.5 `SaleDetail`: cabecera + líneas
 
@@ -1551,22 +1551,8 @@ export function toNumber(value: Money | null | undefined): number {   if (value 
 
 Sin `toNumber`, `revenue()` podría concatenar strings y mostrar un total absurdo. Es la misma trampa que en ISS-06, pero aquí se centraliza.
 
-![](images/clipboard-1689129133.png)
+![](images/clipboard-1879940633.png)
 
-## 7.7 Tarjetas del dashboard
+![](images/clipboard-748619196.png)
 
-```         
-@if (loading()) {   <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">     @for (i of [1, 2, 3, 4]; track i) {       <p-skeleton height="6rem" borderRadius="1rem" />     }   </div> } @else {   <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">     <!-- Clientes, Productos, Ventas, Ingresos -->   </div> } 
-```
-
-Secciones:
-
-1.  **KPIs**: clientes, productos, ventas, ingresos.
-
-2.  **Stock bajo**: tabla de productos con `quantity <= min_stock`.
-
-3.  **Últimas ventas**: enlace al listado y estado.
-
-4.  **Sesión** (solo Fase II): usuario, roles y número de permisos.
-
-![](images/clipboard-234915787.png)
+![](images/clipboard-4264508579.png)

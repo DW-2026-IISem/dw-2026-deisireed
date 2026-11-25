@@ -1,120 +1,196 @@
-<div class="mx-auto max-w-7xl space-y-4 p-4">
-  <div class="flex flex-wrap items-center justify-between gap-2">
-    <h1 class="text-2xl font-semibold">Detalle de pedidos</h1>
-    <div class="flex gap-2">
-      <button pButton type="button" label="Recargar" icon="pi pi-refresh" severity="secondary" [loading]="loading()" (click)="load()"></button>
-      <button pButton type="button" label="Agregar línea" icon="pi pi-plus" (click)="openCreate()"></button>
-    </div>
-  </div>
+<app-page-header
+  title="Detalle de pedidos"
+  subtitle="El flujo normal es «Nuevo pedido». Aquí se corrigen líneas mientras el pedido esté pendiente."
+>
+  <p-tag [value]="items().length + ' líneas'" severity="info" [rounded]="true" />
+  <button pButton type="button" severity="secondary" outlined [loading]="loading()" (click)="load()">
+    <i pButtonIcon class="pi pi-refresh"></i>
+    <span pButtonLabel>Recargar</span>
+  </button>
+  <button pButton type="button" (click)="openCreate()">
+    <i pButtonIcon class="pi pi-plus"></i>
+    <span pButtonLabel>Agregar línea</span>
+  </button>
+</app-page-header>
 
-  <p class="text-sm text-slate-500">
-    El flujo normal es crear el pedido completo en «Nuevo pedido». Aquí se corrigen líneas; solo se puede
-    editar mientras el pedido esté pendiente.
-  </p>
+@if (error(); as message) {
+  <p-message severity="error" styleClass="mb-4 w-full">{{ message }}</p-message>
+}
 
-  @if (error(); as message) {
-    @if (!dialogVisible()) {
-      <p-message severity="error">{{ message }}</p-message>
-    }
-  }
-
-  <div class="overflow-x-auto">
-    <p-table [value]="items()" [loading]="loading()" [paginator]="true" [rows]="10" tableStyleClass="min-w-5xl">
-      <ng-template #header>
-        <tr>
-          <th>#</th>
-          <th>Pedido</th>
-          <th>Producto</th>
-          <th class="text-right">Unitario</th>
-          <th class="text-right">Cant.</th>
-          <th class="text-right">Total</th>
-          <th>Observaciones</th>
-          <th class="text-right">Acciones</th>
-        </tr>
-      </ng-template>
-      <ng-template #body let-item>
-        <tr>
-          <td>{{ item.id }}</td>
-          <td>#{{ item.pedido_id }} <span class="text-xs text-slate-500">({{ orderState(item) }})</span></td>
-          <td>{{ productName()(item.producto_id) }}</td>
-          <td class="text-right">{{ item.valor_unitario | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
-          <td class="text-right">{{ item.cantidad }}</td>
-          <td class="text-right">{{ item.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
-          <td>{{ item.observaciones || '—' }}</td>
-          <td class="text-right whitespace-nowrap">
-            <button pButton text rounded icon="pi pi-pencil" [disabled]="!isEditable(item)" (click)="openEdit(item)"></button>
-            <button pButton text rounded severity="warn" icon="pi pi-ban" [disabled]="!isEditable(item)" (click)="deactivate(item)"></button>
-            <button pButton text rounded severity="danger" icon="pi pi-trash" [disabled]="!isEditable(item)" (click)="remove(item)"></button>
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template #emptymessage>
-        <tr><td colspan="8" class="text-center text-slate-500">No hay líneas activas.</td></tr>
-      </ng-template>
-    </p-table>
-  </div>
-
-  <p-dialog
-    [visible]="dialogVisible()"
-    (visibleChange)="dialogVisible.set($event)"
-    [header]="editing() ? 'Editar línea #' + editing()!.id : 'Agregar línea'"
-    [modal]="true"
-    styleClass="w-full max-w-lg mx-4"
+<div class="rounded-xl border border-slate-200 bg-white">
+  <p-table
+    [value]="visibleRows()"
+    [loading]="loading()"
+    [paginator]="visibleRows().length > 10"
+    [rows]="10"
+    dataKey="id"
+    tableStyleClass="min-w-5xl"
   >
-    <div class="space-y-4">
-      @if (error(); as message) {
-        <p-message severity="error">{{ message }}</p-message>
-      }
+    <ng-template #caption>
+      <div class="flex items-center gap-2">
+        <i class="pi pi-search text-slate-400"></i>
+        <input
+          pInputText
+          type="search"
+          aria-label="Buscar líneas"
+          placeholder="Buscar por pedido, producto u observación…"
+          [value]="filter()"
+          (input)="filter.set($any($event.target).value)"
+          class="w-full"
+        />
+      </div>
+    </ng-template>
 
-      <div>
-        <label class="mb-1 block text-sm text-slate-500">Pedido (pendiente)</label>
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="pedido_id">
+          <div class="flex items-center gap-1">Pedido <p-sort-icon field="pedido_id" /></div>
+        </th>
+        <th>Producto</th>
+        <th class="text-right">Unitario</th>
+        <th class="text-right">Cant.</th>
+        <th class="text-right">Total</th>
+        <th class="w-40 text-right">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-item>
+      <tr>
+        <td>
+          <p class="font-medium text-slate-800">#{{ item.pedido_id }}</p>
+          @if (orderState(item); as state) {
+            <p-tag [value]="stateText(state)" [severity]="severity(state)" [rounded]="true" styleClass="mt-1 text-xs" />
+          }
+        </td>
+        <td>
+          <p class="text-sm text-slate-800">{{ productName()(item.producto_id) }}</p>
+          <p class="text-xs text-slate-400">{{ item.observaciones || 'Sin observaciones' }}</p>
+        </td>
+        <td class="text-right text-sm">
+          {{ item.valor_unitario | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+        </td>
+        <td class="text-right">{{ item.cantidad }}</td>
+        <td class="text-right font-medium text-slate-800">
+          {{ item.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+        </td>
+        <td>
+          <div class="flex justify-end gap-1">
+            <button pButton type="button" text rounded severity="secondary" icon="pi pi-pencil"
+              aria-label="Editar línea" pTooltip="Editar" [disabled]="!isEditable(item)"
+              (click)="openEdit(item)"></button>
+            <button pButton type="button" text rounded severity="warn" icon="pi pi-ban"
+              aria-label="Desactivar línea" pTooltip="Baja lógica" [disabled]="!isEditable(item)"
+              (click)="deactivate(item)"></button>
+            <button pButton type="button" text rounded severity="danger" icon="pi pi-trash"
+              aria-label="Eliminar línea" pTooltip="Eliminar" [disabled]="!isEditable(item)"
+              (click)="remove(item)"></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="6">
+          @if (filter()) {
+            <app-empty-state icon="pi pi-search" title="Sin coincidencias"
+              message="Ninguna línea coincide con la búsqueda." />
+          } @else {
+            <app-empty-state icon="pi pi-list" title="Sin líneas activas"
+              message="Las líneas aparecen al registrar pedidos." />
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="dialogTitle()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-lg mx-4"
+>
+  <div class="space-y-4">
+    @if (formError(); as message) {
+      <p-message severity="error" styleClass="w-full">{{ message }}</p-message>
+    }
+
+    <div>
+      <label for="item-order" class="mb-1 block text-sm font-medium text-slate-700">
+        Pedido <span class="text-red-500">*</span>
+      </label>
+      @if (editing(); as current) {
+        <input id="item-order" pInputText class="w-full" [value]="'#' + current.pedido_id" disabled />
+      } @else {
         <p-select
+          inputId="item-order"
           [fluid]="true"
-          [disabled]="editing() !== null"
           [ngModel]="formOrderId()"
           (ngModelChange)="formOrderId.set($event)"
-          [options]="editing() ? orders() : pendingOrderOptions()"
-          [optionLabel]="editing() ? 'id' : 'label'"
-          optionValue="id"
-          placeholder="Selecciona un pedido"
-        />
-      </div>
-
-      <div>
-        <label class="mb-1 block text-sm text-slate-500">Producto</label>
-        <p-select
-          [fluid]="true"
-          [disabled]="editing() !== null"
-          [ngModel]="formProductId()"
-          (ngModelChange)="formProductId.set($event)"
-          [options]="products()"
-          optionLabel="nombre"
+          [options]="pendingOrderOptions()"
+          optionLabel="label"
           optionValue="id"
           [filter]="true"
-          placeholder="Selecciona un producto"
+          placeholder="Selecciona un pedido pendiente"
         />
-      </div>
-
-      <div>
-        <label class="mb-1 block text-sm text-slate-500">Cantidad</label>
-        <p-inputnumber
-          [fluid]="true"
-          [ngModel]="formQuantity()"
-          (ngModelChange)="formQuantity.set($event ?? 1)"
-          [min]="1"
-          [showButtons]="true"
-        />
-      </div>
-
-      <div>
-        <label class="mb-1 block text-sm text-slate-500">Observaciones</label>
-        <input pInputText class="w-full" [ngModel]="formNote()" (ngModelChange)="formNote.set($event)" />
-      </div>
-
-      <div class="flex justify-end gap-2">
-        <button pButton type="button" label="Cancelar" severity="secondary" text (click)="dialogVisible.set(false)"></button>
-        <button pButton type="button" label="Guardar" icon="pi pi-check" [loading]="saving()" (click)="save()"></button>
-      </div>
+      }
     </div>
-  </p-dialog>
-</div>
+
+    <div>
+      <label for="item-product" class="mb-1 block text-sm font-medium text-slate-700">
+        Producto <span class="text-red-500">*</span>
+      </label>
+      <p-select
+        inputId="item-product"
+        [fluid]="true"
+        [disabled]="editing() !== null"
+        [ngModel]="formProductId()"
+        (ngModelChange)="formProductId.set($event)"
+        [options]="products()"
+        optionLabel="nombre"
+        optionValue="id"
+        [filter]="true"
+        placeholder="Selecciona un producto"
+      />
+    </div>
+
+    <div>
+      <label for="item-qty" class="mb-1 block text-sm font-medium text-slate-700">
+        Cantidad <span class="text-red-500">*</span>
+      </label>
+      <p-inputnumber
+        inputId="item-qty"
+        [fluid]="true"
+        [ngModel]="formQuantity()"
+        (ngModelChange)="formQuantity.set($event ?? 1)"
+        [min]="1"
+        [showButtons]="true"
+      />
+    </div>
+
+    <div>
+      <label for="item-note" class="mb-1 block text-sm font-medium text-slate-700">Observaciones</label>
+      <input id="item-note" pInputText class="w-full" placeholder="Sin azúcar, leche deslactosada…"
+        [ngModel]="formNote()" (ngModelChange)="formNote.set($event)" />
+    </div>
+
+    @if (editing()) {
+      <p class="text-xs text-slate-500">En edición solo cambian cantidad y observaciones.</p>
+    }
+
+    <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
+      <button pButton type="button" severity="secondary" outlined (click)="dialogVisible.set(false)">
+        <span pButtonLabel>Cancelar</span>
+      </button>
+      <button pButton type="button" [loading]="saving()" (click)="save()">
+        <i pButtonIcon class="pi pi-check"></i>
+        <span pButtonLabel>Guardar</span>
+      </button>
+    </div>
+  </div>
+</p-dialog>
