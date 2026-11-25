@@ -37,8 +37,18 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
+    label: 'Seguridad',
+    items: [
+      { label: 'Usuarios', icon: 'pi pi-user', routerLink: '/admin/usuarios', permission: 'GET /api/usuarios' },
+      { label: 'Roles', icon: 'pi pi-shield', routerLink: '/admin/roles', permission: 'GET /api/roles' },
+      { label: 'Recursos', icon: 'pi pi-sitemap', routerLink: '/admin/recursos', permission: 'GET /api/recursos' },
+      { label: 'Asignaciones', icon: 'pi pi-link', routerLink: '/admin/asignaciones', permission: 'GET /api/asignaciones-rol' },
+      { label: 'Permisos por rol', icon: 'pi pi-key', routerLink: '/admin/permisos', permission: 'GET /api/concesiones-rol' },
+    ],
+  },
+  {
     label: 'Cuenta',
-    items: [{ label: 'Mi perfil', icon: 'pi pi-user', routerLink: '/perfil' }],
+    items: [{ label: 'Mi perfil', icon: 'pi pi-user-edit', routerLink: '/perfil' }],
   },
 ];
 

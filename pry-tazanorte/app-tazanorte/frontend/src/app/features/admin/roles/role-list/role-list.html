@@ -1,0 +1,63 @@
+<app-page-header title="Roles" subtitle="El nombre no autoriza nada: lo que cuenta son sus permisos concedidos.">
+  <p-tag [value]="rows().length + ' roles'" severity="info" [rounded]="true" />
+  <button pButton type="button" *appHasPermission="'POST /api/roles'" (click)="openCreate()">
+    <i pButtonIcon class="pi pi-plus"></i><span pButtonLabel>Nuevo rol</span>
+  </button>
+</app-page-header>
+
+@if (error()) {
+  <p-message severity="error" styleClass="mb-4 w-full">{{ error() }}</p-message>
+}
+
+<div class="rounded-xl border border-slate-200 bg-white">
+  <p-table [value]="visibleRows()" [loading]="loading()" dataKey="id" tableStyleClass="min-w-3xl">
+    <ng-template #caption>
+      <div class="flex items-center gap-2">
+        <i class="pi pi-search text-slate-400"></i>
+        <input pInputText type="search" aria-label="Buscar roles" placeholder="Buscar por nombre o descripción…"
+          [value]="filter()" (input)="filter.set($any($event.target).value)" class="w-full" />
+      </div>
+    </ng-template>
+    <ng-template #header>
+      <tr>
+        <th>Rol</th>
+        <th>Descripción</th>
+        <th class="text-right">Usuarios</th>
+        <th class="text-right">Permisos</th>
+        <th>Estado</th>
+        <th class="w-40 text-right">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-role>
+      <tr>
+        <td><p-tag [value]="role.name" severity="info" [rounded]="true" /></td>
+        <td class="text-sm text-slate-600">{{ role.description || '—' }}</td>
+        <td class="text-right">{{ usersByRole().get(role.id) ?? 0 }}</td>
+        <td class="text-right">
+          <a class="font-medium text-amber-700 hover:underline" routerLink="/admin/permisos" [queryParams]="{ rol: role.id }">
+            {{ grantsByRole().get(role.id) ?? 0 }}
+          </a>
+        </td>
+        <td><app-status-tag [active]="role.status === 'active'" /></td>
+        <td>
+          <div class="flex justify-end gap-1">
+            <button pButton type="button" text rounded severity="secondary" icon="pi pi-pencil"
+              *appHasPermission="'PATCH /api/roles/:id'" aria-label="Editar rol" pTooltip="Editar" (click)="openEdit(role)"></button>
+            <button pButton type="button" text rounded severity="warn" icon="pi pi-ban"
+              *appHasPermission="'PATCH /api/roles/:id/deactivate'" aria-label="Desactivar rol" pTooltip="Baja lógica" (click)="deactivate(role)"></button>
+            <button pButton type="button" text rounded severity="danger" icon="pi pi-trash"
+              *appHasPermission="'DELETE /api/roles/:id'" aria-label="Eliminar rol" pTooltip="Eliminar" (click)="remove(role)"></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr><td colspan="6"><app-empty-state icon="pi pi-shield" title="Sin roles" message="Crea el primero con «Nuevo rol»." /></td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" [header]="title()"
+  [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" styleClass="w-full max-w-xl mx-4">
+  <app-role-form [role]="editing()" [saving]="saving()" [resetKey]="resetKey()" (saved)="save($event)" (cancelled)="dialogVisible.set(false)" />
+</p-dialog>

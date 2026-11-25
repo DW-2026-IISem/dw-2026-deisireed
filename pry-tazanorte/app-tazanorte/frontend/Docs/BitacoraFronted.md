@@ -1862,48 +1862,6 @@ readonly permission = this.route.snapshot.queryParamMap.get('permission');
 
 # Fase II: Auth con RBAC — ISS-10 — Formularios de las entidades Auth
 
-> **Vigencia · revisión local del 23-oct-2026.** Las cinco pantallas administrativas (usuarios, roles, recursos, asignaciones y concesiones) solo consultan listas. Los formularios user-form, role-form y resource-form citados no existen. Los servicios de escritura no equivalen a pantallas de administración completas. **Los criterios no cumplidos permanecen pendientes; no equivalen a evidencia de implementación.**
->
-> **Vigencia · revisión local del 23-oct-2026.** La guía propone administrar usuarios, roles, recursos y pivotes; las pantallas actuales solo los listan. El catálogo contiene 58 pares method/path y siete marcas seller. No demuestra que una base activa tenga esos registros. Las operaciones adicionales de ventas/detalle requieren recursos y concesiones explícitas para funcionar en Fase II. Los bloques de código de la guía pueden representar incrementos; los archivos locales citados son la referencia consolidada.
->
-> **Vigencia · revisión local del 23-oct-2026.** Los pasos describen una construcción incremental en una copia de práctica. El código consolidado puede incluir fases posteriores. Los resultados importados son reportes de la fuente, no pruebas repetidas en esta actualización. Véase [estado y trazabilidad](https://tecnogua.com/academic/site/frontend2026/express/estado-vigente/).
->
-> **Convención visual:** PrimeNG con Aura para controles y datos; Tailwind para flex, grid, espaciado y adaptación a pantalla. Sin CSS propio ni PrimeFlex. Las tarjetas nuevas usan `p-card` e importan `CardModule` de `primeng/card`. Si usas `p-message` para validación, importa `MessageModule` de `primeng/message`. Consulta [el patrón visual](https://tecnogua.com/academic/site/frontend2026/express/construir/patron-visual/) antes de copiar una pantalla.
-
-**Fase II — Auth + RBAC** · **Bloque 3 de 3 (administración)** · **Bloqueado por:** ISS-09 · **Habilita:** ISS-11
-
-> **Backend de referencia:** `app-storelab-express-ii` → `docs/manual/12-ISS-10-auth-users.md`, `docs/manual/13-ISS-11-auth-roles-resources.md` y `docs/manual/14-ISS-12-auth-role-users-resource-roles.md`.
-
-## Antes de construir: Administración una pantalla a la vez
-
-Completa Usuarios y Roles antes de Recursos; después vincula usuario-rol y rol-recurso. Reutiliza componentes y patrón CRUD ya estudiado.
-
-**Evidencia de aprendizaje:** Verifica la cadena de autorización completa y que cambiar un permiso actualiza el menú sin reconstruir el layout.
-
-**Equipo y terminal:** Ubuntu WSL, terminal del editor, carpeta del frontend. Los ejemplos que crean o reemplazan archivos se ejecutan en una copia de práctica; en el workspace consolidado inspecciona y ajusta los archivos existentes.
-
-## Objetivo
-
-Construir el panel que administra el modelo de autorización:
-
-> **Fase II · bloque 3 de 3 — Formularios de las entidades Auth.** El **formulario de sesión** (login/logout/refresh/perfil) es ISS-08; aquí se construyen los **CRUD de las cinco entidades de autorización**. `refresh_tokens` no tiene pantalla: se gestiona solo con la sesión, y exponerlo permitiría revocar tokens ajenos sin contexto de negocio.
-
-```         
-User ──< role_users >── Role ──< resource_roles >── Resource               (status active)          (status active)      (method + path) 
-```
-
-Cinco pantallas:
-
-| **Ruta** | **Entidad** | **Endpoint** | **Respuesta de lista** |
-|:-----------------|:-----------------|:-----------------|:-----------------|
-| `/admin/usuarios` | User | `/api/usuarios` | `{ users }` |
-| `/admin/roles` | Role | `/api/roles` | `{ roles }` |
-| `/admin/recursos` | Resource | `/api/recursos` | `{ resources }` |
-| `/admin/asignaciones` | RoleUser | `/api/asignaciones-rol` | `{ assignments }` |
-| `/admin/permisos` | ResourceRole | `/api/concesiones-rol` | `{ grants }` |
-
-> **Nombres del backend, no traducciones.** Usa exactamente `usuarios`, `recursos`, `asignaciones-rol` y `concesiones-rol`. Los nombres `users`, `resources`, `role-users` y `resource-roles` corresponden a las **tablas**, no a las rutas HTTP.
-
 ## 10.1 Regla de oro del RBAC
 
 Un usuario puede ejecutar `MÉTODO /ruta` si y solo si existe la cadena:
@@ -1918,6 +1876,10 @@ Un usuario puede ejecutar `MÉTODO /ruta` si y solo si existe la cadena:
 
 Si cualquier eslabón está inactivo, el backend responde `403` (**deny by default**). La UI replica esta lógica en `SessionStore.canPermission()` con los permisos **efectivos** que devuelve `GET /api/permisos`.
 
+![](images/clipboard-1545883249.png)
+
+![](images/clipboard-977498273.png)
+
 ## 10.2 Generar con CLI
 
 ```         
@@ -1925,6 +1887,16 @@ ng generate component features/admin/users/user-list --skip-tests --defaults ng 
 ```
 
 > Los servicios `*-api.ts` se crearon en ISS-02.
+
+![](images/clipboard-2819616812.png)
+
+![](images/clipboard-1949721418.png)
+
+![](images/clipboard-637427953.png)
+
+![](images/clipboard-2222039529.png)
+
+![](images/clipboard-1294686874.png)
 
 ## 10.3 Usuarios
 
@@ -2001,6 +1973,14 @@ En la plantilla:
 | Cambiar contraseña | `PATCH /api/usuarios/:id/password`   |
 | Ver permisos       | `GET /api/usuarios/:id/permisos`     |
 
+: ![](images/clipboard-3605239199.png)
+
+![](images/clipboard-3196316478.png)
+
+![](images/clipboard-2467364506.png)
+
+![](images/clipboard-4220512978.png)
+
 ## 10.4 Roles
 
 Servicio `RoleApi`:
@@ -2020,6 +2000,14 @@ readonly form = this.fb.group({   name: ['', [Validators.required, Validators.ma
 El backend **normaliza `name` a MAYÚSCULAS** (`ADMIN`, `SELLER`, `BUYER`). El seeder crea `ADMIN` y `SELLER`; si creas roles nuevos, usa mayúsculas para que la UI y las concesiones coincidan. **No renombres** un rol con asignaciones activas sin revisar `role_users`.
 
 > El nombre del rol **no autoriza nada**. Un `ADMIN` sin filas activas en `resource_roles` no puede ejecutar ninguna operación.
+
+![](images/clipboard-4045576647.png)
+
+![](images/clipboard-69341787.png)
+
+![](images/clipboard-3191142558.png)
+
+![](images/clipboard-1096963188.png)
 
 ## 10.5 Recursos HTTP
 
@@ -2069,6 +2057,14 @@ Y en el componente:
 readonly visibleRows = computed(() => {   const method = this.methodFilter();   const filtered = filterRows(this.rows(), this.filter(), (row) => [     row.path,     row.description,     row.method,   ]);   return method ? filtered.filter((row) => row.method === method) : filtered; }); 
 ```
 
+![](images/clipboard-63114891.png)
+
+![](images/clipboard-3606159454.png)
+
+![](images/clipboard-2266612090.png)
+
+![](images/clipboard-3714295133.png)
+
 ## 10.6 Asignaciones usuario ↔ rol
 
 `RoleUserApi`:
@@ -2109,6 +2105,10 @@ Si quitas el último `role_user` de un administrador, nadie podrá administrar e
 
 4.  Solo entonces modifica el primero.
 
+![](images/clipboard-437143098.png)
+
+![](images/clipboard-3974293289.png)
+
 ## 10.7 Concesiones rol ↔ recurso
 
 `ResourceRoleApi`:
@@ -2139,6 +2139,12 @@ list(filters?: { role_id?: number; resource_id?: number }): Observable<ResourceR
 methodSeverity(method: HttpMethod | undefined) {   switch (method) {     case 'GET': return 'info';     case 'POST': return 'success';     case 'PUT':     case 'PATCH': return 'warn';     case 'DELETE': return 'danger';     default: return 'secondary';   } } 
 ```
 
+![](images/clipboard-91493909.png)
+
+![](images/clipboard-2134493819.png)
+
+![](images/clipboard-2487784633.png)
+
 ## 10.8 Rutas
 
 **Debajo** de las rutas de negocio:
@@ -2147,7 +2153,11 @@ methodSeverity(method: HttpMethod | undefined) {   switch (method) {     case 'G
 {   path: 'admin/usuarios',   title: 'Usuarios · StoreLab',   canActivate: [permissionGuard],   data: { permission: 'GET /api/usuarios' },   loadComponent: () =>     import('./features/admin/users/user-list/user-list').then((m) => m.UserList), }, {   path: 'admin/roles',   title: 'Roles · StoreLab',   canActivate: [permissionGuard],   data: { permission: 'GET /api/roles' },   loadComponent: () =>     import('./features/admin/roles/role-list/role-list').then((m) => m.RoleList), }, {   path: 'admin/recursos',   title: 'Recursos · StoreLab',   canActivate: [permissionGuard],   data: { permission: 'GET /api/recursos' },   loadComponent: () =>     import('./features/admin/resources/resource-list/resource-list').then((m) => m.ResourceList), }, {   path: 'admin/asignaciones',   title: 'Asignaciones · StoreLab',   canActivate: [permissionGuard],   data: { permission: 'GET /api/asignaciones-rol' },   loadComponent: () =>     import('./features/admin/role-users/role-user-list/role-user-list').then((m) => m.RoleUserList), }, {   path: 'admin/permisos',   title: 'Concesiones · StoreLab',   canActivate: [permissionGuard],   data: { permission: 'GET /api/concesiones-rol' },   loadComponent: () =>     import('./features/admin/resource-roles/resource-role-list/resource-role-list').then(       (m) => m.ResourceRoleList,     ), }, 
 ```
 
+![](images/clipboard-3012257513.png)
+
 ## 10.9 Flujo de trabajo recomendado
+
+![](images/clipboard-631355290.png)
 
 Para conceder un permiso nuevo:
 
@@ -2163,134 +2173,27 @@ Para conceder un permiso nuevo:
 
 6.  La acción debe quedar habilitada **sin reiniciar el backend**: la matriz se consulta en cada petición.
 
-> El menú solo conoce las rutas definidas en `NAV`. Crear un Resource no crea una pantalla nueva; solo habilita una ruta existente.
-
-## Criterios de aceptación (ISS-10)
-
-1.  `admin` lista, crea y edita usuarios; la contraseña y el estado solo se envían al crear.
-
-2.  “Ver permisos” muestra `permissions` con `role_name` y `(method, path)`.
-
-3.  Roles: CRUD con baja lógica; el nombre se guarda en MAYÚSCULAS.
-
-4.  Recursos: crear/editar/desactivar/eliminar; `path` validado con `/`.
-
-5.  Asignaciones: crear vínculo usuario-rol y retirarlo; no se puede duplicar.
-
-6.  Concesiones: crear vínculo rol-resource; el select muestra método + path.
-
-7.  Un permiso revocado desaparece del menú tras “Actualizar permisos”.
-
-8.  `seller` no puede abrir las rutas `/admin/*` sin el `GET` correspondiente.
-
-9.  `ng serve` compila sin errores.
-
 ## Comprobación de la cadena completa
 
 ```         
 BASE=http://localhost:4000  # 1. Login admin TOKEN=$(curl -s -X POST $BASE/api/sesion/login \   -H "Content-Type: application/json" \   -d '{"identifier":"admin","password":"Admin123!"}' \   | grep -o '"access_token":"[^"]*' | cut -d'"' -f4)  # 2. Permisos efectivos de seller (id 2) curl -s $BASE/api/usuarios/2/permisos \   -H "Authorization: Bearer $TOKEN"  # 3. Ver la matriz actual (ids de ejemplo: rol SELLER = 2) curl -s "$BASE/api/concesiones-rol?role_id=2" \   -H "Authorization: Bearer $TOKEN"  # 4. Conceder un recurso al rol (resource_id 26 = GET /api/usuarios) curl -s -X POST $BASE/api/concesiones-rol \   -H "Authorization: Bearer $TOKEN" \   -H "Content-Type: application/json" \   -d '{"role_id":2,"resource_id":26}'  # 5. Repetir el paso 2: debe incluir GET /api/usuarios con role_name SELLER curl -s $BASE/api/usuarios/2/permisos \   -H "Authorization: Bearer $TOKEN"  # 6. Revocar (baja lógica) GRANT=$(curl -s "$BASE/api/concesiones-rol?role_id=2" \   -H "Authorization: Bearer $TOKEN" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2) curl -s -X PATCH "$BASE/api/concesiones-rol/$GRANT/deactivate" \   -H "Authorization: Bearer $TOKEN" 
 ```
 
-**Siguiente:** ISS-11 valida el build, la calidad y resuelve problemas típicos.
+![](images/clipboard-2210812825.png)
 
-## Correspondencia con el código
+![](images/clipboard-4143009673.png)
 
-Esta guía es la que contiene los comandos (`ng new`, `ng generate`, `cat >`) y la explicación paso a paso para construir el frontend desde cero. El código no se duplica en `docs/`: la referencia completa son los archivos reales del proyecto, enlazados al final de esta ISS.
+![](images/clipboard-1586274049.png)
 
-Los ejemplos breves muestran incrementos y no sustituyen todos los archivos del componente. Las configuraciones de las primeras etapas omiten deliberadamente la sesión y las rutas que se construyen después; en el proyecto consolidado la seguridad final está activa. No combines imports de una etapa final con stubs que todavía no implementaste.
+![](images/clipboard-1454337104.png)
 
-## Código completo de referencia
+![](images/clipboard-233422185.png)
 
-Los fragmentos de esta ISS se estudian por incrementos. Estos archivos contienen la implementación consolidada, incluida la seguridad de la fase final:
+![](images/clipboard-4263071012.png)
 
-- src/app/features/admin/resource-roles/resource-role-api.ts (`src/app/features/admin/resource-roles/resource-role-api.ts`).
-
-- src/app/features/admin/resource-roles/resource-role-list/resource-role-list.css (`src/app/features/admin/resource-roles/resource-role-list/resource-role-list.css`).
-
-- src/app/features/admin/resource-roles/resource-role-list/resource-role-list.html (`src/app/features/admin/resource-roles/resource-role-list/resource-role-list.html`).
-
-- src/app/features/admin/resource-roles/resource-role-list/resource-role-list.ts (`src/app/features/admin/resource-roles/resource-role-list/resource-role-list.ts`).
-
-- src/app/features/admin/resources/resource-api.ts (`src/app/features/admin/resources/resource-api.ts`).
-
-- src/app/features/admin/resources/resource-form/resource-form.css (`src/app/features/admin/resources/resource-form/resource-form.css` — no existe en la copia inspeccionada).
-
-- src/app/features/admin/resources/resource-form/resource-form.html (`src/app/features/admin/resources/resource-form/resource-form.html` — no existe en la copia inspeccionada).
-
-- src/app/features/admin/resources/resource-form/resource-form.ts (`src/app/features/admin/resources/resource-form/resource-form.ts` — no existe en la copia inspeccionada).
-
-- src/app/features/admin/resources/resource-list/resource-list.css (`src/app/features/admin/resources/resource-list/resource-list.css`).
-
-- src/app/features/admin/resources/resource-list/resource-list.html (`src/app/features/admin/resources/resource-list/resource-list.html`).
-
-- src/app/features/admin/resources/resource-list/resource-list.ts (`src/app/features/admin/resources/resource-list/resource-list.ts`).
-
-- src/app/features/admin/role-users/role-user-api.ts (`src/app/features/admin/role-users/role-user-api.ts`).
-
-- src/app/features/admin/role-users/role-user-list/role-user-list.css (`src/app/features/admin/role-users/role-user-list/role-user-list.css`).
-
-- src/app/features/admin/role-users/role-user-list/role-user-list.html (`src/app/features/admin/role-users/role-user-list/role-user-list.html`).
-
-- src/app/features/admin/role-users/role-user-list/role-user-list.ts (`src/app/features/admin/role-users/role-user-list/role-user-list.ts`).
-
-- src/app/features/admin/roles/role-api.ts (`src/app/features/admin/roles/role-api.ts`).
-
-- src/app/features/admin/roles/role-form/role-form.css (`src/app/features/admin/roles/role-form/role-form.css` — no existe en la copia inspeccionada).
-
-- src/app/features/admin/roles/role-form/role-form.html (`src/app/features/admin/roles/role-form/role-form.html` — no existe en la copia inspeccionada).
-
-- src/app/features/admin/roles/role-form/role-form.ts (`src/app/features/admin/roles/role-form/role-form.ts` — no existe en la copia inspeccionada).
-
-- src/app/features/admin/roles/role-list/role-list.css (`src/app/features/admin/roles/role-list/role-list.css`).
-
-- src/app/features/admin/roles/role-list/role-list.html (`src/app/features/admin/roles/role-list/role-list.html`).
-
-- src/app/features/admin/roles/role-list/role-list.ts (`src/app/features/admin/roles/role-list/role-list.ts`).
-
-- src/app/features/admin/users/user-api.ts (`src/app/features/admin/users/user-api.ts`).
-
-- src/app/features/admin/users/user-form/user-form.css (`src/app/features/admin/users/user-form/user-form.css` — no existe en la copia inspeccionada).
-
-- src/app/features/admin/users/user-form/user-form.html (`src/app/features/admin/users/user-form/user-form.html` — no existe en la copia inspeccionada).
-
-- src/app/features/admin/users/user-form/user-form.ts (`src/app/features/admin/users/user-form/user-form.ts` — no existe en la copia inspeccionada).
-
-- src/app/features/admin/users/user-list/user-list.css (`src/app/features/admin/users/user-list/user-list.css`).
-
-- src/app/features/admin/users/user-list/user-list.html (`src/app/features/admin/users/user-list/user-list.html`).
-
-- src/app/features/admin/users/user-list/user-list.ts (`src/app/features/admin/users/user-list/user-list.ts`).
-
-- src/app/core/utils/http-method.ts (`src/app/core/utils/http-method.ts` — no existe en la copia inspeccionada).
-
-> **Unidad ISS-11 · Build, calidad y resolución de problemas** — capa **🛠 CONSTRUIR**
->
-> [🧠 Comprender este bloque →](https://tecnogua.com/academic/site/frontend2026/express/aprender/ISS-11-build-calidad-y-resolucion-de-problemas/) · [↑ Ruta Frontend-Express](https://tecnogua.com/academic/site/frontend2026/express/)
->
-> | **Capa** | **Página** | **Para qué** |
-> |:-----------------------|:-----------------------|:-----------------------|
-> | 🧠 **Aprender** | [Build, calidad y resolución de problemas](https://tecnogua.com/academic/site/frontend2026/express/aprender/ISS-11-build-calidad-y-resolucion-de-problemas/) | comprender, explicar y relacionar |
-> | 🛠 **Construir** | esta página | ejecutar, verificar y entregar |
+![](images/clipboard-3596463786.png)
 
 # Fase II: Auth con RBAC — ISS-11 — Build, calidad y cierre del proyecto
-
-> **Vigencia · revisión local del 23-oct-2026.** El frontend consolidado es parcial: clientes tiene acciones CRUD, pero tipos/productos no integran sus formularios, ventas/nueva es una base vacía, detalle y administración solo listan. La compilación de tipos no satisface los criterios funcionales de cierre. **Los criterios no cumplidos permanecen pendientes; no equivalen a evidencia de implementación.**
->
-> **Vigencia · revisión local del 23-oct-2026.** El backend ofrece build/dev/start/db:seed/typecheck; el frontend ng/start/build/watch/test. No existe docs:check en el package.json actual. Las pruebas y mediciones citadas en la guía son reportes importados. Esta actualización ejecuta comprobación estática de TypeScript y validación documental; el recorrido visual, HTTP, stock y RBAC mantiene su GATE pendiente. Los bloques de código de la guía pueden representar incrementos; los archivos locales citados son la referencia consolidada.
->
-> **Vigencia · revisión local del 23-oct-2026.** Los pasos describen una construcción incremental en una copia de práctica. El código consolidado puede incluir fases posteriores. Los resultados importados son reportes de la fuente, no pruebas repetidas en esta actualización. Véase [estado y trazabilidad](https://tecnogua.com/academic/site/frontend2026/express/estado-vigente/).
->
-> **Convención visual:** PrimeNG con Aura para controles y datos; Tailwind para flex, grid, espaciado y adaptación a pantalla. Sin CSS propio ni PrimeFlex. Las tarjetas nuevas usan `p-card` e importan `CardModule` de `primeng/card`. Si usas `p-message` para validación, importa `MessageModule` de `primeng/message`. Consulta [el patrón visual](https://tecnogua.com/academic/site/frontend2026/express/construir/patron-visual/) antes de copiar una pantalla.
-
-**Fase II — Auth + RBAC** · **Bloqueado por:** ISS-10 · **Cierre del proyecto**
-
-## Antes de construir: Cerrar con pruebas del recorrido
-
-Comprueba primero /construir sin HTTP, después rutas de negocio con sesión. Ejecuta compilación y pruebas; distingue resultado medido de revisión pendiente.
-
-**Evidencia de aprendizaje:** Entrega evidencia de escritorio, móvil, integración y permisos. Un build no demuestra integración con Express.
-
-**Equipo y terminal:** Ubuntu WSL, terminal del editor, carpeta del frontend. Los ejemplos que crean o reemplazan archivos se ejecutan en una copia de práctica; en el workspace consolidado inspecciona y ajusta los archivos existentes.
 
 ## Objetivo
 
@@ -2315,19 +2218,6 @@ Angular reemplaza `environment.ts` por `environment.development.ts` cuando sirve
 | `environment.development.ts` | `ng serve`    | `true` (Fase II)  |
 | `environment.ts`             | `ng build`    | `true` (Fase II)  |
 
-### Emular la Fase I sobre el código final (solo práctica)
-
-La **Fase I real** (ISS-03…07) no tiene guards, directiva ni interceptor: no hay nada que desactivar. Esta bandera solo sirve para **demostrar** en una copia de práctica cómo se comportaba el frontend antes de ISS-09.
-
-Hay **dos interruptores** y hay que moverlos juntos:
-
-| **Interruptor** | **Dónde** | **Qué controla** |
-|:-----------------------|:-----------------------|:-----------------------|
-| `requireAuth` | `environment.ts` y `environment.development.ts` | Guards, `*appHasPermission`, menú y reintento de refresh |
-| `AUTH_ENABLED` | `.env` del backend `app-storelab-express-ii` | `authenticate` y `authorize` de las 5 rutas de negocio |
-
-**En ambos archivos del frontend**, cambia:
-
 ```         
 requireAuth: false, 
 ```
@@ -2338,39 +2228,17 @@ requireAuth: false,
 AUTH_ENABLED=false 
 ```
 
-Con el backend consolidado, `requireAuth: false` **no basta**: sin login no hay token y toda petición de negocio recibiría `401 Missing Bearer token`. La bandera `AUTH_ENABLED=false` abre solo `/api/clientes`, `/api/tipos-producto`, `/api/productos`, `/api/ventas` y `/api/detalle-ventas`; login, refresh, perfil, `/api/permisos` y las rutas de administración RBAC siguen exigiendo JWT. El alcance vive en `src/features/auth/access/lab-mode.ts`.
-
-Con las dos banderas en `false`:
-
-- `authGuard` y `permissionGuard` dejan pasar.
-
-- `*appHasPermission` renderiza siempre.
-
-- El `authInterceptor` no añade `Authorization` una vez limpiada la sesión (sin token no hay cabecera ni refresh). Si quedó un token viejo, bórralo con el `localStorage.removeItem` de abajo.
-
-- El menú muestra **Operación + Prototipo**: el grupo Seguridad se oculta porque el backend sigue exigiendo JWT en `/api/usuarios`, `/api/roles`, etc.
-
-- `/perfil` y `/admin/*` escritos a mano redirigen a `/dashboard` (`authOnlyGuard`).
-
-- El tótem del Header muestra `Fase I · sin auth`.
-
-- El backend responde `200` a las rutas de negocio sin token.
-
 Reinicia `ng serve` y el backend después de cambiar cada bandera, y borra la sesión anterior en DevTools:
 
 ```         
 localStorage.removeItem('storelab.session.v1'); location.reload(); 
 ```
 
-Vuelve a `true` para la entrega de Fase II. **No mezcles**: el backend final `app-storelab-express-ii` tiene JWT + RBAC en todas las rutas de negocio; si el frontend usa `requireAuth: false`, las peticiones llegarán sin token y el backend responderá `401`.
-
 ### Apuntar a otro backend
 
 ```         
 apiUrl: 'https://mi-api.ejemplo.com/api', 
 ```
-
-Sin barra final. Todos los servicios concatenan `environment.apiUrl + '/clientes'`.
 
 ## 11.2 Scripts
 
