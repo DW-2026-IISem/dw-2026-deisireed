@@ -2242,10 +2242,6 @@ apiUrl: 'https://mi-api.ejemplo.com/api',
 
 ## 11.2 Scripts
 
-`npm run ng -- <comando>` invoca el CLI local sin depender del PATH global. Por ejemplo: `npm run ng -- build` o `npm run ng -- generate component ...`. Los ejemplos con `ng` presuponen el Angular CLI instalado en ISS-00.
-
-Después de crear, mover o renombrar archivos, ejecuta `npm run docs:check`: comprueba que cada ISS enlace los archivos reales de su grupo, que todos los enlaces resuelvan y que ningún archivo de `src/` quede sin ISS. El script está definido en package.json y vive en tools/check-docs.mjs (`tools/check-docs.mjs` — no existe en la copia inspeccionada).
-
 ```         
 {   "scripts": {     "start": "ng serve",     "build": "ng build",     "watch": "ng build --watch --configuration development",     "test": "ng test",     "docs:check": "node tools/check-docs.mjs"   } } 
 ```
@@ -2260,13 +2256,13 @@ Después de crear, mover o renombrar archivos, ejecuta `npm run docs:check`: com
 export default defineConfig({   test: {     maxWorkers: 2,     testTimeout: 20_000,   }, }); 
 ```
 
-Sin ese límite, 7 workers de Vitest sobre 8 núcleos compartidos con `ng serve`, MySQL y el IDE provocan `Test timed out in 5000ms` en pruebas correctas. Con dos workers la suite pasa completa; el costo es más tiempo de pared.
-
 Comandos del laboratorio:
 
 ```         
 npm ci npm start                 # http://localhost:4200 ng build              # producción → dist/ ng serve --port 4200 --host 0.0.0.0 
 ```
+
+![](images/clipboard-2800260856.png)
 
 ## 11.3 Presupuestos de bundle
 
@@ -2276,202 +2272,27 @@ npm ci npm start                 # http://localhost:4200 ng build              #
 "budgets": [   { "type": "initial", "maximumWarning": "750kB", "maximumError": "1MB" },   { "type": "anyComponentStyle", "maximumWarning": "4kB", "maximumError": "8kB" } ] 
 ```
 
-PrimeNG 22 + Aura + Tailwind superan los 500 kB iniciales por defecto. Se subió el **warning** a 750 kB, no el error. Si quieres reducir el bundle real:
-
-1.  Mantén **todas** las rutas con `loadComponent` (ya están).
-
-2.  Importa solo los módulos PrimeNG que usa cada componente standalone.
-
-3.  No importes `ChartModule` ni `TableModule` en el shell.
-
-4.  Revisa que `providePrimeNG` no registre componentes globales innecesarios.
-
 Comprueba el reparto:
 
 ```         
 ng build --stats-json # Consulta dist/front-storelab-express-ii/stats.json para analizar el bundle. 
 ```
 
+![](images/clipboard-1019476374.png)
+
 ## 11.4 Checklist funcional de humo
 
-Ejecuta `ng serve` con el backend arriba y recorre:
-
-| **\#** | **Acción** | **Resultado esperado** |
-|:-----------------------|:-----------------------|:-----------------------|
-| 1 | `/dashboard` sin sesión | Redirige a `/login?returnUrl=/dashboard` |
-| 2 | Login admin | Entra al dashboard; menú completo |
-| 3 | CRUD cliente | Crear, editar, desactivar; búsqueda filtra |
-| 4 | CRUD tipo | Igual que clientes |
-| 5 | CRUD producto | Select de tipo; precio con moneda; stock con color |
-| 6 | Nueva venta | Añade líneas, total reactivo, descuenta stock |
-| 7 | Detalle ventas | Filtra por venta; editar/eliminar línea |
-| 8 | Dashboard | KPIs coinciden con `/api/ventas` y `/api/productos` |
-| 9 | RBAC admin | Crear rol, recurso, asignación y permiso |
-| 10 | Ver permisos | Muestra `permissions` con `role_name` y `(method, path)` |
-| 11 | Logout | `POST /api/sesion/logout`; vuelve a login y no queda token |
-| 12 | Login seller | Menú reducido; `/admin/*` → `/forbidden` |
-| 13 | Refresh del navegador | La sesión persiste (localStorage) |
-| 14 | Token expirado | El interceptor refresca una vez y reintenta |
-| 15 | Revocar refresh token | Sesión cerrada y mensaje claro |
-
 ### Probar expiración y refresh
-
-En DevTools → Application → Local Storage → `storelab.session.v1`, copia el `refreshToken` y revócalo desde el backend:
 
 ```         
 curl -X POST http://localhost:4000/api/sesion/logout \   -H "Content-Type: application/json" \   -d '{"refresh_token":"PEGA_AQUI_EL_TOKEN"}' 
 ```
 
-Luego pulsa cualquier acción en la UI: el refresh falla, se limpia la sesión y aparece el toast de sesión expirada.
+![](images/clipboard-331789106.png)
 
 ## 11.5 Errores reales y su causa
 
-Estos errores aparecieron durante la construcción del proyecto. Úsalos como tabla de diagnóstico.
-
-### Aviso `[PrimeUI] PrimeUI license is not configured` en la consola
-
-No es un error ni rompe nada: es un `console.warn` que emite `@primeui/license-manager`, una dependencia que `primeng@22` arrastra para sus productos premium. Los componentes usados en este proyecto (Table, Dialog, Select, Tag, Toast, ConfirmDialog) son de la edición community y funcionan sin licencia.
-
-- Si aparece **una vez al arrancar**, puedes ignorarlo. No afecta a `ng build` ni a los tests.
-
-- Si quieres la consola limpia, configura la clave con `registerLicense` solo si tienes una licencia PrimeUI válida; **no inventes una clave** ni silencies el aviso con un parche en `node_modules` (se pierde al reinstalar).
-
-- No lo confundas con un fallo de la pantalla: si la tabla no pinta, el problema está en `#header`/`#body` (ver el PARCHE de ISS-03), no en este aviso.
-
-### `NG8002: Can't bind to 'text' since it isn't a known property of 'p-message'`
-
-PrimeNG 22 eliminó el input `text`. Usa proyección:
-
-```         
-<p-message severity="error" [closable]="false">{{ error() }}</p-message> 
-```
-
-### `NG8002: Can't bind to 'globalFilter' on 'p-table'`
-
-`p-table` ya no tiene `globalFilter`. Filtra tú:
-
-```         
-readonly visibleRows = computed(() =>   filterRows(this.rows(), this.filter(), (row) => [row.nombre, row.email]), ); 
-```
-
-```         
-<p-table [value]="visibleRows()" [paginator]="true" [rows]="10">…</p-table> 
-```
-
-### `NG8001: 'p-sortIcon' is not a known element`
-
-El componente se llama `p-sort-icon` (kebab-case):
-
-```         
-<th pSortableColumn="nombre">   Nombre <p-sort-icon field="nombre" /> </th> 
-```
-
-### `Type 'Menu' has no call signatures`
-
-La referencia de plantilla tapa al método del mismo nombre:
-
-```         
-<!-- mal --> <p-menu #userMenu [model]="userMenu()"></p-menu>  <!-- bien --> <p-menu #userMenuPanel [model]="userMenu()"></p-menu> 
-```
-
-### `NG8002: Can't bind to 'value' on 'p-select'`
-
-`p-select` usa `ngModel`:
-
-```         
-<p-select [fluid]="true"   [options]="types()"   optionLabel="nombre"   [ngModel]="selected()"   (ngModelChange)="selected.set($event)" /> 
-```
-
-Recuerda `FormsModule` en `imports`.
-
-### Errores de ruta relativa (`../../../core` vs `../../../../core`)
-
-Cada nivel de carpeta añade un `../`. Regla:
-
-| **Archivo**                      | **Profundidad** | **Import a `core/`** |
-|:---------------------------------|:----------------|:---------------------|
-| `features/clients/client-list`   | 3               | `../../../core/…`    |
-| `features/admin/users/user-list` | 4               | `../../../../core/…` |
-
-### `NG0303: Can't bind to 'ngModel'` / `NG8001` en un componente
-
-Falta el módulo en `imports` del standalone. Añade `FormsModule`, `TableModule`, `ButtonModule`, etc. Angular 22 no tiene `NgModule` contenedor que los aporte.
-
-### `401` en cascada al cargar el dashboard
-
-El interceptor está intentando refrescar con un `refreshToken` inválido. Revisa:
-
-1.  El login guardó `accessToken` y `refreshToken`.
-
-2.  `localStorage` no está bloqueado (modo incógnito estricto).
-
-3.  El reloj del sistema no está desfasado respecto al backend.
-
-4.  Solo hay **un** refresh en vuelo (`refreshInFlight`).
-
-### `403` con menú visible
-
-El menú se calculó con un token anterior. Pulsa **Actualizar permisos**; si persiste, revisa `GET /api/usuarios/:id/permisos` y `GET /api/permisos`.
-
-### El login responde 200 pero el dashboard sale vacío
-
-`POST /api/sesion/login` **solo** devuelve tokens. Si tu `AuthService` espera `user`, `roles` y `resources` en esa respuesta, la sesión queda a medias. El flujo correcto es:
-
-```         
-login → setTokens → forkJoin(GET /api/sesion/perfil, GET /api/permisos) → setAccess 
-```
-
-### El backend responde `CORS`
-
-El backend Express debe permitir el origen del frontend:
-
-```         
-Access-Control-Allow-Origin: http://localhost:4200 Access-Control-Allow-Headers: Content-Type, Authorization Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS 
-```
-
-En desarrollo, el origen cambia si usas otro puerto o `--host 0.0.0.0` con otra IP. Ajusta la configuración CORS del backend o sirve el frontend tras el mismo origen.
-
-### `fatal error: all goroutines are asleep - deadlock!` al arrancar `ng serve`
-
-El optimizador de dependencias de Vite (esbuild) se bloquea justo después de `Application bundle generation complete`:
-
-```         
-[vite] (client) [optimizer] bundling dependencies... fatal error: all goroutines are asleep - deadlock! 
-```
-
-Pasa en algunos entornos con recursos limitados, WSL2 o ejecución dentro de sandboxes/containers. Soluciones, en orden:
-
-1.  En la terminal del servidor, detén el proceso con **Ctrl+C** y vuelve a ejecutar `npm start`.
-
-2.  Desde la carpeta del frontend, limpia la caché con el CLI:
-
-```         
-ng cache clean ng serve 
-```
-
-1.  Si el problema está en la precompilación de dependencias de Vite, prueba:
-
-```         
-ng serve --prebundle=false 
-```
-
-`--configuration development` por sí solo no desactiva la precompilación; `--prebundle=false` es la opción destinada a ello. Verifica su disponibilidad con `ng serve --help` si cambias de versión del CLI.
-
-Si el puerto está ocupado, identifica el proceso con `ss -ltnp` y cierra **su terminal** con Ctrl+C, o elige otro puerto: `ng serve --port 4201`. Una respuesta HTTP 200 no demuestra que existan dos instancias. No uses `pkill -f` para detener todos los servidores de los proyectos del laboratorio.
-
-### `Test timed out in 5000ms` en pruebas que antes pasaban
-
-No es un fallo de lógica: Vitest lanza un worker por archivo de prueba y, en un equipo de 8 núcleos con `ng serve`, MySQL y el IDE, esos workers saturan la CPU. Síntoma: varias suites distintas fallan a la vez con el mismo mensaje y el `Duration` del run supera los dos minutos.
-
-La solución ya está en el proyecto: `maxWorkers: 2` y `testTimeout: 20_000` en vitest-base.config.mts (`vitest-base.config.mts` — no existe en la copia inspeccionada), activado por `runnerConfig: true` en `angular.json`. Si vuelve a aparecer, cierra `ng serve` antes de correr la suite y compara.
-
-### El build falla por presupuesto
-
-```         
-Budget 500 kB was exceeded… 
-```
-
-Sube `maximumWarning` en `angular.json` (ISS-11.3) o reduce imports. No subas el `maximumError` sin justificar.
+![](images/clipboard-1909950307.png)
 
 ## 11.6 Calidad de código
 
@@ -2499,7 +2320,9 @@ npm exec -- prettier --write "src/**/*.{ts,html,css}"
 
 Tipado estricto ya está activo (`strict: true`). Evita `any`; usa `unknown` y `toApiMessage(error)`.
 
-### Accesibilidad mínima
+![](images/clipboard-1600567083.png)
+
+### ![](images/clipboard-3863081128.png) Accesibilidad mínima
 
 - Todo `input` tiene `label` o `aria-label`.
 
@@ -2519,11 +2342,15 @@ Salida:
 dist/front-storelab-express-ii/browser/ ├── index.html ├── main-XXXXXXXX.js ├── styles-XXXXXXXX.css └── assets/… 
 ```
 
+![](images/clipboard-3726713212.png)
+
 Sirve la carpeta con un servidor que haga **fallback a `index.html`** (SPA). En Nginx:
 
 ```         
 location / {   try_files $uri $uri/ /index.html; } 
 ```
+
+![](images/clipboard-1020990152.png)
 
 Si publicas en un subdirectorio, añade:
 

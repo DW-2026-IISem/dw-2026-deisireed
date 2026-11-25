@@ -34,7 +34,9 @@ export class OrderApi {
 
   /** Solo cabecera y solo mientras esté `pendiente`. */
   update(id: number, payload: OrderUpdatePayload): Observable<Order> {
-    return this.http.patch<{ order: Order }>(`${this.base}/${id}`, payload).pipe(map((r) => r.order));
+    return this.http
+      .patch<{ order: Order }>(`${this.base}/${id}`, payload)
+      .pipe(map((r) => r.order));
   }
 
   changeState(id: number, estado: OrderState): Observable<Order> {
@@ -61,7 +63,9 @@ export class OrderCatalogApi {
   private readonly api = environment.apiUrl;
 
   clients(): Observable<ClientRef[]> {
-    return this.http.get<{ clients: ClientRef[] }>(`${this.api}/clientes`).pipe(map((r) => r.clients));
+    return this.http
+      .get<{ clients: ClientRef[] }>(`${this.api}/clientes`)
+      .pipe(map((r) => r.clients));
   }
 
   products(): Observable<ProductRef[]> {

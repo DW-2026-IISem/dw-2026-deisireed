@@ -31,7 +31,10 @@ export class UserApi {
   }
 
   /** Exige la contraseña actual: es autoservicio, no reseteo de admin. */
-  changePassword(id: number, payload: { current_password: string; new_password: string }): Observable<unknown> {
+  changePassword(
+    id: number,
+    payload: { current_password: string; new_password: string },
+  ): Observable<unknown> {
     return this.http.patch(`${this.base}/${id}/password`, payload);
   }
 

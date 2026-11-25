@@ -135,7 +135,8 @@ export class ProductList {
             this.notify.warn('Producto desactivado');
             this.load();
           },
-          error: (error: unknown) => this.notify.error('No se pudo desactivar', toApiMessage(error)),
+          error: (error: unknown) =>
+            this.notify.error('No se pudo desactivar', toApiMessage(error)),
         });
       },
     });

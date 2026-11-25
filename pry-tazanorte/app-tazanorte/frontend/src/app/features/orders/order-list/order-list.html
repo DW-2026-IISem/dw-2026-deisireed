@@ -3,7 +3,14 @@
   subtitle="Cada pedido nace pendiente y avanza: pagado → en preparación → entregado."
 >
   <p-tag [value]="pendingCount() + ' pendientes'" severity="warn" [rounded]="true" />
-  <button pButton type="button" severity="secondary" outlined [loading]="loading()" (click)="load()">
+  <button
+    pButton
+    type="button"
+    severity="secondary"
+    outlined
+    [loading]="loading()"
+    (click)="load()"
+  >
     <i pButtonIcon class="pi pi-refresh"></i>
     <span pButtonLabel>Recargar</span>
   </button>
@@ -70,7 +77,11 @@
           {{ order.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
         </td>
         <td>
-          <p-tag [value]="stateText(order.estado)" [severity]="severity(order.estado)" [rounded]="true" />
+          <p-tag
+            [value]="stateText(order.estado)"
+            [severity]="severity(order.estado)"
+            [rounded]="true"
+          />
         </td>
         <td>
           <div class="flex flex-wrap items-center justify-end gap-1">
@@ -81,7 +92,8 @@
                 size="small"
                 severity="secondary"
                 outlined
-                *appHasPermission="'PATCH /api/pedidos/:id/estado'" (click)="advance(order, next)"
+                *appHasPermission="'PATCH /api/pedidos/:id/estado'"
+                (click)="advance(order, next)"
               >
                 <span pButtonLabel>{{ stateText(next) }}</span>
               </button>
@@ -107,7 +119,8 @@
                 icon="pi pi-ban"
                 aria-label="Cancelar pedido"
                 pTooltip="Cancelar"
-                *appHasPermission="'PATCH /api/pedidos/:id/deactivate'" (click)="cancel(order)"
+                *appHasPermission="'PATCH /api/pedidos/:id/deactivate'"
+                (click)="cancel(order)"
               ></button>
             }
             @if (order.estado === 'pendiente') {
@@ -120,7 +133,8 @@
                 icon="pi pi-trash"
                 aria-label="Eliminar pedido"
                 pTooltip="Eliminar"
-                *appHasPermission="'DELETE /api/pedidos/:id'" (click)="remove(order)"
+                *appHasPermission="'DELETE /api/pedidos/:id'"
+                (click)="remove(order)"
               ></button>
             }
           </div>

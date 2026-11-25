@@ -19,7 +19,9 @@ export class OrderItemApi {
   }
 
   create(payload: OrderItemCreatePayload): Observable<OrderItem> {
-    return this.http.post<{ order_item: OrderItem }>(this.base, payload).pipe(map((r) => r.order_item));
+    return this.http
+      .post<{ order_item: OrderItem }>(this.base, payload)
+      .pipe(map((r) => r.order_item));
   }
 
   /** PATCH acepta `cantidad` y `observaciones`; el estado solo cambia con `/deactivate`. */

@@ -204,7 +204,10 @@ export class OrderItemList {
       next: () => {
         this.saving.set(false);
         this.dialogVisible.set(false);
-        this.notify.success(current ? 'Línea actualizada' : 'Línea agregada', 'Total del pedido recalculado.');
+        this.notify.success(
+          current ? 'Línea actualizada' : 'Línea agregada',
+          'Total del pedido recalculado.',
+        );
         this.load();
       },
       error: (error: unknown) => {

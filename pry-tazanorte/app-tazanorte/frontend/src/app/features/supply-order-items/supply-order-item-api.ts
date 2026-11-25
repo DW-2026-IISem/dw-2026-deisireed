@@ -27,13 +27,19 @@ export class SupplyOrderItemApi {
       .pipe(map((response) => response.supply_order_item));
   }
 
-  update(id: number, payload: Partial<Omit<SupplyOrderItemPayload, 'is_active'>>): Observable<SupplyOrderItem> {
+  update(
+    id: number,
+    payload: Partial<Omit<SupplyOrderItemPayload, 'is_active'>>,
+  ): Observable<SupplyOrderItem> {
     return this.http
       .patch<{ supply_order_item: SupplyOrderItem }>(`${this.base}/${id}`, payload)
       .pipe(map((response) => response.supply_order_item));
   }
 
-  replace(id: number, payload: Omit<SupplyOrderItemPayload, 'is_active'>): Observable<SupplyOrderItem> {
+  replace(
+    id: number,
+    payload: Omit<SupplyOrderItemPayload, 'is_active'>,
+  ): Observable<SupplyOrderItem> {
     return this.http
       .put<{ supply_order_item: SupplyOrderItem }>(`${this.base}/${id}`, payload)
       .pipe(map((response) => response.supply_order_item));

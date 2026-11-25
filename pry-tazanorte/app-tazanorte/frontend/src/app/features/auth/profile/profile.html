@@ -1,5 +1,15 @@
-<app-page-header title="Mi perfil" subtitle="Identidad y permisos efectivos que entrega el backend.">
-  <button pButton type="button" severity="secondary" outlined [loading]="refreshing()" (click)="refresh()">
+<app-page-header
+  title="Mi perfil"
+  subtitle="Identidad y permisos efectivos que entrega el backend."
+>
+  <button
+    pButton
+    type="button"
+    severity="secondary"
+    outlined
+    [loading]="refreshing()"
+    (click)="refresh()"
+  >
     <i pButtonIcon class="pi pi-sync"></i>
     <span pButtonLabel>Actualizar permisos</span>
   </button>
@@ -69,7 +79,11 @@
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="4" class="py-6 text-center text-sm text-slate-500">Sin permisos efectivos.</td></tr>
+        <tr>
+          <td colspan="4" class="py-6 text-center text-sm text-slate-500">
+            Sin permisos efectivos.
+          </td>
+        </tr>
       </ng-template>
     </p-table>
   </div>

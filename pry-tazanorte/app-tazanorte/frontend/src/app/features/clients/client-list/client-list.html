@@ -85,7 +85,8 @@
               icon="pi pi-pencil"
               aria-label="Editar cliente"
               pTooltip="Editar"
-              *appHasPermission="'PATCH /api/clientes/:id'" (click)="openEdit(client)"
+              *appHasPermission="'PATCH /api/clientes/:id'"
+              (click)="openEdit(client)"
             ></button>
             <button
               pButton
@@ -96,7 +97,8 @@
               icon="pi pi-ban"
               aria-label="Dar de baja al cliente"
               pTooltip="Baja lógica"
-              *appHasPermission="'PATCH /api/clientes/:id/deactivate'" (click)="deactivate(client)"
+              *appHasPermission="'PATCH /api/clientes/:id/deactivate'"
+              (click)="deactivate(client)"
             ></button>
             <button
               pButton
@@ -107,7 +109,8 @@
               icon="pi pi-trash"
               aria-label="Eliminar cliente"
               pTooltip="Eliminar"
-              *appHasPermission="'DELETE /api/clientes/:id'" (click)="remove(client)"
+              *appHasPermission="'DELETE /api/clientes/:id'"
+              (click)="remove(client)"
             ></button>
           </div>
         </td>

@@ -28,8 +28,19 @@ import { RoleUserApi } from '../role-user-api';
   host: { class: 'block' },
   selector: 'app-role-user-list',
   imports: [
-    DatePipe, FormsModule, ButtonModule, DialogModule, EmptyState, HasPermission, MessageModule,
-    PageHeader, SelectModule, StatusTag, TableModule, TagModule, TooltipModule,
+    DatePipe,
+    FormsModule,
+    ButtonModule,
+    DialogModule,
+    EmptyState,
+    HasPermission,
+    MessageModule,
+    PageHeader,
+    SelectModule,
+    StatusTag,
+    TableModule,
+    TagModule,
+    TooltipModule,
   ],
   templateUrl: './role-user-list.html',
   styleUrl: './role-user-list.css',
@@ -61,7 +72,9 @@ export class RoleUserList {
   readonly visibleRows = computed(() => {
     const user = this.userFilter();
     const role = this.roleFilter();
-    return this.rows().filter((r) => (!user || r.user_id === user) && (!role || r.role_id === role));
+    return this.rows().filter(
+      (r) => (!user || r.user_id === user) && (!role || r.role_id === role),
+    );
   });
 
   // Diálogo «Asignar rol»
@@ -73,12 +86,16 @@ export class RoleUserList {
   readonly availableRoles = computed(() => {
     const user = this.selectedUserId();
     const taken = new Set(
-      this.rows().filter((r) => r.user_id === user && r.status === 'active').map((r) => r.role_id),
+      this.rows()
+        .filter((r) => r.user_id === user && r.status === 'active')
+        .map((r) => r.role_id),
     );
     return this.activeRoles().filter((r) => !taken.has(r.id));
   });
 
-  readonly canSave = computed(() => this.selectedUserId() !== null && this.selectedRoleId() !== null && !this.saving());
+  readonly canSave = computed(
+    () => this.selectedUserId() !== null && this.selectedRoleId() !== null && !this.saving(),
+  );
 
   constructor() {
     this.load();
@@ -87,7 +104,11 @@ export class RoleUserList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
-    forkJoin({ rows: this.api.list(), users: this.usersApi.list(), roles: this.rolesApi.list() }).subscribe({
+    forkJoin({
+      rows: this.api.list(),
+      users: this.usersApi.list(),
+      roles: this.rolesApi.list(),
+    }).subscribe({
       next: ({ rows, users, roles }) => {
         this.rows.set(rows);
         this.users.set(users);
@@ -103,7 +124,9 @@ export class RoleUserList {
   }
 
   username(row: RoleUser): string {
-    return row.user?.username ?? this.userById().get(row.user_id)?.username ?? `Usuario #${row.user_id}`;
+    return (
+      row.user?.username ?? this.userById().get(row.user_id)?.username ?? `Usuario #${row.user_id}`
+    );
   }
 
   email(row: RoleUser): string {

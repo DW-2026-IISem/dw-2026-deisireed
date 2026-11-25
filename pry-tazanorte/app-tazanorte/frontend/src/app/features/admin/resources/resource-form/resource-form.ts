@@ -5,7 +5,12 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { Status } from '../../../../core/models/api.model';
-import { HTTP_METHODS, HttpMethod, Resource, ResourcePayload } from '../../../../core/models/resource.model';
+import {
+  HTTP_METHODS,
+  HttpMethod,
+  Resource,
+  ResourcePayload,
+} from '../../../../core/models/resource.model';
 
 @Component({
   host: { class: 'block' },

@@ -5,10 +5,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
-import {
-  CashRegister,
-  CashRegisterPayload,
-} from '../../../core/models/cash-register.model';
+import { CashRegister, CashRegisterPayload } from '../../../core/models/cash-register.model';
 import { Employee } from '../../../core/models/employee.model';
 
 /**

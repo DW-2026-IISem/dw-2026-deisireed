@@ -16,34 +16,99 @@ export const NAV: NavGroup[] = [
   {
     label: 'Operación',
     items: [
-      { label: 'Panel', icon: 'pi pi-chart-bar', routerLink: '/dashboard', permission: 'GET /api/pedidos' },
-      { label: 'Nuevo pedido', icon: 'pi pi-plus-circle', routerLink: '/pedidos/nuevo', permission: 'POST /api/pedidos' },
-      { label: 'Pedidos', icon: 'pi pi-shopping-cart', routerLink: '/pedidos', permission: 'GET /api/pedidos' },
-      { label: 'Detalle de pedidos', icon: 'pi pi-list', routerLink: '/detalle-pedidos', permission: 'GET /api/detalle-pedidos' },
+      {
+        label: 'Panel',
+        icon: 'pi pi-chart-bar',
+        routerLink: '/dashboard',
+        permission: 'GET /api/pedidos',
+      },
+      {
+        label: 'Nuevo pedido',
+        icon: 'pi pi-plus-circle',
+        routerLink: '/pedidos/nuevo',
+        permission: 'POST /api/pedidos',
+      },
+      {
+        label: 'Pedidos',
+        icon: 'pi pi-shopping-cart',
+        routerLink: '/pedidos',
+        permission: 'GET /api/pedidos',
+      },
+      {
+        label: 'Detalle de pedidos',
+        icon: 'pi pi-list',
+        routerLink: '/detalle-pedidos',
+        permission: 'GET /api/detalle-pedidos',
+      },
     ],
   },
   {
     label: 'Catálogo',
     items: [
-      { label: 'Productos', icon: 'pi pi-box', routerLink: '/productos', permission: 'GET /api/productos' },
-      { label: 'Clientes', icon: 'pi pi-users', routerLink: '/clientes', permission: 'GET /api/clientes' },
+      {
+        label: 'Productos',
+        icon: 'pi pi-box',
+        routerLink: '/productos',
+        permission: 'GET /api/productos',
+      },
+      {
+        label: 'Clientes',
+        icon: 'pi pi-users',
+        routerLink: '/clientes',
+        permission: 'GET /api/clientes',
+      },
     ],
   },
   {
     label: 'Personal',
     items: [
-      { label: 'Empleados', icon: 'pi pi-id-card', routerLink: '/empleados', permission: 'GET /api/empleados' },
-      { label: 'Turnos de caja', icon: 'pi pi-clock', routerLink: '/turnos-caja', permission: 'GET /api/turnos-caja' },
+      {
+        label: 'Empleados',
+        icon: 'pi pi-id-card',
+        routerLink: '/empleados',
+        permission: 'GET /api/empleados',
+      },
+      {
+        label: 'Turnos de caja',
+        icon: 'pi pi-clock',
+        routerLink: '/turnos-caja',
+        permission: 'GET /api/turnos-caja',
+      },
     ],
   },
   {
     label: 'Seguridad',
     items: [
-      { label: 'Usuarios', icon: 'pi pi-user', routerLink: '/admin/usuarios', permission: 'GET /api/usuarios' },
-      { label: 'Roles', icon: 'pi pi-shield', routerLink: '/admin/roles', permission: 'GET /api/roles' },
-      { label: 'Recursos', icon: 'pi pi-sitemap', routerLink: '/admin/recursos', permission: 'GET /api/recursos' },
-      { label: 'Asignaciones', icon: 'pi pi-link', routerLink: '/admin/asignaciones', permission: 'GET /api/asignaciones-rol' },
-      { label: 'Permisos por rol', icon: 'pi pi-key', routerLink: '/admin/permisos', permission: 'GET /api/concesiones-rol' },
+      {
+        label: 'Usuarios',
+        icon: 'pi pi-user',
+        routerLink: '/admin/usuarios',
+        permission: 'GET /api/usuarios',
+      },
+      {
+        label: 'Roles',
+        icon: 'pi pi-shield',
+        routerLink: '/admin/roles',
+        permission: 'GET /api/roles',
+      },
+      {
+        label: 'Recursos',
+        icon: 'pi pi-sitemap',
+        routerLink: '/admin/recursos',
+        permission: 'GET /api/recursos',
+      },
+      {
+        label: 'Asignaciones',
+        icon: 'pi pi-link',
+        routerLink: '/admin/asignaciones',
+        permission: 'GET /api/asignaciones-rol',
+      },
+      {
+        label: 'Permisos por rol',
+        icon: 'pi pi-key',
+        routerLink: '/admin/permisos',
+        permission: 'GET /api/concesiones-rol',
+      },
     ],
   },
   {

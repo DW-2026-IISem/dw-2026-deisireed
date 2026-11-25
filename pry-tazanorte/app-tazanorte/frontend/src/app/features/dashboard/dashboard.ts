@@ -10,7 +10,12 @@ import { TagModule } from 'primeng/tag';
 import { forkJoin, of } from 'rxjs';
 import { SessionStore } from '../../core/services/session-store';
 import { ClientRef, Order, OrderState, ProductRef } from '../../core/models/order.model';
-import { ORDER_STATE_LABEL, httpMessage, orderSeverity, toNumber } from '../../core/utils/order-utils';
+import {
+  ORDER_STATE_LABEL,
+  httpMessage,
+  orderSeverity,
+  toNumber,
+} from '../../core/utils/order-utils';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { OrderApi, OrderCatalogApi } from '../orders/order-api';
 

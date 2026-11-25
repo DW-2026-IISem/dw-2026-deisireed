@@ -56,7 +56,9 @@
           <div class="flex items-center gap-1">Producto <p-sort-icon field="nombre" /></div>
         </th>
         <th pSortableColumn="precio" class="text-right">
-          <div class="flex items-center justify-end gap-1">Precio <p-sort-icon field="precio" /></div>
+          <div class="flex items-center justify-end gap-1">
+            Precio <p-sort-icon field="precio" />
+          </div>
         </th>
         <th>Estado</th>
         <th class="w-40 text-right">Acciones</th>
@@ -65,7 +67,9 @@
 
     <ng-template #body let-product>
       <tr>
-        <td><span class="font-mono text-sm text-slate-600">{{ product.sku }}</span></td>
+        <td>
+          <span class="font-mono text-sm text-slate-600">{{ product.sku }}</span>
+        </td>
         <td>
           <p class="font-medium text-slate-800">{{ product.nombre }}</p>
           <p class="text-xs text-slate-400">{{ product.descripcion || 'Sin descripción' }}</p>
@@ -76,12 +80,42 @@
         <td><app-status-tag [active]="product.is_active" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <button pButton type="button" text rounded severity="secondary" icon="pi pi-pencil"
-              aria-label="Editar producto" pTooltip="Editar" *appHasPermission="'PATCH /api/productos/:id'" (click)="openEdit(product)"></button>
-            <button pButton type="button" text rounded severity="warn" icon="pi pi-ban"
-              aria-label="Dar de baja el producto" pTooltip="Baja lógica" *appHasPermission="'PATCH /api/productos/:id/deactivate'" (click)="deactivate(product)"></button>
-            <button pButton type="button" text rounded severity="danger" icon="pi pi-trash"
-              aria-label="Eliminar producto" pTooltip="Eliminar" *appHasPermission="'DELETE /api/productos/:id'" (click)="remove(product)"></button>
+            <button
+              pButton
+              type="button"
+              text
+              rounded
+              severity="secondary"
+              icon="pi pi-pencil"
+              aria-label="Editar producto"
+              pTooltip="Editar"
+              *appHasPermission="'PATCH /api/productos/:id'"
+              (click)="openEdit(product)"
+            ></button>
+            <button
+              pButton
+              type="button"
+              text
+              rounded
+              severity="warn"
+              icon="pi pi-ban"
+              aria-label="Dar de baja el producto"
+              pTooltip="Baja lógica"
+              *appHasPermission="'PATCH /api/productos/:id/deactivate'"
+              (click)="deactivate(product)"
+            ></button>
+            <button
+              pButton
+              type="button"
+              text
+              rounded
+              severity="danger"
+              icon="pi pi-trash"
+              aria-label="Eliminar producto"
+              pTooltip="Eliminar"
+              *appHasPermission="'DELETE /api/productos/:id'"
+              (click)="remove(product)"
+            ></button>
           </div>
         </td>
       </tr>
@@ -91,11 +125,17 @@
       <tr>
         <td colspan="5">
           @if (filter()) {
-            <app-empty-state icon="pi pi-search" title="Sin coincidencias"
-              message="Ningún producto coincide con la búsqueda." />
+            <app-empty-state
+              icon="pi pi-search"
+              title="Sin coincidencias"
+              message="Ningún producto coincide con la búsqueda."
+            />
           } @else {
-            <app-empty-state icon="pi pi-box" title="Sin productos activos"
-              message="Crea el primero con «Nuevo producto» o ejecuta el seeder del backend." />
+            <app-empty-state
+              icon="pi pi-box"
+              title="Sin productos activos"
+              message="Crea el primero con «Nuevo producto» o ejecuta el seeder del backend."
+            />
           }
         </td>
       </tr>

@@ -27,7 +27,10 @@ export class CashRegisterApi {
       .pipe(map((response) => response.cash_register));
   }
 
-  update(id: number, payload: Partial<Omit<CashRegisterPayload, 'is_active'>>): Observable<CashRegister> {
+  update(
+    id: number,
+    payload: Partial<Omit<CashRegisterPayload, 'is_active'>>,
+  ): Observable<CashRegister> {
     return this.http
       .patch<{ cash_register: CashRegister }>(`${this.base}/${id}`, payload)
       .pipe(map((response) => response.cash_register));

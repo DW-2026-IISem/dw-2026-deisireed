@@ -9,7 +9,12 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { HTTP_METHODS, HttpMethod, Resource, ResourcePayload } from '../../../../core/models/resource.model';
+import {
+  HTTP_METHODS,
+  HttpMethod,
+  Resource,
+  ResourcePayload,
+} from '../../../../core/models/resource.model';
 import { NotificationService } from '../../../../core/services/notification';
 import { toApiMessage } from '../../../../core/utils/api-error';
 import { filterRows } from '../../../../core/utils/filter-rows';
@@ -25,8 +30,20 @@ import { ResourceForm } from '../resource-form/resource-form';
   host: { class: 'block' },
   selector: 'app-resource-list',
   imports: [
-    FormsModule, ButtonModule, DialogModule, EmptyState, HasPermission, InputTextModule, MessageModule,
-    PageHeader, ResourceForm, SelectModule, StatusTag, TableModule, TagModule, TooltipModule,
+    FormsModule,
+    ButtonModule,
+    DialogModule,
+    EmptyState,
+    HasPermission,
+    InputTextModule,
+    MessageModule,
+    PageHeader,
+    ResourceForm,
+    SelectModule,
+    StatusTag,
+    TableModule,
+    TagModule,
+    TooltipModule,
   ],
   templateUrl: './resource-list.html',
   styleUrl: './resource-list.css',
@@ -55,7 +72,11 @@ export class ResourceList {
 
   readonly visibleRows = computed(() => {
     const method = this.methodFilter();
-    const filtered = filterRows(this.rows(), this.filter(), (r) => [r.path, r.description, r.method]);
+    const filtered = filterRows(this.rows(), this.filter(), (r) => [
+      r.path,
+      r.description,
+      r.method,
+    ]);
     return method ? filtered.filter((r) => r.method === method) : filtered;
   });
 
@@ -128,7 +149,8 @@ export class ResourceList {
             this.notify.warn('Recurso desactivado');
             this.load();
           },
-          error: (error: unknown) => this.notify.error('No se pudo desactivar', toApiMessage(error)),
+          error: (error: unknown) =>
+            this.notify.error('No se pudo desactivar', toApiMessage(error)),
         }),
     });
   }

@@ -1,4 +1,7 @@
-<app-page-header title="Usuarios" subtitle="Cuentas que pueden iniciar sesión. Los roles se asignan en «Asignaciones».">
+<app-page-header
+  title="Usuarios"
+  subtitle="Cuentas que pueden iniciar sesión. Los roles se asignan en «Asignaciones»."
+>
   <p-tag [value]="rows().length + ' usuarios'" severity="info" [rounded]="true" />
   <button pButton type="button" *appHasPermission="'POST /api/usuarios'" (click)="openCreate()">
     <i pButtonIcon class="pi pi-plus"></i>
@@ -11,18 +14,34 @@
 }
 
 <div class="rounded-xl border border-slate-200 bg-white">
-  <p-table [value]="visibleRows()" [loading]="loading()" [paginator]="visibleRows().length > 10" [rows]="10" dataKey="id" tableStyleClass="min-w-4xl">
+  <p-table
+    [value]="visibleRows()"
+    [loading]="loading()"
+    [paginator]="visibleRows().length > 10"
+    [rows]="10"
+    dataKey="id"
+    tableStyleClass="min-w-4xl"
+  >
     <ng-template #caption>
       <div class="flex items-center gap-2">
         <i class="pi pi-search text-slate-400"></i>
-        <input pInputText type="search" aria-label="Buscar usuarios" placeholder="Buscar por usuario, correo o rol…"
-          [value]="filter()" (input)="filter.set($any($event.target).value)" class="w-full" />
+        <input
+          pInputText
+          type="search"
+          aria-label="Buscar usuarios"
+          placeholder="Buscar por usuario, correo o rol…"
+          [value]="filter()"
+          (input)="filter.set($any($event.target).value)"
+          class="w-full"
+        />
       </div>
     </ng-template>
 
     <ng-template #header>
       <tr>
-        <th pSortableColumn="username"><div class="flex items-center gap-1">Usuario <p-sort-icon field="username" /></div></th>
+        <th pSortableColumn="username">
+          <div class="flex items-center gap-1">Usuario <p-sort-icon field="username" /></div>
+        </th>
         <th>Correo</th>
         <th>Rol</th>
         <th>Estado</th>
@@ -59,42 +78,117 @@
         <td><app-status-tag [active]="user.status === 'active'" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <button pButton type="button" text rounded severity="secondary" icon="pi pi-key"
+            <button
+              pButton
+              type="button"
+              text
+              rounded
+              severity="secondary"
+              icon="pi pi-key"
               *appHasPermission="'GET /api/usuarios/:id/permisos'"
-              aria-label="Ver permisos" pTooltip="Ver permisos efectivos" (click)="showPermissions(user)"></button>
+              aria-label="Ver permisos"
+              pTooltip="Ver permisos efectivos"
+              (click)="showPermissions(user)"
+            ></button>
             @if (isSelf(user)) {
-              <button pButton type="button" text rounded severity="secondary" icon="pi pi-lock"
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="secondary"
+                icon="pi pi-lock"
                 *appHasPermission="'PATCH /api/usuarios/:id/password'"
-                aria-label="Cambiar mi contraseña" pTooltip="Cambiar mi contraseña" (click)="openPassword()"></button>
+                aria-label="Cambiar mi contraseña"
+                pTooltip="Cambiar mi contraseña"
+                (click)="openPassword()"
+              ></button>
             }
-            <button pButton type="button" text rounded severity="secondary" icon="pi pi-pencil"
+            <button
+              pButton
+              type="button"
+              text
+              rounded
+              severity="secondary"
+              icon="pi pi-pencil"
               *appHasPermission="'PATCH /api/usuarios/:id'"
-              aria-label="Editar usuario" pTooltip="Editar" (click)="openEdit(user)"></button>
-            <button pButton type="button" text rounded severity="warn" icon="pi pi-ban"
-              *appHasPermission="'PATCH /api/usuarios/:id/deactivate'" [disabled]="isSelf(user)"
-              aria-label="Desactivar usuario" pTooltip="Baja lógica" (click)="deactivate(user)"></button>
-            <button pButton type="button" text rounded severity="danger" icon="pi pi-trash"
-              *appHasPermission="'DELETE /api/usuarios/:id'" [disabled]="isSelf(user)"
-              aria-label="Eliminar usuario" pTooltip="Eliminar" (click)="remove(user)"></button>
+              aria-label="Editar usuario"
+              pTooltip="Editar"
+              (click)="openEdit(user)"
+            ></button>
+            <button
+              pButton
+              type="button"
+              text
+              rounded
+              severity="warn"
+              icon="pi pi-ban"
+              *appHasPermission="'PATCH /api/usuarios/:id/deactivate'"
+              [disabled]="isSelf(user)"
+              aria-label="Desactivar usuario"
+              pTooltip="Baja lógica"
+              (click)="deactivate(user)"
+            ></button>
+            <button
+              pButton
+              type="button"
+              text
+              rounded
+              severity="danger"
+              icon="pi pi-trash"
+              *appHasPermission="'DELETE /api/usuarios/:id'"
+              [disabled]="isSelf(user)"
+              aria-label="Eliminar usuario"
+              pTooltip="Eliminar"
+              (click)="remove(user)"
+            ></button>
           </div>
         </td>
       </tr>
     </ng-template>
 
     <ng-template #emptymessage>
-      <tr><td colspan="5"><app-empty-state icon="pi pi-users" title="Sin usuarios" message="No hay usuarios que coincidan." /></td></tr>
+      <tr>
+        <td colspan="5">
+          <app-empty-state
+            icon="pi pi-users"
+            title="Sin usuarios"
+            message="No hay usuarios que coincidan."
+          />
+        </td>
+      </tr>
     </ng-template>
   </p-table>
 </div>
 
-<p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" [header]="title()"
-  [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" styleClass="w-full max-w-2xl mx-4">
-  <app-user-form [user]="editing()" [saving]="saving()" [resetKey]="resetKey()" (saved)="save($event)" (cancelled)="dialogVisible.set(false)" />
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="title()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-2xl mx-4"
+>
+  <app-user-form
+    [user]="editing()"
+    [saving]="saving()"
+    [resetKey]="resetKey()"
+    (saved)="save($event)"
+    (cancelled)="dialogVisible.set(false)"
+  />
 </p-dialog>
 
-<p-dialog [visible]="accessVisible()" (visibleChange)="accessVisible.set($event)"
+<p-dialog
+  [visible]="accessVisible()"
+  (visibleChange)="accessVisible.set($event)"
   [header]="'Permisos efectivos de ' + (accessUser()?.username ?? '')"
-  [modal]="true" [draggable]="false" [dismissableMask]="true" styleClass="w-full max-w-3xl mx-4">
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-3xl mx-4"
+>
   @if (accessLoading()) {
     <p class="py-6 text-center text-sm text-slate-500">Cargando…</p>
   } @else {
@@ -107,9 +201,19 @@
       }
       <span class="ml-auto text-sm text-slate-500">{{ access().length }} permisos</span>
     </div>
-    <p-table [value]="access()" [paginator]="access().length > 10" [rows]="10" tableStyleClass="min-w-xl">
+    <p-table
+      [value]="access()"
+      [paginator]="access().length > 10"
+      [rows]="10"
+      tableStyleClass="min-w-xl"
+    >
       <ng-template #header>
-        <tr><th class="w-24">Método</th><th>Ruta</th><th>Descripción</th><th>Rol</th></tr>
+        <tr>
+          <th class="w-24">Método</th>
+          <th>Ruta</th>
+          <th>Descripción</th>
+          <th>Rol</th>
+        </tr>
       </ng-template>
       <ng-template #body let-p>
         <tr>
@@ -123,26 +227,68 @@
   }
 </p-dialog>
 
-<p-dialog [visible]="passwordVisible()" (visibleChange)="passwordVisible.set($event)" header="Cambiar mi contraseña"
-  [modal]="true" [draggable]="false" [resizable]="false" styleClass="w-full max-w-md mx-4">
+<p-dialog
+  [visible]="passwordVisible()"
+  (visibleChange)="passwordVisible.set($event)"
+  header="Cambiar mi contraseña"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="w-full max-w-md mx-4"
+>
   <div class="space-y-4">
     @if (passwordError(); as message) {
       <p-message severity="error" styleClass="w-full">{{ message }}</p-message>
     }
     <div>
-      <label for="pw-current" class="mb-1 block text-sm font-medium text-slate-700">Contraseña actual</label>
-      <p-password inputId="pw-current" [ngModel]="currentPassword()" (ngModelChange)="currentPassword.set($event)" [feedback]="false" [toggleMask]="true" [fluid]="true" />
+      <label for="pw-current" class="mb-1 block text-sm font-medium text-slate-700"
+        >Contraseña actual</label
+      >
+      <p-password
+        inputId="pw-current"
+        [ngModel]="currentPassword()"
+        (ngModelChange)="currentPassword.set($event)"
+        [feedback]="false"
+        [toggleMask]="true"
+        [fluid]="true"
+      />
     </div>
     <div>
-      <label for="pw-new" class="mb-1 block text-sm font-medium text-slate-700">Nueva contraseña</label>
-      <p-password inputId="pw-new" [ngModel]="newPassword()" (ngModelChange)="newPassword.set($event)" [feedback]="false" [toggleMask]="true" [fluid]="true" />
+      <label for="pw-new" class="mb-1 block text-sm font-medium text-slate-700"
+        >Nueva contraseña</label
+      >
+      <p-password
+        inputId="pw-new"
+        [ngModel]="newPassword()"
+        (ngModelChange)="newPassword.set($event)"
+        [feedback]="false"
+        [toggleMask]="true"
+        [fluid]="true"
+      />
     </div>
     <div>
-      <label for="pw-confirm" class="mb-1 block text-sm font-medium text-slate-700">Confirmar nueva</label>
-      <p-password inputId="pw-confirm" [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)" [feedback]="false" [toggleMask]="true" [fluid]="true" />
+      <label for="pw-confirm" class="mb-1 block text-sm font-medium text-slate-700"
+        >Confirmar nueva</label
+      >
+      <p-password
+        inputId="pw-confirm"
+        [ngModel]="confirmPassword()"
+        (ngModelChange)="confirmPassword.set($event)"
+        [feedback]="false"
+        [toggleMask]="true"
+        [fluid]="true"
+      />
     </div>
     <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
-      <button pButton type="button" severity="secondary" outlined (click)="passwordVisible.set(false)"><span pButtonLabel>Cancelar</span></button>
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        outlined
+        (click)="passwordVisible.set(false)"
+      >
+        <span pButtonLabel>Cancelar</span>
+      </button>
       <button pButton type="button" [loading]="saving()" (click)="savePassword()">
         <i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Guardar</span>
       </button>

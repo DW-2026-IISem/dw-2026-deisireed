@@ -4,18 +4,36 @@
       <label for="user-username" class="mb-1 block text-sm font-medium text-slate-700">
         Usuario <span class="text-red-500">*</span>
       </label>
-      <input id="user-username" pInputText formControlName="username" placeholder="caja2" autocomplete="off" class="w-full" />
+      <input
+        id="user-username"
+        pInputText
+        formControlName="username"
+        placeholder="caja2"
+        autocomplete="off"
+        class="w-full"
+      />
       @if (form.controls.username.touched && form.controls.username.invalid) {
-        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">Mínimo 3 caracteres.</p-message>
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1"
+          >Mínimo 3 caracteres.</p-message
+        >
       }
     </div>
     <div>
       <label for="user-email" class="mb-1 block text-sm font-medium text-slate-700">
         Correo <span class="text-red-500">*</span>
       </label>
-      <input id="user-email" type="email" pInputText formControlName="email" placeholder="caja2@tazanorte.local" class="w-full" />
+      <input
+        id="user-email"
+        type="email"
+        pInputText
+        formControlName="email"
+        placeholder="caja2@tazanorte.local"
+        class="w-full"
+      />
       @if (form.controls.email.touched && form.controls.email.invalid) {
-        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">Correo inválido.</p-message>
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1"
+          >Correo inválido.</p-message
+        >
       }
     </div>
   </div>
@@ -26,26 +44,53 @@
         <label for="user-password" class="mb-1 block text-sm font-medium text-slate-700">
           Contraseña <span class="text-red-500">*</span>
         </label>
-        <p-password inputId="user-password" formControlName="password" [feedback]="false" [toggleMask]="true" autocomplete="new-password" [fluid]="true" />
+        <p-password
+          inputId="user-password"
+          formControlName="password"
+          [feedback]="false"
+          [toggleMask]="true"
+          autocomplete="new-password"
+          [fluid]="true"
+        />
         @if (form.controls.password.touched && form.controls.password.invalid) {
-          <p-message severity="error" size="small" variant="simple" styleClass="mt-1">Mínimo 8 caracteres.</p-message>
+          <p-message severity="error" size="small" variant="simple" styleClass="mt-1"
+            >Mínimo 8 caracteres.</p-message
+          >
         }
       </div>
       <div>
-        <label for="user-status" class="mb-1 block text-sm font-medium text-slate-700">Estado</label>
-        <p-select inputId="user-status" formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" [fluid]="true" />
+        <label for="user-status" class="mb-1 block text-sm font-medium text-slate-700"
+          >Estado</label
+        >
+        <p-select
+          inputId="user-status"
+          formControlName="status"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          [fluid]="true"
+        />
       </div>
     </div>
   }
 
   <div>
-    <label for="user-avatar" class="mb-1 block text-sm font-medium text-slate-700">Avatar (URL)</label>
-    <input id="user-avatar" pInputText formControlName="avatar" placeholder="https://…" class="w-full" />
+    <label for="user-avatar" class="mb-1 block text-sm font-medium text-slate-700"
+      >Avatar (URL)</label
+    >
+    <input
+      id="user-avatar"
+      pInputText
+      formControlName="avatar"
+      placeholder="https://…"
+      class="w-full"
+    />
   </div>
 
   @if (user()) {
     <p class="text-xs text-slate-500">
-      La contraseña la cambia cada usuario; el estado cambia con la baja lógica. Los roles se gestionan en «Asignaciones».
+      La contraseña la cambia cada usuario; el estado cambia con la baja lógica. Los roles se
+      gestionan en «Asignaciones».
     </p>
   }
 

@@ -25,7 +25,9 @@ export class OrderDetail {
     return (id: number) => map.get(id) ?? `Producto #${id}`;
   });
 
-  readonly activeItems = computed(() => (this.order().items ?? []).filter((item) => item.is_active));
+  readonly activeItems = computed(() =>
+    (this.order().items ?? []).filter((item) => item.is_active),
+  );
 
   readonly itemCount = computed(() =>
     this.activeItems().reduce((sum, item) => sum + item.cantidad, 0),

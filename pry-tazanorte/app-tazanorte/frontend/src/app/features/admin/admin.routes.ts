@@ -22,14 +22,16 @@ export const ADMIN_ROUTES: Routes = [
     title: 'Recursos · TazaNorte',
     canActivate: [permissionGuard],
     data: { permission: 'GET /api/recursos' },
-    loadComponent: () => import('./resources/resource-list/resource-list').then((m) => m.ResourceList),
+    loadComponent: () =>
+      import('./resources/resource-list/resource-list').then((m) => m.ResourceList),
   },
   {
     path: 'admin/asignaciones',
     title: 'Asignaciones · TazaNorte',
     canActivate: [permissionGuard],
     data: { permission: 'GET /api/asignaciones-rol' },
-    loadComponent: () => import('./role-users/role-user-list/role-user-list').then((m) => m.RoleUserList),
+    loadComponent: () =>
+      import('./role-users/role-user-list/role-user-list').then((m) => m.RoleUserList),
   },
   {
     path: 'admin/permisos',
@@ -37,6 +39,8 @@ export const ADMIN_ROUTES: Routes = [
     canActivate: [permissionGuard],
     data: { permission: 'GET /api/concesiones-rol' },
     loadComponent: () =>
-      import('./resource-roles/resource-role-list/resource-role-list').then((m) => m.ResourceRoleList),
+      import('./resource-roles/resource-role-list/resource-role-list').then(
+        (m) => m.ResourceRoleList,
+      ),
   },
 ];

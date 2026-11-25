@@ -11,7 +11,11 @@ export function toNumber(value: Money | null | undefined): number {
 
 /** Mensaje legible desde un HttpErrorResponse del backend (`{ error: "..." }`). */
 export function httpMessage(error: unknown): string {
-  const e = error as { status?: number; error?: { error?: string; message?: string }; message?: string };
+  const e = error as {
+    status?: number;
+    error?: { error?: string; message?: string };
+    message?: string;
+  };
   if (e?.status === 0) {
     return 'No se pudo conectar con el servidor.';
   }

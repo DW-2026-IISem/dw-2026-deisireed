@@ -11,7 +11,14 @@ import { Role, RolePayload } from '../../../../core/models/role.model';
 @Component({
   host: { class: 'block' },
   selector: 'app-role-form',
-  imports: [ReactiveFormsModule, ButtonModule, InputTextModule, MessageModule, SelectModule, TextareaModule],
+  imports: [
+    ReactiveFormsModule,
+    ButtonModule,
+    InputTextModule,
+    MessageModule,
+    SelectModule,
+    TextareaModule,
+  ],
   templateUrl: './role-form.html',
   styleUrl: './role-form.css',
 })

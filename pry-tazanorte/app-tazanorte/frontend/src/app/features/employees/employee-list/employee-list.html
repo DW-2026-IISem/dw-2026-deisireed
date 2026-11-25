@@ -74,7 +74,8 @@
               icon="pi pi-pencil"
               aria-label="Editar empleado"
               pTooltip="Editar"
-              *appHasPermission="'PATCH /api/empleados/:id'" (click)="openEdit(row)"
+              *appHasPermission="'PATCH /api/empleados/:id'"
+              (click)="openEdit(row)"
             ></button>
             <button
               pButton
@@ -85,7 +86,8 @@
               icon="pi pi-ban"
               aria-label="Dar de baja al empleado"
               pTooltip="Baja lógica"
-              *appHasPermission="'PATCH /api/empleados/:id/deactivate'" (click)="deactivate(row)"
+              *appHasPermission="'PATCH /api/empleados/:id/deactivate'"
+              (click)="deactivate(row)"
             ></button>
             <button
               pButton
@@ -96,7 +98,8 @@
               icon="pi pi-trash"
               aria-label="Eliminar empleado"
               pTooltip="Eliminar"
-              *appHasPermission="'DELETE /api/empleados/:id'" (click)="remove(row)"
+              *appHasPermission="'DELETE /api/empleados/:id'"
+              (click)="remove(row)"
             ></button>
           </div>
         </td>

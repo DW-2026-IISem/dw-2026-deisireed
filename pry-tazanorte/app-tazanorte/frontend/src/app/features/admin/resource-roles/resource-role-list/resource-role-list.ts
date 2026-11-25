@@ -32,8 +32,19 @@ type ResourceRef = { method: HttpMethod; path: string; description: string | nul
   host: { class: 'block' },
   selector: 'app-resource-role-list',
   imports: [
-    FormsModule, ButtonModule, DialogModule, EmptyState, HasPermission, InputTextModule, MessageModule,
-    PageHeader, SelectModule, StatusTag, TableModule, TagModule, TooltipModule,
+    FormsModule,
+    ButtonModule,
+    DialogModule,
+    EmptyState,
+    HasPermission,
+    InputTextModule,
+    MessageModule,
+    PageHeader,
+    SelectModule,
+    StatusTag,
+    TableModule,
+    TagModule,
+    TooltipModule,
   ],
   templateUrl: './resource-role-list.html',
   styleUrl: './resource-role-list.css',
@@ -54,7 +65,9 @@ export class ResourceRoleList {
   readonly error = signal<string | null>(null);
   readonly filter = signal('');
   /** `/admin/permisos?rol=3` llega filtrado desde la pantalla de Roles. */
-  readonly roleFilter = signal<number | null>(Number(this.route.snapshot.queryParamMap.get('rol')) || null);
+  readonly roleFilter = signal<number | null>(
+    Number(this.route.snapshot.queryParamMap.get('rol')) || null,
+  );
 
   protected readonly methodSeverity = methodSeverity;
 
@@ -85,12 +98,16 @@ export class ResourceRoleList {
   readonly availableResources = computed(() => {
     const role = this.selectedRoleId();
     const granted = new Set(
-      this.rows().filter((g) => g.role_id === role && g.status === 'active').map((g) => g.resource_id),
+      this.rows()
+        .filter((g) => g.role_id === role && g.status === 'active')
+        .map((g) => g.resource_id),
     );
     return this.resources().filter((r) => r.status === 'active' && !granted.has(r.id));
   });
 
-  readonly canSave = computed(() => this.selectedRoleId() !== null && this.selectedResource() !== null && !this.saving());
+  readonly canSave = computed(
+    () => this.selectedRoleId() !== null && this.selectedResource() !== null && !this.saving(),
+  );
 
   constructor() {
     this.load();
@@ -99,7 +116,11 @@ export class ResourceRoleList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
-    forkJoin({ rows: this.api.list(), roles: this.rolesApi.list(), resources: this.resourcesApi.list() }).subscribe({
+    forkJoin({
+      rows: this.api.list(),
+      roles: this.rolesApi.list(),
+      resources: this.resourcesApi.list(),
+    }).subscribe({
       next: ({ rows, roles, resources }) => {
         this.rows.set(rows);
         this.roles.set(roles);
@@ -133,7 +154,10 @@ export class ResourceRoleList {
       next: () => {
         this.saving.set(false);
         this.dialogVisible.set(false);
-        this.notify.success('Permiso concedido', `${resource.method} ${resource.path} → ${this.roleName()(role_id)}`);
+        this.notify.success(
+          'Permiso concedido',
+          `${resource.method} ${resource.path} → ${this.roleName()(role_id)}`,
+        );
         this.load();
       },
       error: (error: unknown) => {

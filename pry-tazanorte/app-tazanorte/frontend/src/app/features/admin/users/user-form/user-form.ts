@@ -12,7 +12,14 @@ import { User, UserPayload } from '../../../../core/models/user.model';
 @Component({
   host: { class: 'block' },
   selector: 'app-user-form',
-  imports: [ReactiveFormsModule, ButtonModule, InputTextModule, MessageModule, PasswordModule, SelectModule],
+  imports: [
+    ReactiveFormsModule,
+    ButtonModule,
+    InputTextModule,
+    MessageModule,
+    PasswordModule,
+    SelectModule,
+  ],
   templateUrl: './user-form.html',
   styleUrl: './user-form.css',
 })

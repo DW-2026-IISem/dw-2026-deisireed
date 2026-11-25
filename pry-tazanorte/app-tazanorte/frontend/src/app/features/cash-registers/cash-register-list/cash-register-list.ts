@@ -10,10 +10,7 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { forkJoin, of } from 'rxjs';
 import { SessionStore } from '../../../core/services/session-store';
-import {
-  CashRegister,
-  CashRegisterPayload,
-} from '../../../core/models/cash-register.model';
+import { CashRegister, CashRegisterPayload } from '../../../core/models/cash-register.model';
 import { Employee } from '../../../core/models/employee.model';
 import { NotificationService } from '../../../core/services/notification';
 import { toApiMessage } from '../../../core/utils/api-error';
@@ -95,7 +92,9 @@ export class CashRegisterList {
 
     forkJoin({
       registers: this.api.list(),
-      employees: this.session.canPermission('GET /api/empleados') ? this.employeesApi.list() : of([]),
+      employees: this.session.canPermission('GET /api/empleados')
+        ? this.employeesApi.list()
+        : of([]),
     }).subscribe({
       next: ({ registers, employees }) => {
         this.rows.set(registers);

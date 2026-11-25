@@ -15,21 +15,14 @@
 
   <div class="min-w-0 flex-1">
     <p class="truncate text-sm font-semibold text-slate-900">{{ appName() }}</p>
-    <p class="truncate text-xs text-slate-500">
-      Cafetería y fidelización de clientes
-    </p>
+    <p class="truncate text-xs text-slate-500">Cafetería y fidelización de clientes</p>
   </div>
 
   @if (showSession() && !authEnabled()) {
     <p-tag value="Fase I · sin auth" severity="warn" [rounded]="true" />
   }
   @if (username()) {
-    <p-tag
-      [value]="roleLabel()"
-      severity="info"
-      [rounded]="true"
-      class="hidden sm:inline-flex"
-    />
+    <p-tag [value]="roleLabel()" severity="info" [rounded]="true" class="hidden sm:inline-flex" />
   }
 
   @if (showSession()) {

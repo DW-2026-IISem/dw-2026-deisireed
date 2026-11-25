@@ -1,5 +1,15 @@
-<app-page-header title="Panel" subtitle="Resumen de la operación calculado a partir de los pedidos.">
-  <button pButton type="button" severity="secondary" outlined [loading]="loading()" (click)="load()">
+<app-page-header
+  title="Panel"
+  subtitle="Resumen de la operación calculado a partir de los pedidos."
+>
+  <button
+    pButton
+    type="button"
+    severity="secondary"
+    outlined
+    [loading]="loading()"
+    (click)="load()"
+  >
     <i pButtonIcon class="pi pi-refresh"></i>
     <span pButtonLabel>Recargar</span>
   </button>
@@ -67,17 +77,25 @@
       <p-card header="Pedidos pendientes">
         <p-table [value]="pending()" tableStyleClass="min-w-md">
           <ng-template #header>
-            <tr><th>Pedido</th><th>Cliente</th><th class="text-right">Total</th></tr>
+            <tr>
+              <th>Pedido</th>
+              <th>Cliente</th>
+              <th class="text-right">Total</th>
+            </tr>
           </ng-template>
           <ng-template #body let-order>
             <tr>
               <td class="font-medium">#{{ order.id }}</td>
               <td class="text-sm">{{ clientName()(order.cliente_id) }}</td>
-              <td class="text-right">{{ order.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+              <td class="text-right">
+                {{ order.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+              </td>
             </tr>
           </ng-template>
           <ng-template #emptymessage>
-            <tr><td colspan="3" class="py-6 text-center text-sm text-slate-500">Nada pendiente.</td></tr>
+            <tr>
+              <td colspan="3" class="py-6 text-center text-sm text-slate-500">Nada pendiente.</td>
+            </tr>
           </ng-template>
         </p-table>
       </p-card>
@@ -85,7 +103,10 @@
       <p-card header="Productos más pedidos">
         <p-table [value]="topProducts()" tableStyleClass="min-w-md">
           <ng-template #header>
-            <tr><th>Producto</th><th class="text-right">Unidades</th></tr>
+            <tr>
+              <th>Producto</th>
+              <th class="text-right">Unidades</th>
+            </tr>
           </ng-template>
           <ng-template #body let-row>
             <tr>
@@ -94,7 +115,9 @@
             </tr>
           </ng-template>
           <ng-template #emptymessage>
-            <tr><td colspan="2" class="py-6 text-center text-sm text-slate-500">Sin datos.</td></tr>
+            <tr>
+              <td colspan="2" class="py-6 text-center text-sm text-slate-500">Sin datos.</td>
+            </tr>
           </ng-template>
         </p-table>
       </p-card>
@@ -110,19 +133,35 @@
       </div>
       <p-table [value]="latestOrders()" tableStyleClass="min-w-xl">
         <ng-template #header>
-          <tr><th>Pedido</th><th>Fecha</th><th>Cliente</th><th class="text-right">Total</th><th>Estado</th></tr>
+          <tr>
+            <th>Pedido</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th class="text-right">Total</th>
+            <th>Estado</th>
+          </tr>
         </ng-template>
         <ng-template #body let-order>
           <tr>
             <td class="font-medium">#{{ order.id }}</td>
             <td class="text-sm">{{ order.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
             <td class="text-sm">{{ clientName()(order.cliente_id) }}</td>
-            <td class="text-right">{{ order.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
-            <td><p-tag [value]="stateText(order.estado)" [severity]="severity(order.estado)" [rounded]="true" /></td>
+            <td class="text-right">
+              {{ order.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+            </td>
+            <td>
+              <p-tag
+                [value]="stateText(order.estado)"
+                [severity]="severity(order.estado)"
+                [rounded]="true"
+              />
+            </td>
           </tr>
         </ng-template>
         <ng-template #emptymessage>
-          <tr><td colspan="5" class="py-6 text-center text-sm text-slate-500">Sin pedidos.</td></tr>
+          <tr>
+            <td colspan="5" class="py-6 text-center text-sm text-slate-500">Sin pedidos.</td>
+          </tr>
         </ng-template>
       </p-table>
     </p-card>

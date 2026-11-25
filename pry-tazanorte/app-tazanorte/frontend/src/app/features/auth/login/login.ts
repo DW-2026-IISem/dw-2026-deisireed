@@ -45,7 +45,9 @@ export class Login {
         const requested = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
         // Solo rutas internas: evita open redirects.
         const returnUrl =
-          requested.startsWith('/') && !requested.startsWith('//') && !requested.startsWith('/login')
+          requested.startsWith('/') &&
+          !requested.startsWith('//') &&
+          !requested.startsWith('/login')
             ? requested
             : '/';
         void this.router.navigateByUrl(returnUrl);

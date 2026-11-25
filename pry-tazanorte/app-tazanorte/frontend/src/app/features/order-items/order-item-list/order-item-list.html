@@ -3,11 +3,23 @@
   subtitle="El flujo normal es «Nuevo pedido». Aquí se corrigen líneas mientras el pedido esté pendiente."
 >
   <p-tag [value]="items().length + ' líneas'" severity="info" [rounded]="true" />
-  <button pButton type="button" severity="secondary" outlined [loading]="loading()" (click)="load()">
+  <button
+    pButton
+    type="button"
+    severity="secondary"
+    outlined
+    [loading]="loading()"
+    (click)="load()"
+  >
     <i pButtonIcon class="pi pi-refresh"></i>
     <span pButtonLabel>Recargar</span>
   </button>
-  <button pButton type="button" *appHasPermission="'POST /api/detalle-pedidos'" (click)="openCreate()">
+  <button
+    pButton
+    type="button"
+    *appHasPermission="'POST /api/detalle-pedidos'"
+    (click)="openCreate()"
+  >
     <i pButtonIcon class="pi pi-plus"></i>
     <span pButtonLabel>Agregar línea</span>
   </button>
@@ -59,7 +71,12 @@
         <td>
           <p class="font-medium text-slate-800">#{{ item.pedido_id }}</p>
           @if (orderState(item); as state) {
-            <p-tag [value]="stateText(state)" [severity]="severity(state)" [rounded]="true" styleClass="mt-1 text-xs" />
+            <p-tag
+              [value]="stateText(state)"
+              [severity]="severity(state)"
+              [rounded]="true"
+              styleClass="mt-1 text-xs"
+            />
           }
         </td>
         <td>
@@ -75,15 +92,45 @@
         </td>
         <td>
           <div class="flex justify-end gap-1">
-            <button pButton type="button" text rounded severity="secondary" icon="pi pi-pencil"
-              aria-label="Editar línea" pTooltip="Editar" [disabled]="!isEditable(item)"
-              *appHasPermission="'PATCH /api/detalle-pedidos/:id'" (click)="openEdit(item)"></button>
-            <button pButton type="button" text rounded severity="warn" icon="pi pi-ban"
-              aria-label="Desactivar línea" pTooltip="Baja lógica" [disabled]="!isEditable(item)"
-              *appHasPermission="'PATCH /api/detalle-pedidos/:id/deactivate'" (click)="deactivate(item)"></button>
-            <button pButton type="button" text rounded severity="danger" icon="pi pi-trash"
-              aria-label="Eliminar línea" pTooltip="Eliminar" [disabled]="!isEditable(item)"
-              *appHasPermission="'DELETE /api/detalle-pedidos/:id'" (click)="remove(item)"></button>
+            <button
+              pButton
+              type="button"
+              text
+              rounded
+              severity="secondary"
+              icon="pi pi-pencil"
+              aria-label="Editar línea"
+              pTooltip="Editar"
+              [disabled]="!isEditable(item)"
+              *appHasPermission="'PATCH /api/detalle-pedidos/:id'"
+              (click)="openEdit(item)"
+            ></button>
+            <button
+              pButton
+              type="button"
+              text
+              rounded
+              severity="warn"
+              icon="pi pi-ban"
+              aria-label="Desactivar línea"
+              pTooltip="Baja lógica"
+              [disabled]="!isEditable(item)"
+              *appHasPermission="'PATCH /api/detalle-pedidos/:id/deactivate'"
+              (click)="deactivate(item)"
+            ></button>
+            <button
+              pButton
+              type="button"
+              text
+              rounded
+              severity="danger"
+              icon="pi pi-trash"
+              aria-label="Eliminar línea"
+              pTooltip="Eliminar"
+              [disabled]="!isEditable(item)"
+              *appHasPermission="'DELETE /api/detalle-pedidos/:id'"
+              (click)="remove(item)"
+            ></button>
           </div>
         </td>
       </tr>
@@ -93,11 +140,17 @@
       <tr>
         <td colspan="6">
           @if (filter()) {
-            <app-empty-state icon="pi pi-search" title="Sin coincidencias"
-              message="Ninguna línea coincide con la búsqueda." />
+            <app-empty-state
+              icon="pi pi-search"
+              title="Sin coincidencias"
+              message="Ninguna línea coincide con la búsqueda."
+            />
           } @else {
-            <app-empty-state icon="pi pi-list" title="Sin líneas activas"
-              message="Las líneas aparecen al registrar pedidos." />
+            <app-empty-state
+              icon="pi pi-list"
+              title="Sin líneas activas"
+              message="Las líneas aparecen al registrar pedidos."
+            />
           }
         </td>
       </tr>
@@ -125,7 +178,13 @@
         Pedido <span class="text-red-500">*</span>
       </label>
       @if (editing(); as current) {
-        <input id="item-order" pInputText class="w-full" [value]="'#' + current.pedido_id" disabled />
+        <input
+          id="item-order"
+          pInputText
+          class="w-full"
+          [value]="'#' + current.pedido_id"
+          disabled
+        />
       } @else {
         <p-select
           inputId="item-order"
@@ -174,9 +233,17 @@
     </div>
 
     <div>
-      <label for="item-note" class="mb-1 block text-sm font-medium text-slate-700">Observaciones</label>
-      <input id="item-note" pInputText class="w-full" placeholder="Sin azúcar, leche deslactosada…"
-        [ngModel]="formNote()" (ngModelChange)="formNote.set($event)" />
+      <label for="item-note" class="mb-1 block text-sm font-medium text-slate-700"
+        >Observaciones</label
+      >
+      <input
+        id="item-note"
+        pInputText
+        class="w-full"
+        placeholder="Sin azúcar, leche deslactosada…"
+        [ngModel]="formNote()"
+        (ngModelChange)="formNote.set($event)"
+      />
     </div>
 
     @if (editing()) {
@@ -184,7 +251,13 @@
     }
 
     <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
-      <button pButton type="button" severity="secondary" outlined (click)="dialogVisible.set(false)">
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        outlined
+        (click)="dialogVisible.set(false)"
+      >
         <span pButtonLabel>Cancelar</span>
       </button>
       <button pButton type="button" [loading]="saving()" (click)="save()">

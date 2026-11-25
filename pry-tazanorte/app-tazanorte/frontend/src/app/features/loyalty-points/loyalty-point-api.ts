@@ -27,7 +27,10 @@ export class LoyaltyPointApi {
       .pipe(map((response) => response.loyalty_point));
   }
 
-  update(id: number, payload: Partial<Omit<LoyaltyPointPayload, 'is_active'>>): Observable<LoyaltyPoint> {
+  update(
+    id: number,
+    payload: Partial<Omit<LoyaltyPointPayload, 'is_active'>>,
+  ): Observable<LoyaltyPoint> {
     return this.http
       .patch<{ loyalty_point: LoyaltyPoint }>(`${this.base}/${id}`, payload)
       .pipe(map((response) => response.loyalty_point));

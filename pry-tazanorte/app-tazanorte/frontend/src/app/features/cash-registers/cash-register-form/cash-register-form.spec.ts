@@ -1,8 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  CashRegister,
-  CashRegisterPayload,
-} from '../../../core/models/cash-register.model';
+import { CashRegister, CashRegisterPayload } from '../../../core/models/cash-register.model';
 import { Employee } from '../../../core/models/employee.model';
 import { CashRegisterForm } from './cash-register-form';
 

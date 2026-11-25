@@ -137,7 +137,8 @@ export class OrderList {
         this.notify.success(`Pedido #${order.id}: ${this.stateText(estado)}`);
         this.load();
       },
-      error: (error: unknown) => this.notify.error('No se pudo cambiar el estado', httpMessage(error)),
+      error: (error: unknown) =>
+        this.notify.error('No se pudo cambiar el estado', httpMessage(error)),
     });
   }
 

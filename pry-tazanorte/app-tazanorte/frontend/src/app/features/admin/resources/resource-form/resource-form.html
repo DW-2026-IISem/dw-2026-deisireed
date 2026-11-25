@@ -1,12 +1,29 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
   <div class="grid gap-4 sm:grid-cols-4">
     <div>
-      <label for="res-method" class="mb-1 block text-sm font-medium text-slate-700">Método <span class="text-red-500">*</span></label>
-      <p-select inputId="res-method" formControlName="method" [options]="methods" optionLabel="label" optionValue="value" [fluid]="true" />
+      <label for="res-method" class="mb-1 block text-sm font-medium text-slate-700"
+        >Método <span class="text-red-500">*</span></label
+      >
+      <p-select
+        inputId="res-method"
+        formControlName="method"
+        [options]="methods"
+        optionLabel="label"
+        optionValue="value"
+        [fluid]="true"
+      />
     </div>
     <div class="sm:col-span-3">
-      <label for="res-path" class="mb-1 block text-sm font-medium text-slate-700">Ruta <span class="text-red-500">*</span></label>
-      <input id="res-path" pInputText formControlName="path" placeholder="/api/insumos/:id" class="w-full font-mono" />
+      <label for="res-path" class="mb-1 block text-sm font-medium text-slate-700"
+        >Ruta <span class="text-red-500">*</span></label
+      >
+      <input
+        id="res-path"
+        pInputText
+        formControlName="path"
+        placeholder="/api/insumos/:id"
+        class="w-full font-mono"
+      />
       @if (form.controls.path.touched && form.controls.path.invalid) {
         <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
           Debe empezar por «/» y no tener espacios. Usa :id para parámetros.
@@ -17,13 +34,28 @@
 
   <div class="grid gap-4 sm:grid-cols-3">
     <div class="sm:col-span-2">
-      <label for="res-desc" class="mb-1 block text-sm font-medium text-slate-700">Descripción</label>
-      <input id="res-desc" pInputText formControlName="description" placeholder="Consultar insumo" class="w-full" />
+      <label for="res-desc" class="mb-1 block text-sm font-medium text-slate-700"
+        >Descripción</label
+      >
+      <input
+        id="res-desc"
+        pInputText
+        formControlName="description"
+        placeholder="Consultar insumo"
+        class="w-full"
+      />
     </div>
     @if (!resource()) {
       <div>
         <label for="res-status" class="mb-1 block text-sm font-medium text-slate-700">Estado</label>
-        <p-select inputId="res-status" formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" [fluid]="true" />
+        <p-select
+          inputId="res-status"
+          formControlName="status"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          [fluid]="true"
+        />
       </div>
     }
   </div>
@@ -33,7 +65,11 @@
   </p>
 
   <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
-    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()"><span pButtonLabel>Cancelar</span></button>
-    <button pButton type="submit" [loading]="saving()"><i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Guardar</span></button>
+    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()">
+      <span pButtonLabel>Cancelar</span>
+    </button>
+    <button pButton type="submit" [loading]="saving()">
+      <i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Guardar</span>
+    </button>
   </div>
 </form>

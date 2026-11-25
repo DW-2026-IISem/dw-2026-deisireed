@@ -1,6 +1,8 @@
 <div class="flex flex-col gap-6">
   <header>
-    <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">demo/ejemplo · ISS-01</p>
+    <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+      demo/ejemplo · ISS-01
+    </p>
     <h1 class="text-3xl font-bold text-slate-900">Un objeto en un signal</h1>
     <p class="text-slate-600">Estado, valores derivados y efecto sobre un producto.</p>
   </header>
@@ -27,7 +29,9 @@
         Nombre
         <input pInputText [value]="producto().nombre" (input)="cambiarNombre($event)" />
       </label>
-      <p class="text-sm text-slate-600">Vista previa: <strong>{{ producto().nombre }}</strong></p>
+      <p class="text-sm text-slate-600">
+        Vista previa: <strong>{{ producto().nombre }}</strong>
+      </p>
 
       <!-- 3. Event binding con argumento. -->
       <div class="flex flex-wrap gap-2">
@@ -37,7 +41,13 @@
         <button pButton type="button" (click)="variarPrecio(1000)">
           <span pButtonLabel>+1000</span>
         </button>
-        <button pButton type="button" severity="contrast" [outlined]="true" (click)="alternarEstado()">
+        <button
+          pButton
+          type="button"
+          severity="contrast"
+          [outlined]="true"
+          (click)="alternarEstado()"
+        >
           <span pButtonLabel>Cambiar estado</span>
         </button>
         <button pButton type="button" severity="secondary" [text]="true" (click)="reiniciar()">

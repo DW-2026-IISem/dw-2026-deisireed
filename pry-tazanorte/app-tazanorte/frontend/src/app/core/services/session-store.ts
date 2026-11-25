@@ -79,9 +79,7 @@ export class SessionStore {
     }
     const verb = method.toUpperCase();
     const requestPath = path.split('?')[0];
-    return this._permissions().some(
-      (p) => p.method === verb && pathMatches(p.path, requestPath),
-    );
+    return this._permissions().some((p) => p.method === verb && pathMatches(p.path, requestPath));
   }
 
   /** Igual que `can`, con el formato "GET /api/clientes". */
@@ -137,8 +135,6 @@ export class SessionStore {
 
 /** `/api/usuarios/:id` debe reconocer `/api/usuarios/7`. */
 function pathMatches(pattern: string, path: string): boolean {
-  const escaped = pattern
-    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    .replace(/\/:[^/]+/g, '/[^/]+');
+  const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\/:[^/]+/g, '/[^/]+');
   return new RegExp(`^${escaped}$`).test(path);
 }

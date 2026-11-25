@@ -1,9 +1,6 @@
 import { SessionStore } from '../../../core/services/session-store';
 import { provideHttpClient } from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { environment } from '../../../../environments/environment';
@@ -40,13 +37,30 @@ describe('CashRegisterList', () => {
     http = TestBed.inject(HttpTestingController);
     // Sesión de prueba: sin permisos, la lista no pide /empleados (ISS-09).
     TestBed.inject(SessionStore).setAccess({
-      user: { id: 1, username: 'admin', email: 'admin@tazanorte.local', avatar: null, status: 'active' },
+      user: {
+        id: 1,
+        username: 'admin',
+        email: 'admin@tazanorte.local',
+        avatar: null,
+        status: 'active',
+      },
       permissions: [
-        'GET /api/turnos-caja', 'POST /api/turnos-caja', 'PATCH /api/turnos-caja/:id',
-        'PATCH /api/turnos-caja/:id/deactivate', 'DELETE /api/turnos-caja/:id', 'GET /api/empleados',
+        'GET /api/turnos-caja',
+        'POST /api/turnos-caja',
+        'PATCH /api/turnos-caja/:id',
+        'PATCH /api/turnos-caja/:id/deactivate',
+        'DELETE /api/turnos-caja/:id',
+        'GET /api/empleados',
       ].map((p, i) => {
         const [method, path] = p.split(' ');
-        return { resource_id: i + 1, method: method as 'GET', path, description: null, role_id: 1, role_name: 'ADMIN' };
+        return {
+          resource_id: i + 1,
+          method: method as 'GET',
+          path,
+          description: null,
+          role_id: 1,
+          role_name: 'ADMIN',
+        };
       }),
     });
   });

@@ -35,8 +35,19 @@ function countBy<T>(rows: T[], key: (row: T) => number): Map<number, number> {
   host: { class: 'block' },
   selector: 'app-role-list',
   imports: [
-    RouterLink, ButtonModule, DialogModule, EmptyState, HasPermission, InputTextModule, MessageModule,
-    PageHeader, RoleForm, StatusTag, TableModule, TagModule, TooltipModule,
+    RouterLink,
+    ButtonModule,
+    DialogModule,
+    EmptyState,
+    HasPermission,
+    InputTextModule,
+    MessageModule,
+    PageHeader,
+    RoleForm,
+    StatusTag,
+    TableModule,
+    TagModule,
+    TooltipModule,
   ],
   templateUrl: './role-list.html',
   styleUrl: './role-list.css',
@@ -58,10 +69,16 @@ export class RoleList {
   readonly filter = signal('');
 
   readonly usersByRole = computed(() =>
-    countBy(this.assignments().filter((a) => a.status === 'active'), (a) => a.role_id),
+    countBy(
+      this.assignments().filter((a) => a.status === 'active'),
+      (a) => a.role_id,
+    ),
   );
   readonly grantsByRole = computed(() =>
-    countBy(this.grants().filter((g) => g.status === 'active'), (g) => g.role_id),
+    countBy(
+      this.grants().filter((g) => g.status === 'active'),
+      (g) => g.role_id,
+    ),
   );
 
   readonly visibleRows = computed(() =>
@@ -82,8 +99,12 @@ export class RoleList {
     this.error.set(null);
     forkJoin({
       roles: this.api.list(),
-      assignments: this.session.canPermission('GET /api/asignaciones-rol') ? this.assignmentsApi.list() : of([] as RoleUser[]),
-      grants: this.session.canPermission('GET /api/concesiones-rol') ? this.grantsApi.list() : of([] as ResourceRole[]),
+      assignments: this.session.canPermission('GET /api/asignaciones-rol')
+        ? this.assignmentsApi.list()
+        : of([] as RoleUser[]),
+      grants: this.session.canPermission('GET /api/concesiones-rol')
+        ? this.grantsApi.list()
+        : of([] as ResourceRole[]),
     }).subscribe({
       next: ({ roles, assignments, grants }) => {
         this.rows.set(roles);
@@ -143,7 +164,8 @@ export class RoleList {
             this.notify.warn('Rol desactivado');
             this.load();
           },
-          error: (error: unknown) => this.notify.error('No se pudo desactivar', toApiMessage(error)),
+          error: (error: unknown) =>
+            this.notify.error('No se pudo desactivar', toApiMessage(error)),
         }),
     });
   }

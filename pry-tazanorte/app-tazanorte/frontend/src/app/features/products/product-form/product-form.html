@@ -4,7 +4,13 @@
       <label for="product-sku" class="mb-1 block text-sm font-medium text-slate-700">
         SKU <span class="text-red-500">*</span>
       </label>
-      <input id="product-sku" pInputText formControlName="sku" placeholder="CAF-001" class="w-full" />
+      <input
+        id="product-sku"
+        pInputText
+        formControlName="sku"
+        placeholder="CAF-001"
+        class="w-full"
+      />
       @if (form.controls.sku.touched && form.controls.sku.invalid) {
         <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
           El SKU es obligatorio (máximo 50 caracteres).
@@ -16,7 +22,13 @@
       <label for="product-name" class="mb-1 block text-sm font-medium text-slate-700">
         Nombre <span class="text-red-500">*</span>
       </label>
-      <input id="product-name" pInputText formControlName="nombre" placeholder="Capuchino" class="w-full" />
+      <input
+        id="product-name"
+        pInputText
+        formControlName="nombre"
+        placeholder="Capuchino"
+        class="w-full"
+      />
       @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
         <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
           El nombre es obligatorio.

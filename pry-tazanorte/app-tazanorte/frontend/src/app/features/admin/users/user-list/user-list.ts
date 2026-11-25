@@ -75,7 +75,11 @@ export class UserList {
   });
 
   readonly visibleRows = computed(() =>
-    filterRows(this.rows(), this.filter(), (u) => [u.username, u.email, ...(this.rolesByUser().get(u.id) ?? [])]),
+    filterRows(this.rows(), this.filter(), (u) => [
+      u.username,
+      u.email,
+      ...(this.rolesByUser().get(u.id) ?? []),
+    ]),
   );
 
   // Crear / editar
@@ -155,7 +159,10 @@ export class UserList {
       next: () => {
         this.saving.set(false);
         this.dialogVisible.set(false);
-        this.notify.success(current ? 'Usuario actualizado' : 'Usuario creado', current ? undefined : 'Asígnale un rol en «Asignaciones».');
+        this.notify.success(
+          current ? 'Usuario actualizado' : 'Usuario creado',
+          current ? undefined : 'Asígnale un rol en «Asignaciones».',
+        );
         this.load();
       },
       error: (error: unknown) => {
@@ -204,7 +211,10 @@ export class UserList {
     this.saving.set(true);
     this.passwordError.set(null);
     this.api
-      .changePassword(me.id, { current_password: this.currentPassword(), new_password: this.newPassword() })
+      .changePassword(me.id, {
+        current_password: this.currentPassword(),
+        new_password: this.newPassword(),
+      })
       .subscribe({
         next: () => {
           this.saving.set(false);
@@ -232,7 +242,8 @@ export class UserList {
             this.notify.warn('Usuario desactivado');
             this.load();
           },
-          error: (error: unknown) => this.notify.error('No se pudo desactivar', toApiMessage(error)),
+          error: (error: unknown) =>
+            this.notify.error('No se pudo desactivar', toApiMessage(error)),
         }),
     });
   }

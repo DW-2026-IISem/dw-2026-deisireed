@@ -79,7 +79,8 @@
               icon="pi pi-pencil"
               aria-label="Editar turno"
               pTooltip="Editar"
-              *appHasPermission="'PATCH /api/turnos-caja/:id'" (click)="openEdit(row)"
+              *appHasPermission="'PATCH /api/turnos-caja/:id'"
+              (click)="openEdit(row)"
             ></button>
             <button
               pButton
@@ -90,7 +91,8 @@
               icon="pi pi-ban"
               aria-label="Dar de baja al turno"
               pTooltip="Baja lógica"
-              *appHasPermission="'PATCH /api/turnos-caja/:id/deactivate'" (click)="deactivate(row)"
+              *appHasPermission="'PATCH /api/turnos-caja/:id/deactivate'"
+              (click)="deactivate(row)"
             ></button>
             <button
               pButton
@@ -101,7 +103,8 @@
               icon="pi pi-trash"
               aria-label="Eliminar turno"
               pTooltip="Eliminar"
-              *appHasPermission="'DELETE /api/turnos-caja/:id'" (click)="remove(row)"
+              *appHasPermission="'DELETE /api/turnos-caja/:id'"
+              (click)="remove(row)"
             ></button>
           </div>
         </td>

@@ -20,8 +20,8 @@ function productoInicial(): Producto {
 
 // 3. @Component describe CÓMO se pinta la clase.
 @Component({
-  host: { class: 'block' },              // <app-ejemplo> se comporta como bloque
-  selector: 'app-ejemplo',               // se usa como <app-ejemplo></app-ejemplo>
+  host: { class: 'block' }, // <app-ejemplo> se comporta como bloque
+  selector: 'app-ejemplo', // se usa como <app-ejemplo></app-ejemplo>
   imports: [ButtonModule, CardModule, InputTextModule, MessageModule, TagModule],
   templateUrl: './ejemplo.html',
   styleUrl: './ejemplo.css',
@@ -31,12 +31,8 @@ export class Ejemplo {
   protected readonly producto = signal<Producto>(productoInicial());
 
   // 5. DERIVADOS: se calculan desde `producto()`, nunca se asignan.
-  protected readonly precioFinal = computed(() =>
-    Math.round(this.producto().precio * 1.19),
-  );
-  protected readonly estadoTexto = computed(() =>
-    this.producto().activo ? 'Activo' : 'Inactivo',
-  );
+  protected readonly precioFinal = computed(() => Math.round(this.producto().precio * 1.19));
+  protected readonly estadoTexto = computed(() => (this.producto().activo ? 'Activo' : 'Inactivo'));
 
   // 6. EFECTO: se ejecuta al crear y en cada cambio del objeto.
   private readonly registro = effect(() => {
