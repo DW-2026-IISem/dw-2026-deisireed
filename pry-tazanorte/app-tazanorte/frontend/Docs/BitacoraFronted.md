@@ -1556,3 +1556,1108 @@ Sin `toNumber`, `revenue()` podría concatenar strings y mostrar un total absurd
 ![](images/clipboard-748619196.png)
 
 ![](images/clipboard-4264508579.png)
+
+# Fase II: Auth con RBAC — ISS-08 — Autenticación JWT, perfil y permisos efectivos
+
+## 8.1 El contrato real (no lo inventes)
+
+| **Endpoint** | **Modalidad** | **Respuesta** |
+|:-----------------------|:-----------------------|:-----------------------|
+| `POST /api/sesion/login` | OPEN | **Solo tokens** |
+| `POST /api/sesion/refresh` | OPEN (refresh en el cuerpo) | Solo tokens (rotados) |
+| `POST /api/sesion/logout` | OPEN (refresh en el cuerpo) | `{ message }` |
+| `GET /api/sesion/perfil` | JWT | `{ user }` |
+| `GET /api/permisos` | JWT | `{ permissions }` |
+
+```         
+// POST /api/sesion/login  →  SessionTokensDto {   "access_token": "eyJ...",   "token_type": "Bearer",   "expires_in": 900,   "refresh_token": "9f2c...",   "refresh_expires_in": 604800 } 
+```
+
+```         
+// GET /api/permisos  →  { permissions: EffectivePermissionDto[] } {   "permissions": [     {       "resource_id": 1,       "method": "GET",       "path": "/api/clientes",       "description": "Listar clientes",       "role_id": 1,       "role_name": "ADMIN"     }   ] } 
+```
+
+> **Error clásico:** esperar `user`, `roles` y `resources` en el login (como en otros laboratorios). Aquí el login **solo** emite tokens. El frontend debe encadenar `forkJoin(perfil, permisos)` después de guardarlos.
+
+### Modelo de seguridad
+
+```         
+access_token  → JWT HS256 corto (JWT_ACCESS_TTL = 900 s).                 Se valida con firma, iss y aud; NO lleva roles. refresh_token → opaco (64 bytes base64url). Se guarda solo su SHA-256.                 Vive en refresh_tokens con family_id y expires_at. 
+```
+
+- Cada `refresh` **rota**: invalida el presentado y emite uno nuevo en la misma familia. La ventana se reinicia (ventana deslizante).
+
+- Si se presenta un refresh ya rotado → **reuse detection**: el backend revoca **toda la familia** y responde `401`.
+
+- `logout` revoca **el refresh presentado** (idempotente). No revoca la familia.
+
+- Desactivar el usuario invalida sus tokens en la siguiente petición (`authenticate` revalida `status` en la base).
+
+Consecuencia para el frontend: **nunca** dispares dos refresh en paralelo. El interceptor usa `refreshInFlight` para compartir la misma llamada.
+
+> **Advertencia didáctica:** guardar tokens en `localStorage` es vulnerable a XSS. En producción se prefieren cookies `HttpOnly` + `Secure` + `SameSite`. Aquí se usa `localStorage` para que el laboratorio sea observable en DevTools.
+
+![](images/clipboard-2988522999.png)
+
+## 8.2 Activar Fase II
+
+En **ambos** archivos de entorno:
+
+```         
+export const environment = {   production: false, // true en environment.ts   appName: 'StoreLab Express II',   apiUrl: 'http://localhost:4000/api',   requireAuth: true, }; 
+```
+
+Con `true`, `SessionStore.canPermission()` deja de ser permisivo y el login es obligatorio. **La otra mitad del interruptor está en el backend:** su `.env` debe tener `AUTH_ENABLED=true` (ISS-13 §18.7 de `app-storelab-express-ii`). Si el backend quedó en modo laboratorio, el frontend pide login pero la API acepta peticiones sin token; si el frontend queda en `false` con el backend protegido, todo responde `401 Missing Bearer token`.
+
+## 8.3 Modelos de sesión
+
+```         
+cat > src/app/core/models/auth.model.ts <<'EOF' import { HttpMethod } from './resource.model'; import { User } from './user.model';  /** POST /api/sesion/login — `identifier` acepta username o email. */ export interface LoginRequest {   identifier: string;   password: string; }  /** Respuesta de login y refresh: SOLO el par de tokens. */ export interface SessionTokens {   access_token: string;   token_type: 'Bearer';   expires_in: number;   refresh_token: string;   refresh_expires_in: number; }  /** GET /api/sesion/perfil */ export interface ProfilePayload {   user: User; }  /** Una fila de role_users → roles → resource_roles → resources (todo activo). */ export interface EffectivePermission {   resource_id: number;   method: HttpMethod;   path: string;   description: string | null;   role_id: number;   role_name: string; }  /** GET /api/permisos · GET /api/usuarios/:id/permisos */ export interface PermissionsPayload {   permissions: EffectivePermission[]; }  /** Estado compuesto que mantiene SessionStore. */ export interface AccessPayload {   user: User;   permissions: EffectivePermission[]; } EOF 
+```
+
+![](images/clipboard-801074422.png)
+
+## 8.3A Generar interceptores funcionales
+
+```         
+ng generate interceptor core/interceptors/auth --functional --skip-tests --defaults ng generate interceptor core/interceptors/error --functional --skip-tests --defaults 
+```
+
+Generan auth-interceptor.ts y error-interceptor.ts. Reemplaza el passthrough del CLI por la implementación de esta ISS antes de registrarlos. No se usa `ng generate service` para interceptores. Para construir las rutas finales de esta ISS, genera también los guards de ISS-09 antes de importar sus símbolos; esa ISS explica sus decisiones de autorización. No repitas un generador cuyo archivo ya completaste.
+
+![](images/clipboard-2692496988.png)
+
+## 8.4 HttpClient e interceptores
+
+**En `app.config.ts`**, añade imports **encima de** `export const appConfig`:
+
+```         
+import { provideHttpClient, withInterceptors } from '@angular/common/http'; import { authInterceptor } from './core/interceptors/auth-interceptor'; import { errorInterceptor } from './core/interceptors/error-interceptor'; 
+```
+
+**Dentro de `providers`**, debajo de `provideBrowserGlobalErrorListeners()`:
+
+```         
+// El orden importa: auth añade el Bearer y reintenta; error traduce fallos. provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])), 
+```
+
+```         
+Componente → authInterceptor (añade token, reintenta 401)            → errorInterceptor (toast de 403/500/offline)            → HttpBackend → Express 
+```
+
+![](images/clipboard-968172876.png)
+
+![](images/clipboard-901283785.png)
+
+## 8.5 `SessionStore`
+
+```         
+cat > src/app/core/services/session-store.ts <<'EOF' import { Injectable, computed, signal } from '@angular/core'; import { environment } from '../../../environments/environment'; import { AccessPayload, EffectivePermission, SessionTokens } from '../models/auth.model'; import { HttpMethod, Resource } from '../models/resource.model'; import { Role } from '../models/role.model'; import { User } from '../models/user.model';  const STORAGE_KEY = 'storelab.session.v1';  interface PersistedSession {   accessToken: string;   refreshToken: string;   user: User | null;   permissions: EffectivePermission[]; }  /**  * Única fuente de verdad de la sesión en el cliente.  * Todo se expone como signals de solo lectura y se deriva con computed().  *  * Contrato del backend `app-storelab-express-ii`:  *  - `POST /api/sesion/login`  → solo tokens.  *  - `GET  /api/sesion/perfil` → `{ user }`.  *  - `GET  /api/permisos`      → `{ permissions: EffectivePermission[] }`.  *  * Seguridad: el backend sigue siendo la autoridad. `can()` solo decide qué  * pintar en la UI; aunque se fuerce el menú, Express responde 401/403.  */ @Injectable({ providedIn: 'root' }) export class SessionStore {   /**    * Mitad frontal del interruptor de fases.    * - `false`: guards permisivos, directiva siempre visible, sin `Bearer`.    * - `true`: Fase II. Debe emparejarse con `AUTH_ENABLED=true` en el backend.    * La autoridad real sigue siendo Express; esto solo decide qué pintar.    */   readonly authEnabled = environment.requireAuth;    private readonly _accessToken = signal<string | null>(null);   private readonly _refreshToken = signal<string | null>(null);   private readonly _user = signal<User | null>(null);   private readonly _permissions = signal<EffectivePermission[]>([]);    readonly accessToken = this._accessToken.asReadonly();   readonly refreshToken = this._refreshToken.asReadonly();   readonly user = this._user.asReadonly();   readonly permissions = this._permissions.asReadonly();    readonly isAuthenticated = computed(() => this._accessToken() !== null);    /** Roles derivados de los permisos efectivos (role_name único). */   readonly roleNames = computed(() =>     [...new Set(this._permissions().map((permission) => permission.role_name))].sort(),   );    /**    * `Role[]` derivado para las plantillas que ya consumían `session.roles()`.    * No hay endpoint de roles propio del usuario: el rol llega en cada permiso.    */   readonly roles = computed<Role[]>(() => {     const byId = new Map<number, Role>();     for (const permission of this._permissions()) {       if (!byId.has(permission.role_id)) {         byId.set(permission.role_id, {           id: permission.role_id,           name: permission.role_name,           description: null,           status: 'active',         });       }     }     return [...byId.values()];   });    /**    * `Resource[]` derivado de los permisos efectivos.    * Se conserva la forma de `Resource` para reutilizar tablas y `can()`.    */   readonly resources = computed<Resource[]>(() =>     this._permissions().map((permission) => ({       id: permission.resource_id,       method: permission.method,       path: permission.path,       description: permission.description,       status: 'active' as const,     })),   );    /** Set de strings "MÉTODO /api/ruta" para consultas O(1) en la UI. */   readonly permissionsIndex = computed(     () => new Set(this._permissions().map((item) => `${item.method} ${item.path}`)),   );    readonly permissionCount = computed(() => this._permissions().length);    constructor() {     this.restore();   }    /** Login y refresh comparten la misma forma: solo tokens. */   setTokens(tokens: SessionTokens): void {     this._accessToken.set(tokens.access_token);     this._refreshToken.set(tokens.refresh_token);     this.persist();   }    /** Perfil + permisos efectivos (login y "Actualizar permisos"). */   setAccess(access: AccessPayload): void {     this._user.set(access.user);     this._permissions.set(access.permissions ?? []);     this.persist();   }    clear(): void {     this._accessToken.set(null);     this._refreshToken.set(null);     this._user.set(null);     this._permissions.set([]);     try {       localStorage.removeItem(STORAGE_KEY);     } catch {       /* almacenamiento no disponible */     }   }    /**    * ¿La sesión tiene un permiso concreto?    * - Sin auth (fase I) siempre permite.    * - Compara `MÉTODO` y `path`; soporta `:id` del catálogo Resource.    */   can(method: HttpMethod | string, path: string): boolean {     if (!this.authEnabled) {       return true;     }     const verb = method.toUpperCase();     const requestPath = path.split('?')[0];     return this._permissions().some(       (permission) =>         permission.method === verb && pathMatches(permission.path, requestPath),     );   }    canPermission(permission: string): boolean {     if (!this.authEnabled) {       return true;     }     const separator = permission.indexOf(' ');     if (separator < 0) {       return false;     }     return this.can(permission.slice(0, separator), permission.slice(separator + 1));   }    hasRole(name: string): boolean {     return this.roleNames().includes(name.toUpperCase());   }    private restore(): void {     try {       const raw = localStorage.getItem(STORAGE_KEY);       if (!raw) {         return;       }       const data = JSON.parse(raw) as PersistedSession;       // Sesiones guardadas por una versión anterior (roles/resources) no sirven.       if (!Array.isArray(data.permissions)) {         this.clear();         return;       }       this._accessToken.set(data.accessToken ?? null);       this._refreshToken.set(data.refreshToken ?? null);       this._user.set(data.user ?? null);       this._permissions.set(data.permissions ?? []);     } catch {       this.clear();     }   }    private persist(): void {     const data: PersistedSession = {       accessToken: this._accessToken() ?? '',       refreshToken: this._refreshToken() ?? '',       user: this._user(),       permissions: this._permissions(),     };     try {       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));     } catch {       /* modo privado o cuota llena: la sesión sigue en memoria */     }   } }  /** `/api/usuarios/:id` debe reconocer `/api/usuarios/7`. */ function pathMatches(pattern: string, path: string): boolean {   const escaped = pattern     .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')     .replace(/\/:[^/]+/g, '/[^/]+');   return new RegExp(`^${escaped}$`).test(path); } EOF 
+```
+
+> El archivo real incluye `restore()` y `persist()` completos. Lo esencial: **persistimos `permissions`, no `roles` ni `resources`**, porque los últimos se derivan con `computed`.
+
+![](images/clipboard-3924340118.png)
+
+## 8.6 `AuthService`
+
+```         
+cat > src/app/core/services/auth.ts <<'EOF' import { HttpClient } from '@angular/common/http'; import { Injectable, inject } from '@angular/core'; import { Observable, catchError, finalize, forkJoin, map, of, switchMap, tap, throwError } from 'rxjs'; import { environment } from '../../../environments/environment'; import {   AccessPayload,   LoginRequest,   PermissionsPayload,   ProfilePayload,   SessionTokens, } from '../models/auth.model'; import { SessionStore } from './session-store';  /**  * Cliente del feature Session del backend `app-storelab-express-ii`.  *  * | Endpoint | Modalidad | Devuelve |  * |---|---|---|  * | `POST /api/sesion/login`   | OPEN | `SessionTokens` (solo tokens) |  * | `GET  /api/sesion/perfil`  | JWT  | `{ user }` |  * | `GET  /api/permisos`       | JWT  | `{ permissions }` (permisos efectivos) |  * | `POST /api/sesion/refresh` | OPEN (refresh token) | `SessionTokens` |  * | `POST /api/sesion/logout`  | OPEN (refresh token) | `{ message }` |  *  * El login NO devuelve usuario ni permisos: tras guardar los tokens se consulta  * el perfil y la matriz efectiva en dos peticiones JWT (`forkJoin`).  */ @Injectable({ providedIn: 'root' }) export class AuthService {   private readonly http = inject(HttpClient);   private readonly session = inject(SessionStore);   private readonly base = `${environment.apiUrl}/sesion`;   private readonly permissionsUrl = `${environment.apiUrl}/permisos`;    /** Login + carga de identidad/permisos. */   login(credentials: LoginRequest): Observable<AccessPayload> {     return this.http.post<SessionTokens>(`${this.base}/login`, credentials).pipe(       tap((tokens) => this.session.setTokens(tokens)),       switchMap(() =>         this.me().pipe(           // Si perfil o permisos fallan, no dejes una sesión a medias.           catchError((error: unknown) => {             this.session.clear();             return throwError(() => error);           }),         ),       ),     );   }    /**    * `GET /api/sesion/perfil` + `GET /api/permisos`.    * Se usa tras el login y en "Actualizar permisos" del menú.    */   me(): Observable<AccessPayload> {     return forkJoin({       profile: this.http.get<ProfilePayload>(`${this.base}/perfil`),       permissions: this.http.get<PermissionsPayload>(this.permissionsUrl),     }).pipe(       map(({ profile, permissions }) => ({         user: profile.user,         permissions: permissions.permissions,       })),       tap((access) => this.session.setAccess(access)),     );   }    /** Renueva el par de tokens; el refresh token anterior queda rotado. */   refresh(): Observable<SessionTokens> {     const refresh_token = this.session.refreshToken();     if (!refresh_token) {       return throwError(() => new Error('No hay refresh token en la sesión'));     }     return this.http       .post<SessionTokens>(`${this.base}/refresh`, { refresh_token })       .pipe(tap((tokens) => this.session.setTokens(tokens)));   }    /**    * Cierra la sesión del refresh token presentado. Siempre limpia el estado    * local, aunque el backend no responda (por ejemplo, si ya expiró).    */   logout(): Observable<unknown> {     const refresh_token = this.session.refreshToken();     return this.http.post(`${this.base}/logout`, { refresh_token }).pipe(       catchError(() => of(null)),       finalize(() => this.session.clear()),     );   } } EOF 
+```
+
+### `switchMap` tras el login
+
+`tap` guarda los tokens, pero `switchMap(() => this.me())` **encadena** la carga del perfil y los permisos. `login()` no emite hasta que `me()` responde: el componente navega al dashboard con la sesión completa, sin parpadeos ni menús vacíos.
+
+![](images/clipboard-884607444.png)
+
+![](images/clipboard-3285565578.png)
+
+##  8.7 Interceptor con refresh single-flight
+
+```         
+cat > src/app/core/interceptors/auth-interceptor.ts <<'EOF' import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http'; import { inject } from '@angular/core'; import { Router } from '@angular/router'; import { Observable, catchError, finalize, shareReplay, switchMap, throwError } from 'rxjs'; import { environment } from '../../../environments/environment'; import { SessionTokens } from '../models/auth.model'; import { AuthService } from '../services/auth'; import { SessionStore } from '../services/session-store';  /**  * Una sola renovación en vuelo para todas las peticiones concurrentes.  * Si 3 peticiones reciben 401 a la vez, solo se llama una vez a /sesion/refresh.  */ let refreshInFlight: Observable<SessionTokens> | null = null;  export const authInterceptor: HttpInterceptorFn = (req, next) => {   const session = inject(SessionStore);   const auth = inject(AuthService);   const router = inject(Router);    // OPEN: login, refresh y logout llevan credencial en el cuerpo, no Bearer.   const isPublicAuthCall =     req.url.includes('/sesion/login') ||     req.url.includes('/sesion/refresh') ||     req.url.includes('/sesion/logout');    const accessToken = session.accessToken();    const request =     accessToken && !isPublicAuthCall       ? req.clone({ setHeaders: { Authorization: `Bearer ${accessToken}` } })       : req;    return next(request).pipe(     catchError((error: unknown) => {       if (!(error instanceof HttpErrorResponse) || error.status !== 401 || isPublicAuthCall) {         return throwError(() => error);       }        // Fase I: no hay refresh ni login; se propaga el error tal cual.       if (!environment.requireAuth) {         return throwError(() => error);       }        if (!session.refreshToken()) {         redirectToLogin(session, router);         return throwError(() => error);       }        refreshInFlight ??= auth.refresh().pipe(         catchError((refreshError: unknown) => {           redirectToLogin(session, router);           return throwError(() => refreshError);         }),         finalize(() => {           refreshInFlight = null;         }),         shareReplay({ bufferSize: 1, refCount: false }),       );        // Reintenta la petición original con el access renovado.       return refreshInFlight.pipe(         switchMap(() => {           const renewed = session.accessToken();           const retried = req.clone({             setHeaders: renewed ? { Authorization: `Bearer ${renewed}` } : {},           });           return next(retried);         }),       );     }),   ); };  function redirectToLogin(session: SessionStore, router: Router): void {   session.clear();   const returnUrl = router.url.startsWith('/login') ? '/dashboard' : router.url;   void router.navigate(['/login'], { queryParams: { returnUrl } }); } EOF 
+```
+
+| **Pieza** | **Por qué** |
+|:-----------------------------------|:-----------------------------------|
+| `isPublicAuthCall` | login/refresh/logout no llevan Bearer ni se reintentan |
+| `req.clone(...)` | Las peticiones HTTP son inmutables |
+| `refreshInFlight ??= ...` | Si ya hay un refresh, se comparte el observable |
+| `finalize` | Libera el candado aunque el refresh falle |
+| `shareReplay({ refCount: false })` | Varios suscriptores reciben **una** respuesta |
+| `switchMap` | Espera el refresh y reintenta la petición original |
+
+**Criterio de aceptación:** con dos peticiones simultáneas y access vencido, en Network debe verse **un solo** `POST /api/sesion/refresh` y **dos** reintentos.
+
+![](images/clipboard-1230481240.png)
+
+## 8.8 Login
+
+```         
+ng generate component features/auth/login --skip-tests --defaults 
+```
+
+```         
+readonly form = this.fb.group({   identifier: ['', [Validators.required]],   password: ['', [Validators.required]], });  submit(): void {   if (this.form.invalid) {     this.form.markAllAsTouched();     return;   }   this.loading.set(true);   this.error.set(null);    const { identifier, password } = this.form.getRawValue();   // `identifier` acepta username o email; el backend deduce device_info del User-Agent.   this.auth.login({ identifier, password }).subscribe({     next: () => {       const requested = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';       const returnUrl =         requested.startsWith('/') && !requested.startsWith('/login') ? requested : '/dashboard';       void this.router.navigateByUrl(returnUrl);     },     error: (error: unknown) => {       this.loading.set(false);       this.error.set(toApiMessage(error));     },   }); } 
+```
+
+### `returnUrl`: abrir la URL pedida después del login
+
+Si el usuario entra a `/ventas` sin sesión, `authGuard` lo manda a `/login?returnUrl=/ventas`. El login lee ese parámetro y navega ahí. La validación `startsWith('/')` evita **open redirects** a dominios externos.
+
+![](images/clipboard-2862930589.png)
+
+![](images/clipboard-1160557660.png)
+
+![](images/clipboard-3325728070.png)
+
+## 8.9 Perfil y logout
+
+```         
+ng generate component features/auth/profile --skip-tests --defaults ng generate component features/auth/forbidden --skip-tests --defaults 
+```
+
+`Profile` muestra usuario, roles y permisos efectivos, y permite:
+
+- **Refrescar desde el backend** → `AuthService.me()` (`/perfil` + `/permisos`).
+
+- **Salir** → `POST /api/sesion/logout` y limpieza local.
+
+```         
+refresh(): void {   this.refreshing.set(true);   this.auth.me().subscribe({     next: () => {       this.refreshing.set(false);       this.notify.success('Sesión sincronizada', 'Perfil y permisos recargados.');     },     error: () => this.refreshing.set(false),   }); }  logout(): void {   this.auth.logout().subscribe({     next: () => {       this.notify.info('Sesión cerrada');       void this.router.navigate(['/login']);     },   }); } 
+```
+
+`auth.logout()` limpia la sesión incluso si el backend falla (`finalize`). Es deliberado: el usuario debe poder salir aunque el servidor esté caído.
+
+### Sesiones propias (opcional)
+
+El backend expone además `GET /api/sesiones`, `PATCH /api/sesiones/:id/deactivate`, `PATCH /api/sesiones/deactivate-all` y `DELETE /api/sesiones` (modalidad JWT, sin RBAC). Son útiles para una pantalla "Mis dispositivos"; no son necesarias para el recorrido principal.
+
+![](images/clipboard-2498458957.png)
+
+![](images/clipboard-3673812481.png)
+
+## 8.10 Rutas de Fase II
+
+**Debajo** de los imports en `app.routes.ts`:
+
+```         
+import { authGuard } from './core/guards/auth-guard'; import { guestGuard } from './core/guards/guest-guard'; 
+```
+
+```         
+{   path: 'login',   title: 'Iniciar sesión · StoreLab',   canActivate: [guestGuard],   loadComponent: () => import('./features/auth/login/login').then((m) => m.Login), }, {   path: '',   canActivate: [authGuard],   loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),   children: [ /* … */ ], }, 
+```
+
+> `guestGuard` evita que un usuario ya autenticado vuelva al login. Se implementa en ISS-09.
+
+![](images/clipboard-932486855.png)
+
+![](images/clipboard-3470892853.png)
+
+![](images/clipboard-2630289880.png)
+
+![](images/clipboard-3820342335.png)
+
+![](images/clipboard-3090260345.png)
+
+![](images/clipboard-2280443098.png)
+
+![](images/clipboard-4080507410.png)
+
+![](images/clipboard-95523670.png)
+
+![](images/clipboard-3741109684.png)
+
+# Fase II: Auth con RBAC — ISS-09 — Guards y RBAC en las pantallas Business
+
+## 9.0 Generar guards y directiva
+
+```         
+ng generate guard core/guards/auth --functional --implements=CanActivate --skip-tests --defaults ng generate guard core/guards/guest --functional --implements=CanActivate --skip-tests --defaults ng generate guard core/guards/permission --functional --implements=CanActivate --skip-tests --defaults ng generate directive shared/directives/has-permission --skip-tests --defaults 
+```
+
+## 9.1 `authGuard`
+
+```         
+mkdir -p src/app/core/guards cat > src/app/core/guards/auth-guard.ts <<'EOF' import { inject } from '@angular/core'; import { CanActivateFn, Router } from '@angular/router'; import { environment } from '../../../environments/environment'; import { SessionStore } from '../services/session-store';  /** ¿Quién eres? Si no hay access token, a /login con returnUrl. */ export const authGuard: CanActivateFn = (_route, state) => {   const session = inject(SessionStore);   const router = inject(Router);    if (!environment.requireAuth || session.isAuthenticated()) {     return true;   }    return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } }); }; EOF 
+```
+
+## 9.2 `guestGuard`
+
+```         
+cat > src/app/core/guards/guest-guard.ts <<'EOF' import { inject } from '@angular/core'; import { CanActivateFn, Router } from '@angular/router'; import { environment } from '../../../environments/environment'; import { SessionStore } from '../services/session-store';  /** Un usuario ya autenticado no necesita volver a /login. */ export const guestGuard: CanActivateFn = () => {   const session = inject(SessionStore);   const router = inject(Router);    if (!environment.requireAuth || !session.isAuthenticated()) {     return true;   }    return router.createUrlTree(['/dashboard']); }; EOF 
+```
+
+## 9.3 `permissionGuard`
+
+```         
+cat > src/app/core/guards/permission-guard.ts <<'EOF' import { inject } from '@angular/core'; import { CanActivateFn, Router } from '@angular/router'; import { environment } from '../../../environments/environment'; import { SessionStore } from '../services/session-store';  /**  * ¿Qué puedes hacer? Se declara en la ruta:  *   data: { permission: 'GET /api/clientes' }  * Es una ayuda visual; Express vuelve a validar con Auth.authorize.  */ export const permissionGuard: CanActivateFn = (route) => {   const session = inject(SessionStore);   const router = inject(Router);    if (!environment.requireAuth) {     return true;   }    const permission = route.data?.['permission'] as string | undefined;   if (!permission || session.canPermission(permission)) {     return true;   }    return router.createUrlTree(['/forbidden'], {     queryParams: { permission },   }); }; EOF 
+```
+
+### `authOnlyGuard`: pantallas que no existen en la Fase I
+
+```         
+import { inject } from '@angular/core'; import { CanActivateFn, Router } from '@angular/router'; import { SessionStore } from '../services/session-store';  export const authOnlyGuard: CanActivateFn = () => {   const session = inject(SessionStore);   const router = inject(Router);    if (session.authEnabled) {     return true;   }    return router.createUrlTree(['/dashboard']); }; 
+```
+
+Se aplica **antes** de `permissionGuard` en `/perfil` y en las cinco rutas `/admin/*`:
+
+```         
+{   path: 'admin/usuarios',   canActivate: [authOnlyGuard, permissionGuard],   data: { permission: 'GET /api/usuarios' },   loadComponent: () => import('./features/admin/users/user-list/user-list').then((m) => m.UserList), }, 
+```
+
+> `authOnlyGuard` lee `SessionStore.authEnabled`, que es la copia de `environment.requireAuth` que ya consume el Shell. Los otros guards leen el environment directamente; ambas fuentes valen lo mismo y el test lo verifica.
+
+## 9.4 Matriz de rutas de Fase II
+
+**Encima de** cada `loadComponent` de las rutas **ya existentes** (las de Fase I), añade `canActivate` y `data`:
+
+| **Ruta**          | **Permiso**               |
+|:------------------|:--------------------------|
+| `/clientes`       | `GET /api/clientes`       |
+| `/tipos-producto` | `GET /api/tipos-producto` |
+| `/productos`      | `GET /api/productos`      |
+| `/ventas`         | `GET /api/ventas`         |
+| `/ventas/nueva`   | `POST /api/ventas`        |
+| `/detalle-ventas` | `GET /api/detalle-ventas` |
+| `/dashboard`      | `GET /api/ventas`         |
+
+Las rutas `/admin/*` **no se declaran aquí**: sus componentes se crean en ISS-10. Al declararlas allí, se les pone el mismo `permissionGuard` y su `data`:
+
+| **Ruta**              | **Permiso**                 | **Se declara en** |
+|:----------------------|:----------------------------|:------------------|
+| `/admin/usuarios`     | `GET /api/usuarios`         | ISS-10            |
+| `/admin/roles`        | `GET /api/roles`            | ISS-10            |
+| `/admin/recursos`     | `GET /api/recursos`         | ISS-10            |
+| `/admin/asignaciones` | `GET /api/asignaciones-rol` | ISS-10            |
+| `/admin/permisos`     | `GET /api/concesiones-rol`  | ISS-10            |
+
+Ejemplo completo (la ruta de clientes ya existe desde ISS-03):
+
+```         
+{   path: 'clientes',   title: 'Clientes · StoreLab',   canActivate: [permissionGuard],   data: { permission: 'GET /api/clientes' },   loadComponent: () =>     import('./features/clients/client-list/client-list').then((m) => m.ClientList), }, 
+```
+
+`/perfil` y `/forbidden` **no** llevan `permissionGuard`: todo usuario autenticado debe poder ver su sesión y la pantalla de acceso denegado.
+
+## 9.5 Directiva `*appHasPermission`
+
+Conservada como ampliación en ISS-02; créala ahora si seguiste el recorrido básico. Su fuente es `SessionStore.canPermission()`:
+
+```         
+<ng-container *appHasPermission="'POST /api/clientes'">   <button pButton label="Nuevo cliente" icon="pi pi-plus"></button> </ng-container> 
+```
+
+### Diferencia con `@if`
+
+| **`@if`** | **`*appHasPermission`** |
+|:-----------------------------------|:-----------------------------------|
+| Evalúa una condición cualquiera | Evalúa un permiso RBAC |
+| Reacciona si la expresión lee signals de sesión | `effect()` reacciona a `permissions()` |
+| El template queda en el DOM compilado | Crea/destruye la vista embebida |
+
+### Permisos exactos por acción (pantallas de Fase I)
+
+```         
+<ng-container *appHasPermission="'PATCH /api/clientes/:id'">…</ng-container> <ng-container *appHasPermission="'DELETE /api/clientes/:id'">…</ng-container> 
+```
+
+Business: estas son las operaciones que el catálogo del backend (`src/features/auth/resources/resource-catalog.ts`) **sí** concede, y por tanto las únicas que la UI puede ofrecer.
+
+| **Pantalla** | **Crear** | **Editar** | **Baja lógica** | **Baja física** |
+|:--------------|:--------------|:--------------|:--------------|:--------------|
+| Clientes | `POST /api/clientes` | `PATCH /api/clientes/:id` | `PATCH /api/clientes/:id/deactivate` | `DELETE /api/clientes/:id` |
+| Tipos de producto | `POST /api/tipos-producto` | `PATCH /api/tipos-producto/:id` | `PATCH /api/tipos-producto/:id/deactivate` | `DELETE /api/tipos-producto/:id` |
+| Productos | `POST /api/productos` | `PATCH /api/productos/:id` | `PATCH /api/productos/:id/deactivate` | `DELETE /api/productos/:id` |
+| Ventas | `POST /api/ventas` | — | — | — |
+| Detalle de ventas | — | — | — | — |
+
+Auth: el bloque 3 (ISS-10) usa la misma mecánica.
+
+| **Pantalla** | **Crear** | **Editar** | **Baja lógica** | **Baja física** |
+|:--------------|:--------------|:--------------|:--------------|:--------------|
+| Usuarios | `POST /api/usuarios` | `PATCH /api/usuarios/:id` | `PATCH /api/usuarios/:id/deactivate` | `DELETE /api/usuarios/:id` |
+| Roles | `POST /api/roles` | `PATCH /api/roles/:id` | `PATCH /api/roles/:id/deactivate` | `DELETE /api/roles/:id` |
+| Recursos | `POST /api/recursos` | `PATCH /api/recursos/:id` | `PATCH /api/recursos/:id/deactivate` | `DELETE /api/recursos/:id` |
+| Asignaciones | `POST /api/asignaciones-rol` | — | `PATCH /api/asignaciones-rol/:id/deactivate` | — |
+| Concesiones | `POST /api/concesiones-rol` | — | `PATCH /api/concesiones-rol/:id/deactivate` | — |
+
+Los pivotes **no** tienen DELETE físico: retirar es baja lógica y reactivar es `PATCH /:id/reactivate` (auditoría).
+
+> **Ventas y detalle: límite real del backend.** El catálogo RBAC concede de ventas solo `GET /api/ventas`, `GET /api/ventas/:id` y `POST /api/ventas`; del detalle, solo `GET /api/detalle-ventas`. Aunque las rutas Express acepten `PATCH`, `DELETE` y `/:id/deactivate`, **no existen recursos** para concederlas, así que `authorize` respondería `403` incluso a `ADMIN`.
+>
+> Consecuencia para la UI en Fase II: - Ventas: se conserva **listar** y **registrar**; no se muestran editar, cancelar ni eliminar. Cancelar una venta no es una operación expuesta por el modelo RBAC. - Detalle: solo `GET /api/detalle-ventas`; las acciones de escritura de ISS-07 se ocultan. El detalle se administra creando la venta completa (`POST /api/ventas`) y se consulta con `GET /api/ventas/:id`.
+>
+> En Fase I, contra un backend sin middlewares, esas acciones funcionan: por eso no se borran del código, se ocultan por permiso. Si el curso necesita CRUD de ventas en Fase II, primero hay que ampliar `resource-catalog.ts` en el backend.
+
+### Checklist de protección de las pantallas business
+
+| **Ruta** | **`canActivate` + `data.permission`** | **Botones a envolver** |
+|:-----------------------|:-----------------------|:-----------------------|
+| `/clientes` | `permissionGuard` · `GET /api/clientes` | crear, editar, baja lógica, eliminar |
+| `/tipos-producto` | `permissionGuard` · `GET /api/tipos-producto` | crear, editar, baja lógica, eliminar |
+| `/productos` | `permissionGuard` · `GET /api/productos` | crear, editar, baja lógica, eliminar |
+| `/ventas` | `permissionGuard` · `GET /api/ventas` | nueva venta (`POST /api/ventas`) |
+| `/ventas/nueva` | `permissionGuard` · `POST /api/ventas` | guardar venta |
+| `/detalle-ventas` | `permissionGuard` · `GET /api/detalle-ventas` | ninguno (solo lectura) |
+| `/dashboard` | `permissionGuard` · `GET /api/ventas` | ninguna acción; solo lectura agregada |
+
+> **El dashboard no inventa permisos.** No existe `GET /api/dashboard`: sus datos salen de las listas de negocio. Se protege con el permiso más débil que necesita (`GET /api/ventas`); si un usuario no puede leer una fuente, esa tarjeta se oculta con `*appHasPermission` en vez de romper la pantalla.
+
+## 9.6 Menú lateral con `computed`
+
+Catálogo de rutas y permisos en `src/app/layout/shell/nav.config.ts` (`NAV`). El Shell filtra cada grupo con `SessionStore.canPermission()` y oculta **Seguridad** cuando `authEnabled` es `false` (modo laboratorio).
+
+```         
+readonly navGroups = computed<MenuItem[]>(() =>   NAV.filter((group) => !group.authOnly || this.session.authEnabled)     .map((group) => ({     label: group.label,     items: group.items       .filter((item) => !item.permission || this.session.canPermission(item.permission))       .map<MenuItem>((item) => ({         label: item.label,         icon: item.icon,         routerLink: item.routerLink,         routerLinkActiveOptions: { exact: item.routerLink === '/ventas' },       })),   })).filter((group) => (group.items?.length ?? 0) > 0), ); 
+```
+
+`computed` se recalcula cuando cambia `permissions()`. Después de `AuthService.me()`, el menú se ajusta sin recargar la página.
+
+### Topbar y menú de usuario
+
+- Avatar con iniciales (`computed`).
+
+- Tag con roles (`roleLabel`, derivado de `roleNames()`).
+
+- Menú popup: **Mi sesión**, **Actualizar permisos**, **Cerrar sesión**.
+
+- `p-toast` y `p-confirmdialog` globales en el shell.
+
+> **Error clásico:** `<p-menu #userMenu [model]="userMenu()">` hace que la referencia de plantilla `#userMenu` tape el método `userMenu()` y Angular reporte `Type 'Menu' has no call signatures`. Usa `#userMenuPanel`.
+
+## 9.7 `/forbidden`: explicar el 403
+
+`Forbidden` lee `permission` del query param y lo muestra:
+
+```         
+readonly permission = this.route.snapshot.queryParamMap.get('permission'); 
+```
+
+```         
+@if (permission) {   <div class="rounded-xl bg-slate-900 px-4 py-3">     <p class="text-[11px] uppercase text-slate-400">Permiso requerido</p>     <code class="text-sm text-emerald-300">{{ permission }}</code>   </div> } 
+```
+
+Esto convierte un “no puedo entrar” en una pista accionable: pide a un admin que cree la fila en `resource_roles` (pantalla `/admin/permisos`).
+
+## Criterios de aceptación (ISS-09)
+
+1.  Sin sesión, cualquier ruta protegida redirige a login con `returnUrl`.
+
+2.  Con sesión, `/login` redirige al dashboard (`guestGuard`).
+
+3.  `admin` (58 permisos) ve todo el menú **de negocio**; el bloque Seguridad se añade con ISS-10.
+
+4.  `seller` (7 permisos) ve solo **Panel**, **Clientes**, **Productos** y **Ventas**; no ve Tipos de producto ni Detalle de ventas.
+
+5.  Escribir a mano `/tipos-producto` con `seller` lleva a `/forbidden` y muestra el permiso faltante (`GET /api/tipos-producto`).
+
+6.  Los botones de escritura desaparecen si falta el `POST`/`PATCH`/`DELETE`.
+
+7.  Tras “Actualizar permisos”, el menú y los botones cambian sin recargar.
+
+8.  **Las cinco pantallas de Fase I siguen funcionando sin cambios de lógica:** `admin` las usa igual que antes y `seller` las ve en modo lectura donde corresponde.
+
+9.  **No hay botones que el backend vaya a rechazar:** ventas y detalle solo muestran las operaciones que concede `resource-catalog.ts` (ver la nota de límite real del backend).
+
+10. `ng serve` compila sin errores.
+
+11. Con `requireAuth: false` (modo laboratorio) el grupo **Seguridad** no aparece y `/perfil` o `/admin/*` por URL redirigen a `/dashboard` (`authOnlyGuard`).
+
+## Comprobación al cerrar ISS-09 (solo rutas business)
+
+1.  Login `admin` → menú de negocio completo.
+
+2.  Logout.
+
+3.  Login `seller` → menú reducido: sin Tipos de producto y sin Detalle de ventas.
+
+4.  Intenta `/tipos-producto` por URL → `/forbidden` con el permiso faltante.
+
+5.  En `/clientes`, `seller` no ve “Nuevo cliente” ni las acciones de escritura.
+
+6.  En `/ventas`, `seller` sí ve “Nueva venta” (`POST /api/ventas` es suyo).
+
+## Comprobación con dos usuarios (al cerrar ISS-10)
+
+1.  Login `admin` → menú completo (Operación + Seguridad).
+
+2.  Logout.
+
+3.  Login `seller` → menú reducido, sin bloque Seguridad.
+
+4.  Intenta `/admin/usuarios` por URL → `/forbidden`.
+
+5.  En `admin`, concede `GET /api/usuarios` a `SELLER` en `/admin/permisos`, vuelve a `seller`, pulsa **Actualizar permisos** → aparece “Usuarios”.
+
+## Prueba de que el backend manda
+
+Con `seller`, abre DevTools → Console y ejecuta un `fetch` al endpoint prohibido:
+
+```         
+fetch('http://localhost:4000/api/usuarios', {   headers: {     Authorization:       'Bearer ' + JSON.parse(localStorage.getItem('storelab.session.v1')).accessToken,   }, }).then((r) => console.log(r.status)); 
+```
+
+Debe imprimir `403`. La UI no es la seguridad; el backend sí.
+
+**Siguiente:** ISS-10 construye la administración completa del RBAC.
+
+## Correspondencia con el código
+
+Esta guía es la que contiene los comandos (`ng new`, `ng generate`, `cat >`) y la explicación paso a paso para construir el frontend desde cero. El código no se duplica en `docs/`: la referencia completa son los archivos reales del proyecto, enlazados al final de esta ISS.
+
+Los ejemplos breves muestran incrementos y no sustituyen todos los archivos del componente. Las configuraciones de las primeras etapas omiten deliberadamente la sesión y las rutas que se construyen después; en el proyecto consolidado la seguridad final está activa. No combines imports de una etapa final con stubs que todavía no implementaste.
+
+## Código completo de referencia
+
+Los fragmentos de esta ISS se estudian por incrementos. Estos archivos contienen la implementación consolidada, incluida la seguridad de la fase final:
+
+- src/app/core/guards/auth-guard.ts (`src/app/core/guards/auth-guard.ts`).
+
+- src/app/core/guards/guest-guard.ts (`src/app/core/guards/guest-guard.ts`).
+
+- src/app/core/guards/permission-guard.ts (`src/app/core/guards/permission-guard.ts`).
+
+- src/app/core/guards/auth-only-guard.ts (`src/app/core/guards/auth-only-guard.ts`).
+
+- src/app/core/guards/rbac-guards.spec.ts (`src/app/core/guards/rbac-guards.spec.ts` — no existe en la copia inspeccionada).
+
+- src/app/shared/directives/has-permission.ts (`src/app/shared/directives/has-permission.ts`).
+
+- src/app/shared/directives/has-permission.spec.ts (`src/app/shared/directives/has-permission.spec.ts` — no existe en la copia inspeccionada).
+
+- src/app/layout/shell/nav.config.ts (`src/app/layout/shell/nav.config.ts`).
+
+- src/app/layout/shell/shell.ts (`src/app/layout/shell/shell.ts`).
+
+- src/app/layout/shell/shell.html (`src/app/layout/shell/shell.html`).
+
+> **Unidad ISS-10 · Administración RBAC: usuarios, roles, recursos y pivotes** — capa **🛠 CONSTRUIR**
+>
+> [🧠 Comprender este bloque →](https://tecnogua.com/academic/site/frontend2026/express/aprender/ISS-10-administracion-rbac/) · [↑ Ruta Frontend-Express](https://tecnogua.com/academic/site/frontend2026/express/)Fase II: Auth con RBAC — ISS-08 — Autenticación JWT, perfil y permisos efectivos
+>
+> > **Vigencia · revisión local del 23-oct-2026.** Login guarda tokens y carga perfil/permisos con forkJoin; si esa carga falla, limpia la sesión. El refresh comparte un observable en vuelo. `requireAuth=false` evita el reintento de refresh, pero el interceptor aún adjunta un token previamente guardado: limpiar la sesión es necesario al demostrar Fase I sin Bearer. Los bloques de código de la guía pueden representar incrementos; los archivos locales citados son la referencia consolidada.
+> >
+> > **Vigencia · revisión local del 23-oct-2026.** Los pasos describen una construcción incremental en una copia de práctica. El código consolidado puede incluir fases posteriores. Los resultados importados son reportes de la fuente, no pruebas repetidas en esta actualización. Véase [estado y trazabilidad](https://tecnogua.com/academic/site/frontend2026/express/estado-vigente/).
+> >
+> > **Convención visual:** PrimeNG con Aura para controles y datos; Tailwind para flex, grid, espaciado y adaptación a pantalla. Sin CSS propio ni PrimeFlex. Las tarjetas nuevas usan `p-card` e importan `CardModule` de `primeng/card`. Si usas `p-message` para validación, importa `MessageModule` de `primeng/message`. Consulta [el patrón visual](https://tecnogua.com/academic/site/frontend2026/express/construir/patron-visual/) antes de copiar una pantalla.
+>
+> **Fase II — Auth + RBAC** · **Bloque 1 de 3 (sesión)** · **Bloqueado por:** ISS-07 · **Habilita:** ISS-09
+>
+> > **Backend de referencia:** `app-storelab-express-ii` → `docs/manual/16-ISS-14-auth-refresh-tokens.md` y `docs/manual/17-ISS-15-auth-session.md`.
+>
+> ## Antes de construir: Sesión después de dominar el CRUD
+>
+> Estudia tokens → perfil → permisos en ese orden. Conecta login, luego persistencia, luego refresh. Header y Aside reciben los nuevos datos desde Shell.
+>
+> **Evidencia de aprendizaje:** Comprueba que /construir sigue abriendo sin sesión y que no invoca perfil, permisos ni refresh.
+>
+> **Equipo y terminal:** Ubuntu WSL, terminal del editor, carpeta del frontend. Los ejemplos que crean o reemplazan archivos se ejecutan en una copia de práctica; en el workspace consolidado inspecciona y ajusta los archivos existentes.
+>
+> ## Objetivo
+>
+> Activar la Fase II contra el contrato real del backend:
+>
+> > **Fase II · bloque 1 de 3 — Sesión.** Esta ISS entrega **el formulario de sesión** (`/login`), el almacenamiento de tokens/perfil/permisos y el interceptor que refresca. La protección de las pantallas de negocio es **ISS-09**; los formularios de usuarios, roles, recursos y pivotes son **ISS-10**. Al terminar esta ISS el CRUD de Fase I ya funciona contra el backend consolidado, pero todavía sin guards ni botones filtrados.
+>
+> 1.  `environment.requireAuth = true` **y** `AUTH_ENABLED=true` en el `.env` del backend. Son las dos mitades del mismo interruptor: con una sola activa, las peticiones de negocio reciben `401` (detalle en ISS-11 §11.1).
+>
+> 2.  `AuthService` contra `/api/sesion/login`, `/perfil`, `/refresh`, `/logout` y `/api/permisos`.
+>
+> 3.  `SessionStore` guarda **tokens**, **perfil** y **permisos efectivos**.
+>
+> 4.  `authInterceptor` añade `Bearer` y recupera un `401` con **un solo** refresh.
+>
+> 5.  Login con `returnUrl`, pantalla de perfil y cierre de sesión.
+>
+> ## 8.1 El contrato real (no lo inventes)
+>
+> | **Endpoint** | **Modalidad** | **Respuesta** |
+> |:-----------------------|:-----------------------|:-----------------------|
+> | `POST /api/sesion/login` | OPEN | **Solo tokens** |
+> | `POST /api/sesion/refresh` | OPEN (refresh en el cuerpo) | Solo tokens (rotados) |
+> | `POST /api/sesion/logout` | OPEN (refresh en el cuerpo) | `{ message }` |
+> | `GET /api/sesion/perfil` | JWT | `{ user }` |
+> | `GET /api/permisos` | JWT | `{ permissions }` |
+>
+> ```         
+> // POST /api/sesion/login  →  SessionTokensDto {   "access_token": "eyJ...",   "token_type": "Bearer",   "expires_in": 900,   "refresh_token": "9f2c...",   "refresh_expires_in": 604800 } 
+> ```
+>
+> ```         
+> // GET /api/permisos  →  { permissions: EffectivePermissionDto[] } {   "permissions": [     {       "resource_id": 1,       "method": "GET",       "path": "/api/clientes",       "description": "Listar clientes",       "role_id": 1,       "role_name": "ADMIN"     }   ] } 
+> ```
+>
+> > **Error clásico:** esperar `user`, `roles` y `resources` en el login (como en otros laboratorios). Aquí el login **solo** emite tokens. El frontend debe encadenar `forkJoin(perfil, permisos)` después de guardarlos.
+>
+> ### Modelo de seguridad
+>
+> ```         
+> access_token  → JWT HS256 corto (JWT_ACCESS_TTL = 900 s).                 Se valida con firma, iss y aud; NO lleva roles. refresh_token → opaco (64 bytes base64url). Se guarda solo su SHA-256.                 Vive en refresh_tokens con family_id y expires_at. 
+> ```
+>
+> - Cada `refresh` **rota**: invalida el presentado y emite uno nuevo en la misma familia. La ventana se reinicia (ventana deslizante).
+>
+> - Si se presenta un refresh ya rotado → **reuse detection**: el backend revoca **toda la familia** y responde `401`.
+>
+> - `logout` revoca **el refresh presentado** (idempotente). No revoca la familia.
+>
+> - Desactivar el usuario invalida sus tokens en la siguiente petición (`authenticate` revalida `status` en la base).
+>
+> Consecuencia para el frontend: **nunca** dispares dos refresh en paralelo. El interceptor usa `refreshInFlight` para compartir la misma llamada.
+>
+> > **Advertencia didáctica:** guardar tokens en `localStorage` es vulnerable a XSS. En producción se prefieren cookies `HttpOnly` + `Secure` + `SameSite`. Aquí se usa `localStorage` para que el laboratorio sea observable en DevTools.
+>
+> ## 8.2 Activar Fase II
+>
+> En **ambos** archivos de entorno:
+>
+> ```         
+> export const environment = {   production: false, // true en environment.ts   appName: 'StoreLab Express II',   apiUrl: 'http://localhost:4000/api',   requireAuth: true, }; 
+> ```
+>
+> Con `true`, `SessionStore.canPermission()` deja de ser permisivo y el login es obligatorio. **La otra mitad del interruptor está en el backend:** su `.env` debe tener `AUTH_ENABLED=true` (ISS-13 §18.7 de `app-storelab-express-ii`). Si el backend quedó en modo laboratorio, el frontend pide login pero la API acepta peticiones sin token; si el frontend queda en `false` con el backend protegido, todo responde `401 Missing Bearer token`.
+>
+> ## 8.3 Modelos de sesión
+>
+> ```         
+> cat > src/app/core/models/auth.model.ts <<'EOF' import { HttpMethod } from './resource.model'; import { User } from './user.model';  /** POST /api/sesion/login — `identifier` acepta username o email. */ export interface LoginRequest {   identifier: string;   password: string; }  /** Respuesta de login y refresh: SOLO el par de tokens. */ export interface SessionTokens {   access_token: string;   token_type: 'Bearer';   expires_in: number;   refresh_token: string;   refresh_expires_in: number; }  /** GET /api/sesion/perfil */ export interface ProfilePayload {   user: User; }  /** Una fila de role_users → roles → resource_roles → resources (todo activo). */ export interface EffectivePermission {   resource_id: number;   method: HttpMethod;   path: string;   description: string | null;   role_id: number;   role_name: string; }  /** GET /api/permisos · GET /api/usuarios/:id/permisos */ export interface PermissionsPayload {   permissions: EffectivePermission[]; }  /** Estado compuesto que mantiene SessionStore. */ export interface AccessPayload {   user: User;   permissions: EffectivePermission[]; } EOF 
+> ```
+>
+> ## 8.3A Generar interceptores funcionales
+>
+> ```         
+> ng generate interceptor core/interceptors/auth --functional --skip-tests --defaults ng generate interceptor core/interceptors/error --functional --skip-tests --defaults 
+> ```
+>
+> Generan auth-interceptor.ts y error-interceptor.ts. Reemplaza el passthrough del CLI por la implementación de esta ISS antes de registrarlos. No se usa `ng generate service` para interceptores. Para construir las rutas finales de esta ISS, genera también los guards de ISS-09 antes de importar sus símbolos; esa ISS explica sus decisiones de autorización. No repitas un generador cuyo archivo ya completaste.
+>
+> ## 8.4 HttpClient e interceptores
+>
+> **En `app.config.ts`**, añade imports **encima de** `export const appConfig`:
+>
+> ```         
+> import { provideHttpClient, withInterceptors } from '@angular/common/http'; import { authInterceptor } from './core/interceptors/auth-interceptor'; import { errorInterceptor } from './core/interceptors/error-interceptor'; 
+> ```
+>
+> **Dentro de `providers`**, debajo de `provideBrowserGlobalErrorListeners()`:
+>
+> ```         
+> // El orden importa: auth añade el Bearer y reintenta; error traduce fallos. provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])), 
+> ```
+>
+> ```         
+> Componente → authInterceptor (añade token, reintenta 401)            → errorInterceptor (toast de 403/500/offline)            → HttpBackend → Express 
+> ```
+>
+> ## 8.5 `SessionStore`
+>
+> ```         
+> cat > src/app/core/services/session-store.ts <<'EOF' import { Injectable, computed, signal } from '@angular/core'; import { environment } from '../../../environments/environment'; import { AccessPayload, EffectivePermission, SessionTokens } from '../models/auth.model'; import { HttpMethod, Resource } from '../models/resource.model'; import { Role } from '../models/role.model'; import { User } from '../models/user.model';  const STORAGE_KEY = 'storelab.session.v1';  interface PersistedSession {   accessToken: string;   refreshToken: string;   user: User | null;   permissions: EffectivePermission[]; }  /**  * Única fuente de verdad de la sesión en el cliente.  * Todo se expone como signals de solo lectura y se deriva con computed().  *  * Contrato del backend `app-storelab-express-ii`:  *  - `POST /api/sesion/login`  → solo tokens.  *  - `GET  /api/sesion/perfil` → `{ user }`.  *  - `GET  /api/permisos`      → `{ permissions: EffectivePermission[] }`.  *  * Seguridad: el backend sigue siendo la autoridad. `can()` solo decide qué  * pintar en la UI; aunque se fuerce el menú, Express responde 401/403.  */ @Injectable({ providedIn: 'root' }) export class SessionStore {   /**    * Mitad frontal del interruptor de fases.    * - `false`: guards permisivos, directiva siempre visible, sin `Bearer`.    * - `true`: Fase II. Debe emparejarse con `AUTH_ENABLED=true` en el backend.    * La autoridad real sigue siendo Express; esto solo decide qué pintar.    */   readonly authEnabled = environment.requireAuth;    private readonly _accessToken = signal<string | null>(null);   private readonly _refreshToken = signal<string | null>(null);   private readonly _user = signal<User | null>(null);   private readonly _permissions = signal<EffectivePermission[]>([]);    readonly accessToken = this._accessToken.asReadonly();   readonly refreshToken = this._refreshToken.asReadonly();   readonly user = this._user.asReadonly();   readonly permissions = this._permissions.asReadonly();    readonly isAuthenticated = computed(() => this._accessToken() !== null);    /** Roles derivados de los permisos efectivos (role_name único). */   readonly roleNames = computed(() =>     [...new Set(this._permissions().map((permission) => permission.role_name))].sort(),   );    /**    * `Role[]` derivado para las plantillas que ya consumían `session.roles()`.    * No hay endpoint de roles propio del usuario: el rol llega en cada permiso.    */   readonly roles = computed<Role[]>(() => {     const byId = new Map<number, Role>();     for (const permission of this._permissions()) {       if (!byId.has(permission.role_id)) {         byId.set(permission.role_id, {           id: permission.role_id,           name: permission.role_name,           description: null,           status: 'active',         });       }     }     return [...byId.values()];   });    /**    * `Resource[]` derivado de los permisos efectivos.    * Se conserva la forma de `Resource` para reutilizar tablas y `can()`.    */   readonly resources = computed<Resource[]>(() =>     this._permissions().map((permission) => ({       id: permission.resource_id,       method: permission.method,       path: permission.path,       description: permission.description,       status: 'active' as const,     })),   );    /** Set de strings "MÉTODO /api/ruta" para consultas O(1) en la UI. */   readonly permissionsIndex = computed(     () => new Set(this._permissions().map((item) => `${item.method} ${item.path}`)),   );    readonly permissionCount = computed(() => this._permissions().length);    constructor() {     this.restore();   }    /** Login y refresh comparten la misma forma: solo tokens. */   setTokens(tokens: SessionTokens): void {     this._accessToken.set(tokens.access_token);     this._refreshToken.set(tokens.refresh_token);     this.persist();   }    /** Perfil + permisos efectivos (login y "Actualizar permisos"). */   setAccess(access: AccessPayload): void {     this._user.set(access.user);     this._permissions.set(access.permissions ?? []);     this.persist();   }    clear(): void {     this._accessToken.set(null);     this._refreshToken.set(null);     this._user.set(null);     this._permissions.set([]);     try {       localStorage.removeItem(STORAGE_KEY);     } catch {       /* almacenamiento no disponible */     }   }    /**    * ¿La sesión tiene un permiso concreto?    * - Sin auth (fase I) siempre permite.    * - Compara `MÉTODO` y `path`; soporta `:id` del catálogo Resource.    */   can(method: HttpMethod | string, path: string): boolean {     if (!this.authEnabled) {       return true;     }     const verb = method.toUpperCase();     const requestPath = path.split('?')[0];     return this._permissions().some(       (permission) =>         permission.method === verb && pathMatches(permission.path, requestPath),     );   }    canPermission(permission: string): boolean {     if (!this.authEnabled) {       return true;     }     const separator = permission.indexOf(' ');     if (separator < 0) {       return false;     }     return this.can(permission.slice(0, separator), permission.slice(separator + 1));   }    hasRole(name: string): boolean {     return this.roleNames().includes(name.toUpperCase());   }    private restore(): void {     try {       const raw = localStorage.getItem(STORAGE_KEY);       if (!raw) {         return;       }       const data = JSON.parse(raw) as PersistedSession;       // Sesiones guardadas por una versión anterior (roles/resources) no sirven.       if (!Array.isArray(data.permissions)) {         this.clear();         return;       }       this._accessToken.set(data.accessToken ?? null);       this._refreshToken.set(data.refreshToken ?? null);       this._user.set(data.user ?? null);       this._permissions.set(data.permissions ?? []);     } catch {       this.clear();     }   }    private persist(): void {     const data: PersistedSession = {       accessToken: this._accessToken() ?? '',       refreshToken: this._refreshToken() ?? '',       user: this._user(),       permissions: this._permissions(),     };     try {       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));     } catch {       /* modo privado o cuota llena: la sesión sigue en memoria */     }   } }  /** `/api/usuarios/:id` debe reconocer `/api/usuarios/7`. */ function pathMatches(pattern: string, path: string): boolean {   const escaped = pattern     .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')     .replace(/\/:[^/]+/g, '/[^/]+');   return new RegExp(`^${escaped}$`).test(path); } EOF 
+> ```
+>
+> > El archivo real incluye `restore()` y `persist()` completos. Lo esencial: **persistimos `permissions`, no `roles` ni `resources`**, porque los últimos se derivan con `computed`.
+>
+> ## 8.6 `AuthService`
+>
+> ```         
+> cat > src/app/core/services/auth.ts <<'EOF' import { HttpClient } from '@angular/common/http'; import { Injectable, inject } from '@angular/core'; import { Observable, catchError, finalize, forkJoin, map, of, switchMap, tap, throwError } from 'rxjs'; import { environment } from '../../../environments/environment'; import {   AccessPayload,   LoginRequest,   PermissionsPayload,   ProfilePayload,   SessionTokens, } from '../models/auth.model'; import { SessionStore } from './session-store';  /**  * Cliente del feature Session del backend `app-storelab-express-ii`.  *  * | Endpoint | Modalidad | Devuelve |  * |---|---|---|  * | `POST /api/sesion/login`   | OPEN | `SessionTokens` (solo tokens) |  * | `GET  /api/sesion/perfil`  | JWT  | `{ user }` |  * | `GET  /api/permisos`       | JWT  | `{ permissions }` (permisos efectivos) |  * | `POST /api/sesion/refresh` | OPEN (refresh token) | `SessionTokens` |  * | `POST /api/sesion/logout`  | OPEN (refresh token) | `{ message }` |  *  * El login NO devuelve usuario ni permisos: tras guardar los tokens se consulta  * el perfil y la matriz efectiva en dos peticiones JWT (`forkJoin`).  */ @Injectable({ providedIn: 'root' }) export class AuthService {   private readonly http = inject(HttpClient);   private readonly session = inject(SessionStore);   private readonly base = `${environment.apiUrl}/sesion`;   private readonly permissionsUrl = `${environment.apiUrl}/permisos`;    /** Login + carga de identidad/permisos. */   login(credentials: LoginRequest): Observable<AccessPayload> {     return this.http.post<SessionTokens>(`${this.base}/login`, credentials).pipe(       tap((tokens) => this.session.setTokens(tokens)),       switchMap(() =>         this.me().pipe(           // Si perfil o permisos fallan, no dejes una sesión a medias.           catchError((error: unknown) => {             this.session.clear();             return throwError(() => error);           }),         ),       ),     );   }    /**    * `GET /api/sesion/perfil` + `GET /api/permisos`.    * Se usa tras el login y en "Actualizar permisos" del menú.    */   me(): Observable<AccessPayload> {     return forkJoin({       profile: this.http.get<ProfilePayload>(`${this.base}/perfil`),       permissions: this.http.get<PermissionsPayload>(this.permissionsUrl),     }).pipe(       map(({ profile, permissions }) => ({         user: profile.user,         permissions: permissions.permissions,       })),       tap((access) => this.session.setAccess(access)),     );   }    /** Renueva el par de tokens; el refresh token anterior queda rotado. */   refresh(): Observable<SessionTokens> {     const refresh_token = this.session.refreshToken();     if (!refresh_token) {       return throwError(() => new Error('No hay refresh token en la sesión'));     }     return this.http       .post<SessionTokens>(`${this.base}/refresh`, { refresh_token })       .pipe(tap((tokens) => this.session.setTokens(tokens)));   }    /**    * Cierra la sesión del refresh token presentado. Siempre limpia el estado    * local, aunque el backend no responda (por ejemplo, si ya expiró).    */   logout(): Observable<unknown> {     const refresh_token = this.session.refreshToken();     return this.http.post(`${this.base}/logout`, { refresh_token }).pipe(       catchError(() => of(null)),       finalize(() => this.session.clear()),     );   } } EOF 
+> ```
+>
+> ### `switchMap` tras el login
+>
+> `tap` guarda los tokens, pero `switchMap(() => this.me())` **encadena** la carga del perfil y los permisos. `login()` no emite hasta que `me()` responde: el componente navega al dashboard con la sesión completa, sin parpadeos ni menús vacíos.
+>
+> ## 8.7 Interceptor con refresh single-flight
+>
+> ```         
+> cat > src/app/core/interceptors/auth-interceptor.ts <<'EOF' import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http'; import { inject } from '@angular/core'; import { Router } from '@angular/router'; import { Observable, catchError, finalize, shareReplay, switchMap, throwError } from 'rxjs'; import { environment } from '../../../environments/environment'; import { SessionTokens } from '../models/auth.model'; import { AuthService } from '../services/auth'; import { SessionStore } from '../services/session-store';  /**  * Una sola renovación en vuelo para todas las peticiones concurrentes.  * Si 3 peticiones reciben 401 a la vez, solo se llama una vez a /sesion/refresh.  */ let refreshInFlight: Observable<SessionTokens> | null = null;  export const authInterceptor: HttpInterceptorFn = (req, next) => {   const session = inject(SessionStore);   const auth = inject(AuthService);   const router = inject(Router);    // OPEN: login, refresh y logout llevan credencial en el cuerpo, no Bearer.   const isPublicAuthCall =     req.url.includes('/sesion/login') ||     req.url.includes('/sesion/refresh') ||     req.url.includes('/sesion/logout');    const accessToken = session.accessToken();    const request =     accessToken && !isPublicAuthCall       ? req.clone({ setHeaders: { Authorization: `Bearer ${accessToken}` } })       : req;    return next(request).pipe(     catchError((error: unknown) => {       if (!(error instanceof HttpErrorResponse) || error.status !== 401 || isPublicAuthCall) {         return throwError(() => error);       }        // Fase I: no hay refresh ni login; se propaga el error tal cual.       if (!environment.requireAuth) {         return throwError(() => error);       }        if (!session.refreshToken()) {         redirectToLogin(session, router);         return throwError(() => error);       }        refreshInFlight ??= auth.refresh().pipe(         catchError((refreshError: unknown) => {           redirectToLogin(session, router);           return throwError(() => refreshError);         }),         finalize(() => {           refreshInFlight = null;         }),         shareReplay({ bufferSize: 1, refCount: false }),       );        // Reintenta la petición original con el access renovado.       return refreshInFlight.pipe(         switchMap(() => {           const renewed = session.accessToken();           const retried = req.clone({             setHeaders: renewed ? { Authorization: `Bearer ${renewed}` } : {},           });           return next(retried);         }),       );     }),   ); };  function redirectToLogin(session: SessionStore, router: Router): void {   session.clear();   const returnUrl = router.url.startsWith('/login') ? '/dashboard' : router.url;   void router.navigate(['/login'], { queryParams: { returnUrl } }); } EOF 
+> ```
+>
+> | **Pieza** | **Por qué** |
+> |:-----------------------------------|:-----------------------------------|
+> | `isPublicAuthCall` | login/refresh/logout no llevan Bearer ni se reintentan |
+> | `req.clone(...)` | Las peticiones HTTP son inmutables |
+> | `refreshInFlight ??= ...` | Si ya hay un refresh, se comparte el observable |
+> | `finalize` | Libera el candado aunque el refresh falle |
+> | `shareReplay({ refCount: false })` | Varios suscriptores reciben **una** respuesta |
+> | `switchMap` | Espera el refresh y reintenta la petición original |
+>
+> **Criterio de aceptación:** con dos peticiones simultáneas y access vencido, en Network debe verse **un solo** `POST /api/sesion/refresh` y **dos** reintentos.
+>
+> ## 8.8 Login
+>
+> ```         
+> ng generate component features/auth/login --skip-tests --defaults 
+> ```
+>
+> ```         
+> readonly form = this.fb.group({   identifier: ['', [Validators.required]],   password: ['', [Validators.required]], });  submit(): void {   if (this.form.invalid) {     this.form.markAllAsTouched();     return;   }   this.loading.set(true);   this.error.set(null);    const { identifier, password } = this.form.getRawValue();   // `identifier` acepta username o email; el backend deduce device_info del User-Agent.   this.auth.login({ identifier, password }).subscribe({     next: () => {       const requested = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';       const returnUrl =         requested.startsWith('/') && !requested.startsWith('/login') ? requested : '/dashboard';       void this.router.navigateByUrl(returnUrl);     },     error: (error: unknown) => {       this.loading.set(false);       this.error.set(toApiMessage(error));     },   }); } 
+> ```
+>
+> ### `returnUrl`: abrir la URL pedida después del login
+>
+> Si el usuario entra a `/ventas` sin sesión, `authGuard` lo manda a `/login?returnUrl=/ventas`. El login lee ese parámetro y navega ahí. La validación `startsWith('/')` evita **open redirects** a dominios externos.
+>
+> ## 8.9 Perfil y logout
+>
+> ```         
+> ng generate component features/auth/profile --skip-tests --defaults ng generate component features/auth/forbidden --skip-tests --defaults 
+> ```
+>
+> `Profile` muestra usuario, roles y permisos efectivos, y permite:
+>
+> - **Refrescar desde el backend** → `AuthService.me()` (`/perfil` + `/permisos`).
+>
+> - **Salir** → `POST /api/sesion/logout` y limpieza local.
+>
+> ```         
+> refresh(): void {   this.refreshing.set(true);   this.auth.me().subscribe({     next: () => {       this.refreshing.set(false);       this.notify.success('Sesión sincronizada', 'Perfil y permisos recargados.');     },     error: () => this.refreshing.set(false),   }); }  logout(): void {   this.auth.logout().subscribe({     next: () => {       this.notify.info('Sesión cerrada');       void this.router.navigate(['/login']);     },   }); } 
+> ```
+>
+> `auth.logout()` limpia la sesión incluso si el backend falla (`finalize`). Es deliberado: el usuario debe poder salir aunque el servidor esté caído.
+>
+> ### Sesiones propias (opcional)
+>
+> El backend expone además `GET /api/sesiones`, `PATCH /api/sesiones/:id/deactivate`, `PATCH /api/sesiones/deactivate-all` y `DELETE /api/sesiones` (modalidad JWT, sin RBAC). Son útiles para una pantalla "Mis dispositivos"; no son necesarias para el recorrido principal.
+>
+> ## 8.10 Rutas de Fase II
+>
+> **Debajo** de los imports en `app.routes.ts`:
+>
+> ```         
+> import { authGuard } from './core/guards/auth-guard'; import { guestGuard } from './core/guards/guest-guard'; 
+> ```
+>
+> ```         
+> {   path: 'login',   title: 'Iniciar sesión · StoreLab',   canActivate: [guestGuard],   loadComponent: () => import('./features/auth/login/login').then((m) => m.Login), }, {   path: '',   canActivate: [authGuard],   loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),   children: [ /* … */ ], }, 
+> ```
+>
+> > `guestGuard` evita que un usuario ya autenticado vuelva al login. Se implementa en ISS-09.
+>
+> ## Criterios de aceptación (ISS-08)
+>
+> 1.  Con `requireAuth: true` (frontend) y `AUTH_ENABLED=true` (backend), `/dashboard` sin sesión redirige a `/login?returnUrl=/dashboard`.
+>
+> 2.  Login con `admin / Admin123!` guarda tokens **y** carga perfil + permisos.
+>
+> 3.  DevTools → Application → Local Storage contiene `storelab.session.v1` con `accessToken`, `refreshToken`, `user` y `permissions`.
+>
+> 4.  Cada request protegida lleva `Authorization: Bearer <access>`.
+>
+> 5.  Al vencer el access, un `401` dispara **un** refresh y se reintenta.
+>
+> 6.  Logout borra el storage y vuelve al login; el refresh deja de servir.
+>
+> 7.  `ng serve` compila sin errores.
+>
+> ## Comprobación del refresh
+>
+> 1.  Inicia sesión.
+>
+> 2.  En DevTools → Network, localiza una request y copia el `access_token`.
+>
+> 3.  Espera a que expire (o invalida el token en Local Storage).
+>
+> 4.  Navega a `/clientes`.
+>
+> 5.  Debes ver: `GET /api/clientes` → `401`, `POST /api/sesion/refresh` → `200`, `GET /api/clientes` (reintento) → `200`.
+>
+> Si ves **dos** refresh, el single-flight está roto: revisa que `refreshInFlight` sea una variable de módulo y que uses `??=`, no `=`.
+>
+> ## Comprobación del reuse detection y del logout
+>
+> ```         
+> BASE=http://localhost:4000  # 1. Login y extrae el refresh LOGIN=$(curl -s -X POST $BASE/api/sesion/login \   -H "Content-Type: application/json" \   -d '{"identifier":"admin","password":"Admin123!"}') REFRESH=$(echo "$LOGIN" | grep -o '"refresh_token":"[^"]*' | cut -d'"' -f4)  # 2. Primer refresh: rota curl -s -X POST $BASE/api/sesion/refresh \   -H "Content-Type: application/json" \   -d "{\"refresh_token\":\"$REFRESH\"}"  # 3. Reusar el viejo: 401 y familia revocada curl -i -X POST $BASE/api/sesion/refresh \   -H "Content-Type: application/json" \   -d "{\"refresh_token\":\"$REFRESH\"}" 
+> ```
+>
+> ```         
+> # 4. Logout revoca el refresh presentado (idempotente) curl -s -X POST $BASE/api/sesion/logout \   -H "Content-Type: application/json" \   -d "{\"refresh_token\":\"$REFRESH\"}" 
+> ```
+>
+> El frontend, ante el `401` de reuse, limpia la sesión y redirige al login.
+>
+> **Siguiente:** ISS-09 implementa guards y RBAC estructural en la UI.
+>
+> ## Conectar sesión al layout existente
+>
+> Shell pasa `username`, `initials`, `roleLabel` y `userItems` a Header; pasa `navGroups()` y `permissionCount` a Aside. Activa `[showSession]="true"` en ambos. Header emite `menuRequested`; Aside emite `logoutRequested`: Shell abre el Drawer y ejecuta `AuthService.logout()`. El menú lateral completo y filtrado por RBAC se implementa en ISS-09 (`nav.config.ts` + `computed()` en `shell.ts`). La ruta `/construir` permanece pública, con layout propio y sin HTTP de sesión.
+>
+> ## Correspondencia con el código
+>
+> Esta guía es la que contiene los comandos (`ng new`, `ng generate`, `cat >`) y la explicación paso a paso para construir el frontend desde cero. El código no se duplica en `docs/`: la referencia completa son los archivos reales del proyecto, enlazados al final de esta ISS.
+>
+> Los ejemplos breves muestran incrementos y no sustituyen todos los archivos del componente. Las configuraciones de las primeras etapas omiten deliberadamente la sesión y las rutas que se construyen después; en el proyecto consolidado la seguridad final está activa. No combines imports de una etapa final con stubs que todavía no implementaste.
+>
+> ## Código completo de referencia
+>
+> Los fragmentos de esta ISS se estudian por incrementos. Estos archivos contienen la implementación consolidada, incluida la seguridad de la fase final:
+>
+> - src/app/core/interceptors/auth-interceptor.ts (`src/app/core/interceptors/auth-interceptor.ts`).
+>
+> - src/app/core/interceptors/error-interceptor.ts (`src/app/core/interceptors/error-interceptor.ts`).
+>
+> - src/app/core/services/auth.ts (`src/app/core/services/auth.ts`).
+>
+> - src/app/core/services/session-store.ts (`src/app/core/services/session-store.ts`).
+>
+> - src/app/features/auth/forbidden/forbidden.css (`src/app/features/auth/forbidden/forbidden.css`).
+>
+> - src/app/features/auth/forbidden/forbidden.html (`src/app/features/auth/forbidden/forbidden.html`).
+>
+> - src/app/features/auth/forbidden/forbidden.ts (`src/app/features/auth/forbidden/forbidden.ts`).
+>
+> - src/app/features/auth/login/login.css (`src/app/features/auth/login/login.css`).
+>
+> - src/app/features/auth/login/login.html (`src/app/features/auth/login/login.html`).
+>
+> - src/app/features/auth/login/login.ts (`src/app/features/auth/login/login.ts`).
+>
+> - src/app/features/auth/profile/profile.css (`src/app/features/auth/profile/profile.css`).
+>
+> - src/app/features/auth/profile/profile.html (`src/app/features/auth/profile/profile.html`).
+>
+> - src/app/features/auth/profile/profile.ts (`src/app/features/auth/profile/profile.ts`).
+>
+> > **Unidad ISS-09 · Guards y RBAC estructural en la UI** — capa **🛠 CONSTRUIR**
+> >
+> > [🧠 Comprender este bloque →](https://tecnogua.com/academic/site/frontend2026/express/aprender/ISS-09-guards-y-rbac-en-la-ui/) · [↑ Ruta Frontend-Express](https://tecnogua.com/academic/site/frontend2026/express/)
+> >
+> > | **Capa** | **Página** | **Para qué** |
+> > |:-----------------------|:-----------------------|:-----------------------|
+> > | 🧠 **Aprender** | [Guards y RBAC estructural en la UI](https://tecnogua.com/academic/site/frontend2026/express/aprender/ISS-09-guards-y-rbac-en-la-ui/) | comprender, explicar y relacionar |
+> > | 🛠 **Construir** | esta página | ejecutar, verificar y entregar |
+>
+> # Fase II: Auth con RBAC — ISS-09 — Guards y RBAC en las pantallas Business
+>
+> > **Vigencia · revisión local del 23-oct-2026.** Los guards existen y las rutas declaran permisos. La búsqueda de appHasPermission en las plantillas solo la encontró en dashboard.html; ClientList aún no filtra sus botones. No se acredita protección granular de todas las pantallas desde la UI. **Los criterios no cumplidos permanecen pendientes; no equivalen a evidencia de implementación.**
+> >
+> > **Vigencia · revisión local del 23-oct-2026.** Además de authGuard, guestGuard y permissionGuard existe authOnlyGuard: con auth desactivada redirige perfil y administración al dashboard. `/construir` queda fuera del Shell protegido. La UI filtra acciones; la autorización efectiva sigue en Express. Los bloques de código de la guía pueden representar incrementos; los archivos locales citados son la referencia consolidada.
+> >
+> > **Vigencia · revisión local del 23-oct-2026.** Los pasos describen una construcción incremental en una copia de práctica. El código consolidado puede incluir fases posteriores. Los resultados importados son reportes de la fuente, no pruebas repetidas en esta actualización. Véase [estado y trazabilidad](https://tecnogua.com/academic/site/frontend2026/express/estado-vigente/).
+> >
+> > **Convención visual:** PrimeNG con Aura para controles y datos; Tailwind para flex, grid, espaciado y adaptación a pantalla. Sin CSS propio ni PrimeFlex. Las tarjetas nuevas usan `p-card` e importan `CardModule` de `primeng/card`. Si usas `p-message` para validación, importa `MessageModule` de `primeng/message`. Consulta [el patrón visual](https://tecnogua.com/academic/site/frontend2026/express/construir/patron-visual/) antes de copiar una pantalla.
+>
+> **Fase II — Auth + RBAC** · **Bloque 2 de 3 (protección)** · **Bloqueado por:** ISS-08 · **Habilita:** ISS-10
+>
+> > **Backend de referencia:** `app-storelab-express-ii` → `docs/manual/15-ISS-13-auth-access.md` (middlewares `authenticate`/`authorize`) y `docs/manual/17-ISS-15-auth-session.md` (`GET /api/permisos`).
+>
+> ## Antes de construir: Autorización por capas
+>
+> Comprueba authGuard, luego permissionGuard, después menú filtrado y botones. NAV y computed permanecen en Shell; Aside solo presenta items.
+>
+> **Evidencia de aprendizaje:** Prueba URL directa, menú y acción con dos usuarios; documenta 401 y 403 sin confundirlos.
+>
+> **Equipo y terminal:** Ubuntu WSL, terminal del editor, carpeta del frontend. Los ejemplos que crean o reemplazan archivos se ejecutan en una copia de práctica; en el workspace consolidado inspecciona y ajusta los archivos existentes.
+>
+> ## Objetivo
+>
+> Convertir la autenticación en **autorización visible**:
+>
+> > **Fase II · bloque 2 de 3 — Protección del Business.** Esta ISS **no reescribe** las pantallas de Fase I (clientes, tipos, productos, ventas, detalle). Solo añade `canActivate`/`data` a sus rutas, envuelve sus botones con `*appHasPermission` y filtra el menú. Los formularios de administración RBAC llegan en **ISS-10**.
+>
+> 1.  `authGuard`: sin sesión → `/login`.
+>
+> 2.  `guestGuard`: con sesión → no volver al login.
+>
+> 3.  `permissionGuard`: sin la concesión de la ruta → `/forbidden`.
+>
+> 4.  `*appHasPermission`: oculta botones de escritura.
+>
+> 5.  Menú lateral calculado con `computed()` según `SessionStore`.
+>
+> > **Principio:** todo esto es **UX**, no seguridad. El backend vuelve a validar con `authenticate` + `authorize`. Un usuario puede forzar la URL o el DOM; el backend responde `401`/`403` y el `errorInterceptor` muestra el toast.
+>
+> La fuente de verdad en el cliente es `SessionStore.permissions()`, cargada desde `GET /api/permisos`. **No** hay permisos hardcodeados por rol.
+>
+> > **Modo laboratorio.** `authGuard`, `guestGuard` y `permissionGuard` consultan `environment.requireAuth`; con `false` dejan pasar. `authOnlyGuard` consulta `SessionStore.authEnabled` (su copia) y hace lo contrario: cierra `/perfil` y `/admin/*`. Solo tiene sentido junto con `AUTH_ENABLED=false` en el `.env` del backend, que abre las 5 rutas de negocio. Con las banderas desemparejadas la UI no se bloquea pero la API responde `401` (ISS-11 §11.1).
+>
+> ## 9.0 Generar guards y directiva
+>
+> ```         
+> ng generate guard core/guards/auth --functional --implements=CanActivate --skip-tests --defaults ng generate guard core/guards/guest --functional --implements=CanActivate --skip-tests --defaults ng generate guard core/guards/permission --functional --implements=CanActivate --skip-tests --defaults ng generate directive shared/directives/has-permission --skip-tests --defaults 
+> ```
+>
+> El separador de guard genera auth-guard.ts, guest-guard.ts y permission-guard.ts, que coinciden con sus imports. Si los creaste al conectar las rutas de ISS-08, completa sus cuerpos sin volver a generarlos. La directiva se genera antes de añadir sus imports a los componentes. El CLI crea la estructura; el comportamiento de permisos se implementa después.
+>
+> ## 9.1 `authGuard`
+>
+> ```         
+> mkdir -p src/app/core/guards cat > src/app/core/guards/auth-guard.ts <<'EOF' import { inject } from '@angular/core'; import { CanActivateFn, Router } from '@angular/router'; import { environment } from '../../../environments/environment'; import { SessionStore } from '../services/session-store';  /** ¿Quién eres? Si no hay access token, a /login con returnUrl. */ export const authGuard: CanActivateFn = (_route, state) => {   const session = inject(SessionStore);   const router = inject(Router);    if (!environment.requireAuth || session.isAuthenticated()) {     return true;   }    return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } }); }; EOF 
+> ```
+>
+> `createUrlTree` es preferible a `router.navigate` dentro de un guard: el Router evalúa la redirección **antes** de activar el componente, sin parpadeos.
+>
+> ## 9.2 `guestGuard`
+>
+> ```         
+> cat > src/app/core/guards/guest-guard.ts <<'EOF' import { inject } from '@angular/core'; import { CanActivateFn, Router } from '@angular/router'; import { environment } from '../../../environments/environment'; import { SessionStore } from '../services/session-store';  /** Un usuario ya autenticado no necesita volver a /login. */ export const guestGuard: CanActivateFn = () => {   const session = inject(SessionStore);   const router = inject(Router);    if (!environment.requireAuth || !session.isAuthenticated()) {     return true;   }    return router.createUrlTree(['/dashboard']); }; EOF 
+> ```
+>
+> ## 9.3 `permissionGuard`
+>
+> ```         
+> cat > src/app/core/guards/permission-guard.ts <<'EOF' import { inject } from '@angular/core'; import { CanActivateFn, Router } from '@angular/router'; import { environment } from '../../../environments/environment'; import { SessionStore } from '../services/session-store';  /**  * ¿Qué puedes hacer? Se declara en la ruta:  *   data: { permission: 'GET /api/clientes' }  * Es una ayuda visual; Express vuelve a validar con Auth.authorize.  */ export const permissionGuard: CanActivateFn = (route) => {   const session = inject(SessionStore);   const router = inject(Router);    if (!environment.requireAuth) {     return true;   }    const permission = route.data?.['permission'] as string | undefined;   if (!permission || session.canPermission(permission)) {     return true;   }    return router.createUrlTree(['/forbidden'], {     queryParams: { permission },   }); }; EOF 
+> ```
+>
+> ### Cómo se evalúa `canPermission`
+>
+> ```         
+> canPermission('GET /api/clientes/7') 
+> ```
+>
+> 1.  Separa verbo (`GET`) y ruta (`/api/clientes/7`).
+>
+> 2.  Recorre `permissions()` (cada fila trae `method` y `path` **patrón**).
+>
+> 3.  Casa `/api/clientes/:id` con `/api/clientes/7` mediante regex anclada.
+>
+> 4.  **Deny by default:** si ninguna fila coincide, devuelve `false`.
+>
+> ### `authOnlyGuard`: pantallas que no existen en la Fase I
+>
+> La administración RBAC y el perfil no tienen sentido sin sesión: el backend los mantiene con JWT aunque el frontend esté en modo laboratorio. Este guard evita ofrecer pantallas que responderían `401`.
+>
+> ```         
+> import { inject } from '@angular/core'; import { CanActivateFn, Router } from '@angular/router'; import { SessionStore } from '../services/session-store';  export const authOnlyGuard: CanActivateFn = () => {   const session = inject(SessionStore);   const router = inject(Router);    if (session.authEnabled) {     return true;   }    return router.createUrlTree(['/dashboard']); }; 
+> ```
+>
+> Se aplica **antes** de `permissionGuard` en `/perfil` y en las cinco rutas `/admin/*`:
+>
+> ```         
+> {   path: 'admin/usuarios',   canActivate: [authOnlyGuard, permissionGuard],   data: { permission: 'GET /api/usuarios' },   loadComponent: () => import('./features/admin/users/user-list/user-list').then((m) => m.UserList), }, 
+> ```
+>
+> El Shell usa la misma condición para no pintar el grupo **Seguridad** del menú (`authOnly: true` en `NAV`). Así el modo laboratorio se ve como la Fase I real: Operación + Prototipo.
+>
+> > `authOnlyGuard` lee `SessionStore.authEnabled`, que es la copia de `environment.requireAuth` que ya consume el Shell. Los otros guards leen el environment directamente; ambas fuentes valen lo mismo y el test lo verifica.
+>
+> ## 9.4 Matriz de rutas de Fase II
+>
+> **Encima de** cada `loadComponent` de las rutas **ya existentes** (las de Fase I), añade `canActivate` y `data`:
+>
+> | **Ruta**          | **Permiso**               |
+> |:------------------|:--------------------------|
+> | `/clientes`       | `GET /api/clientes`       |
+> | `/tipos-producto` | `GET /api/tipos-producto` |
+> | `/productos`      | `GET /api/productos`      |
+> | `/ventas`         | `GET /api/ventas`         |
+> | `/ventas/nueva`   | `POST /api/ventas`        |
+> | `/detalle-ventas` | `GET /api/detalle-ventas` |
+> | `/dashboard`      | `GET /api/ventas`         |
+>
+> Las rutas `/admin/*` **no se declaran aquí**: sus componentes se crean en ISS-10. Al declararlas allí, se les pone el mismo `permissionGuard` y su `data`:
+>
+> | **Ruta**              | **Permiso**                 | **Se declara en** |
+> |:----------------------|:----------------------------|:------------------|
+> | `/admin/usuarios`     | `GET /api/usuarios`         | ISS-10            |
+> | `/admin/roles`        | `GET /api/roles`            | ISS-10            |
+> | `/admin/recursos`     | `GET /api/recursos`         | ISS-10            |
+> | `/admin/asignaciones` | `GET /api/asignaciones-rol` | ISS-10            |
+> | `/admin/permisos`     | `GET /api/concesiones-rol`  | ISS-10            |
+>
+> Ejemplo completo (la ruta de clientes ya existe desde ISS-03):
+>
+> ```         
+> {   path: 'clientes',   title: 'Clientes · StoreLab',   canActivate: [permissionGuard],   data: { permission: 'GET /api/clientes' },   loadComponent: () =>     import('./features/clients/client-list/client-list').then((m) => m.ClientList), }, 
+> ```
+>
+> `/perfil` y `/forbidden` **no** llevan `permissionGuard`: todo usuario autenticado debe poder ver su sesión y la pantalla de acceso denegado.
+>
+> ## 9.5 Directiva `*appHasPermission`
+>
+> Conservada como ampliación en ISS-02; créala ahora si seguiste el recorrido básico. Su fuente es `SessionStore.canPermission()`:
+>
+> ```         
+> <ng-container *appHasPermission="'POST /api/clientes'">   <button pButton label="Nuevo cliente" icon="pi pi-plus"></button> </ng-container> 
+> ```
+>
+> ### Diferencia con `@if`
+>
+> | **`@if`** | **`*appHasPermission`** |
+> |:-----------------------------------|:-----------------------------------|
+> | Evalúa una condición cualquiera | Evalúa un permiso RBAC |
+> | Reacciona si la expresión lee signals de sesión | `effect()` reacciona a `permissions()` |
+> | El template queda en el DOM compilado | Crea/destruye la vista embebida |
+>
+> ### Permisos exactos por acción (pantallas de Fase I)
+>
+> ```         
+> <ng-container *appHasPermission="'PATCH /api/clientes/:id'">…</ng-container> <ng-container *appHasPermission="'DELETE /api/clientes/:id'">…</ng-container> 
+> ```
+>
+> Business: estas son las operaciones que el catálogo del backend (`src/features/auth/resources/resource-catalog.ts`) **sí** concede, y por tanto las únicas que la UI puede ofrecer.
+>
+> | **Pantalla** | **Crear** | **Editar** | **Baja lógica** | **Baja física** |
+> |:--------------|:--------------|:--------------|:--------------|:--------------|
+> | Clientes | `POST /api/clientes` | `PATCH /api/clientes/:id` | `PATCH /api/clientes/:id/deactivate` | `DELETE /api/clientes/:id` |
+> | Tipos de producto | `POST /api/tipos-producto` | `PATCH /api/tipos-producto/:id` | `PATCH /api/tipos-producto/:id/deactivate` | `DELETE /api/tipos-producto/:id` |
+> | Productos | `POST /api/productos` | `PATCH /api/productos/:id` | `PATCH /api/productos/:id/deactivate` | `DELETE /api/productos/:id` |
+> | Ventas | `POST /api/ventas` | — | — | — |
+> | Detalle de ventas | — | — | — | — |
+>
+> Auth: el bloque 3 (ISS-10) usa la misma mecánica.
+>
+> | **Pantalla** | **Crear** | **Editar** | **Baja lógica** | **Baja física** |
+> |:--------------|:--------------|:--------------|:--------------|:--------------|
+> | Usuarios | `POST /api/usuarios` | `PATCH /api/usuarios/:id` | `PATCH /api/usuarios/:id/deactivate` | `DELETE /api/usuarios/:id` |
+> | Roles | `POST /api/roles` | `PATCH /api/roles/:id` | `PATCH /api/roles/:id/deactivate` | `DELETE /api/roles/:id` |
+> | Recursos | `POST /api/recursos` | `PATCH /api/recursos/:id` | `PATCH /api/recursos/:id/deactivate` | `DELETE /api/recursos/:id` |
+> | Asignaciones | `POST /api/asignaciones-rol` | — | `PATCH /api/asignaciones-rol/:id/deactivate` | — |
+> | Concesiones | `POST /api/concesiones-rol` | — | `PATCH /api/concesiones-rol/:id/deactivate` | — |
+>
+> Los pivotes **no** tienen DELETE físico: retirar es baja lógica y reactivar es `PATCH /:id/reactivate` (auditoría).
+>
+> > **Ventas y detalle: límite real del backend.** El catálogo RBAC concede de ventas solo `GET /api/ventas`, `GET /api/ventas/:id` y `POST /api/ventas`; del detalle, solo `GET /api/detalle-ventas`. Aunque las rutas Express acepten `PATCH`, `DELETE` y `/:id/deactivate`, **no existen recursos** para concederlas, así que `authorize` respondería `403` incluso a `ADMIN`.
+> >
+> > Consecuencia para la UI en Fase II: - Ventas: se conserva **listar** y **registrar**; no se muestran editar, cancelar ni eliminar. Cancelar una venta no es una operación expuesta por el modelo RBAC. - Detalle: solo `GET /api/detalle-ventas`; las acciones de escritura de ISS-07 se ocultan. El detalle se administra creando la venta completa (`POST /api/ventas`) y se consulta con `GET /api/ventas/:id`.
+> >
+> > En Fase I, contra un backend sin middlewares, esas acciones funcionan: por eso no se borran del código, se ocultan por permiso. Si el curso necesita CRUD de ventas en Fase II, primero hay que ampliar `resource-catalog.ts` en el backend.
+>
+> ### Checklist de protección de las pantallas business
+>
+> | **Ruta** | **`canActivate` + `data.permission`** | **Botones a envolver** |
+> |:-----------------------|:-----------------------|:-----------------------|
+> | `/clientes` | `permissionGuard` · `GET /api/clientes` | crear, editar, baja lógica, eliminar |
+> | `/tipos-producto` | `permissionGuard` · `GET /api/tipos-producto` | crear, editar, baja lógica, eliminar |
+> | `/productos` | `permissionGuard` · `GET /api/productos` | crear, editar, baja lógica, eliminar |
+> | `/ventas` | `permissionGuard` · `GET /api/ventas` | nueva venta (`POST /api/ventas`) |
+> | `/ventas/nueva` | `permissionGuard` · `POST /api/ventas` | guardar venta |
+> | `/detalle-ventas` | `permissionGuard` · `GET /api/detalle-ventas` | ninguno (solo lectura) |
+> | `/dashboard` | `permissionGuard` · `GET /api/ventas` | ninguna acción; solo lectura agregada |
+>
+> > **El dashboard no inventa permisos.** No existe `GET /api/dashboard`: sus datos salen de las listas de negocio. Se protege con el permiso más débil que necesita (`GET /api/ventas`); si un usuario no puede leer una fuente, esa tarjeta se oculta con `*appHasPermission` en vez de romper la pantalla.
+>
+> ## 9.6 Menú lateral con `computed`
+>
+> Catálogo de rutas y permisos en `src/app/layout/shell/nav.config.ts` (`NAV`). El Shell filtra cada grupo con `SessionStore.canPermission()` y oculta **Seguridad** cuando `authEnabled` es `false` (modo laboratorio).
+>
+> ```         
+> readonly navGroups = computed<MenuItem[]>(() =>   NAV.filter((group) => !group.authOnly || this.session.authEnabled)     .map((group) => ({     label: group.label,     items: group.items       .filter((item) => !item.permission || this.session.canPermission(item.permission))       .map<MenuItem>((item) => ({         label: item.label,         icon: item.icon,         routerLink: item.routerLink,         routerLinkActiveOptions: { exact: item.routerLink === '/ventas' },       })),   })).filter((group) => (group.items?.length ?? 0) > 0), ); 
+> ```
+>
+> `computed` se recalcula cuando cambia `permissions()`. Después de `AuthService.me()`, el menú se ajusta sin recargar la página.
+>
+> ### Topbar y menú de usuario
+>
+> - Avatar con iniciales (`computed`).
+>
+> - Tag con roles (`roleLabel`, derivado de `roleNames()`).
+>
+> - Menú popup: **Mi sesión**, **Actualizar permisos**, **Cerrar sesión**.
+>
+> - `p-toast` y `p-confirmdialog` globales en el shell.
+>
+> > **Error clásico:** `<p-menu #userMenu [model]="userMenu()">` hace que la referencia de plantilla `#userMenu` tape el método `userMenu()` y Angular reporte `Type 'Menu' has no call signatures`. Usa `#userMenuPanel`.
+>
+> ## 9.7 `/forbidden`: explicar el 403
+>
+> `Forbidden` lee `permission` del query param y lo muestra:
+>
+> ```         
+> readonly permission = this.route.snapshot.queryParamMap.get('permission'); 
+> ```
+>
+> ```         
+> @if (permission) {   <div class="rounded-xl bg-slate-900 px-4 py-3">     <p class="text-[11px] uppercase text-slate-400">Permiso requerido</p>     <code class="text-sm text-emerald-300">{{ permission }}</code>   </div> } 
+> ```
+>
+> Esto convierte un “no puedo entrar” en una pista accionable: pide a un admin que cree la fila en `resource_roles` (pantalla `/admin/permisos`).
+>
+> ## Criterios de aceptación (ISS-09)
+>
+> 1.  Sin sesión, cualquier ruta protegida redirige a login con `returnUrl`.
+>
+> 2.  Con sesión, `/login` redirige al dashboard (`guestGuard`).
+>
+> 3.  `admin` (58 permisos) ve todo el menú **de negocio**; el bloque Seguridad se añade con ISS-10.
+>
+> 4.  `seller` (7 permisos) ve solo **Panel**, **Clientes**, **Productos** y **Ventas**; no ve Tipos de producto ni Detalle de ventas.
+>
+> 5.  Escribir a mano `/tipos-producto` con `seller` lleva a `/forbidden` y muestra el permiso faltante (`GET /api/tipos-producto`).
+>
+> 6.  Los botones de escritura desaparecen si falta el `POST`/`PATCH`/`DELETE`.
+>
+> 7.  Tras “Actualizar permisos”, el menú y los botones cambian sin recargar.
+>
+> 8.  **Las cinco pantallas de Fase I siguen funcionando sin cambios de lógica:** `admin` las usa igual que antes y `seller` las ve en modo lectura donde corresponde.
+>
+> 9.  **No hay botones que el backend vaya a rechazar:** ventas y detalle solo muestran las operaciones que concede `resource-catalog.ts` (ver la nota de límite real del backend).
+>
+> 10. `ng serve` compila sin errores.
+>
+> 11. Con `requireAuth: false` (modo laboratorio) el grupo **Seguridad** no aparece y `/perfil` o `/admin/*` por URL redirigen a `/dashboard` (`authOnlyGuard`).
+>
+> ## Comprobación al cerrar ISS-09 (solo rutas business)
+>
+> 1.  Login `admin` → menú de negocio completo.
+>
+> 2.  Logout.
+>
+> 3.  Login `seller` → menú reducido: sin Tipos de producto y sin Detalle de ventas.
+>
+> 4.  Intenta `/tipos-producto` por URL → `/forbidden` con el permiso faltante.
+>
+> 5.  En `/clientes`, `seller` no ve “Nuevo cliente” ni las acciones de escritura.
+>
+> 6.  En `/ventas`, `seller` sí ve “Nueva venta” (`POST /api/ventas` es suyo).
+>
+> ## Comprobación con dos usuarios (al cerrar ISS-10)
+>
+> 1.  Login `admin` → menú completo (Operación + Seguridad).
+>
+> 2.  Logout.
+>
+> 3.  Login `seller` → menú reducido, sin bloque Seguridad.
+>
+> 4.  Intenta `/admin/usuarios` por URL → `/forbidden`.
+>
+> 5.  En `admin`, concede `GET /api/usuarios` a `SELLER` en `/admin/permisos`, vuelve a `seller`, pulsa **Actualizar permisos** → aparece “Usuarios”.
+>
+> ## Prueba de que el backend manda
+>
+> Con `seller`, abre DevTools → Console y ejecuta un `fetch` al endpoint prohibido:
+>
+> ```         
+> fetch('http://localhost:4000/api/usuarios', {   headers: {     Authorization:       'Bearer ' + JSON.parse(localStorage.getItem('storelab.session.v1')).accessToken,   }, }).then((r) => console.log(r.status)); 
+> ```
+>
+> Debe imprimir `403`. La UI no es la seguridad; el backend sí.
+>
+> **Siguiente:** ISS-10 construye la administración completa del RBAC.
+>
+> ## Correspondencia con el código
+>
+> Esta guía es la que contiene los comandos (`ng new`, `ng generate`, `cat >`) y la explicación paso a paso para construir el frontend desde cero. El código no se duplica en `docs/`: la referencia completa son los archivos reales del proyecto, enlazados al final de esta ISS.
+>
+> Los ejemplos breves muestran incrementos y no sustituyen todos los archivos del componente. Las configuraciones de las primeras etapas omiten deliberadamente la sesión y las rutas que se construyen después; en el proyecto consolidado la seguridad final está activa. No combines imports de una etapa final con stubs que todavía no implementaste.
+>
+> ## Código completo de referencia
+>
+> Los fragmentos de esta ISS se estudian por incrementos. Estos archivos contienen la implementación consolidada, incluida la seguridad de la fase final:
+>
+> - src/app/core/guards/auth-guard.ts (`src/app/core/guards/auth-guard.ts`).
+>
+> - src/app/core/guards/guest-guard.ts (`src/app/core/guards/guest-guard.ts`).
+>
+> - src/app/core/guards/permission-guard.ts (`src/app/core/guards/permission-guard.ts`).
+>
+> - src/app/core/guards/auth-only-guard.ts (`src/app/core/guards/auth-only-guard.ts`).
+>
+> - src/app/core/guards/rbac-guards.spec.ts (`src/app/core/guards/rbac-guards.spec.ts` — no existe en la copia inspeccionada).
+>
+> - src/app/shared/directives/has-permission.ts (`src/app/shared/directives/has-permission.ts`).
+>
+> - src/app/shared/directives/has-permission.spec.ts (`src/app/shared/directives/has-permission.spec.ts` — no existe en la copia inspeccionada).
+>
+> - src/app/layout/shell/nav.config.ts (`src/app/layout/shell/nav.config.ts`).
+>
+> - src/app/layout/shell/shell.ts (`src/app/layout/shell/shell.ts`).
+>
+> - src/app/layout/shell/shell.html (`src/app/layout/shell/shell.html`).
+>
+> > **Unidad ISS-10 · Administración RBAC: usuarios, roles, recursos y pivotes** — capa **🛠 CONSTRUIR**
+> >
+> > [🧠 Comprender este bloque →](https://tecnogua.com/academic/site/frontend2026/express/aprender/ISS-10-administracion-rbac/) · [↑ Ruta Frontend-Express](https://tecnogua.com/academic/site/frontend2026/express/)

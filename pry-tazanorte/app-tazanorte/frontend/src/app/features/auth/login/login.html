@@ -1,0 +1,58 @@
+<div class="flex min-h-screen items-center justify-center bg-slate-100 px-4">
+  <div class="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div class="mb-6 flex flex-col items-center gap-2 text-center">
+      <img src="/brand/tazanorte-mark.svg" alt="Logo de TazaNorte" class="h-14 w-14 rounded-xl" />
+      <h1 class="text-xl font-semibold text-slate-900">{{ appName }}</h1>
+      <p class="text-sm text-slate-500">Inicia sesión para continuar</p>
+    </div>
+
+    @if (error(); as message) {
+      <p-message severity="error" styleClass="mb-4 w-full">{{ message }}</p-message>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+      <div>
+        <label for="login-identifier" class="mb-1 block text-sm font-medium text-slate-700">
+          Usuario o correo
+        </label>
+        <input
+          id="login-identifier"
+          pInputText
+          formControlName="identifier"
+          autocomplete="username"
+          placeholder="admin"
+          class="w-full"
+        />
+        @if (form.controls.identifier.touched && form.controls.identifier.invalid) {
+          <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+            Escribe tu usuario o correo.
+          </p-message>
+        }
+      </div>
+
+      <div>
+        <label for="login-password" class="mb-1 block text-sm font-medium text-slate-700">
+          Contraseña
+        </label>
+        <p-password
+          inputId="login-password"
+          formControlName="password"
+          [feedback]="false"
+          [toggleMask]="true"
+          autocomplete="current-password"
+          [fluid]="true"
+        />
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+            Escribe tu contraseña.
+          </p-message>
+        }
+      </div>
+
+      <button pButton type="submit" class="w-full" [loading]="loading()">
+        <i pButtonIcon class="pi pi-sign-in"></i>
+        <span pButtonLabel>Ingresar</span>
+      </button>
+    </form>
+  </div>
+</div>

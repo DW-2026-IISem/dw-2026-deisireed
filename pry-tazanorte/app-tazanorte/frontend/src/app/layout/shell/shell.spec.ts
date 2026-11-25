@@ -1,13 +1,21 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { MessageService, ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { Shell } from './shell';
 
 describe('Shell', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Shell],
-      providers: [provideRouter([]), MessageService, ConfirmationService],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
   });
 
@@ -19,7 +27,6 @@ describe('Shell', () => {
 
   it('should compose header, aside, main, footer and the router outlet', async () => {
     const { compilado } = await crearShell();
-
     expect(compilado.querySelector('app-header')).toBeTruthy();
     expect(compilado.querySelector('aside app-aside')).toBeTruthy();
     expect(compilado.querySelector('main#contenido router-outlet')).toBeTruthy();
@@ -28,14 +35,12 @@ describe('Shell', () => {
 
   it('should open the mobile drawer from the header button', async () => {
     const { fixture, compilado } = await crearShell();
-
     const boton = compilado.querySelector(
       'app-header button[aria-label="Mostrar u ocultar el menú"]',
     ) as HTMLButtonElement;
     boton.click();
     fixture.detectChanges();
     await fixture.whenStable();
-
     expect(fixture.componentInstance.mobileOpen()).toBe(true);
   });
 });

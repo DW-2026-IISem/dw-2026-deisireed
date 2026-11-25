@@ -1,0 +1,76 @@
+<app-page-header title="Mi perfil" subtitle="Identidad y permisos efectivos que entrega el backend.">
+  <button pButton type="button" severity="secondary" outlined [loading]="refreshing()" (click)="refresh()">
+    <i pButtonIcon class="pi pi-sync"></i>
+    <span pButtonLabel>Actualizar permisos</span>
+  </button>
+  <button pButton type="button" severity="danger" outlined (click)="logout()">
+    <i pButtonIcon class="pi pi-sign-out"></i>
+    <span pButtonLabel>Cerrar sesión</span>
+  </button>
+</app-page-header>
+
+<div class="grid gap-4 lg:grid-cols-3">
+  <p-card>
+    @if (session.user(); as user) {
+      <div class="flex items-center gap-3">
+        <p-avatar [label]="session.initials()" shape="circle" size="large" />
+        <div class="min-w-0">
+          <p class="truncate font-semibold text-slate-900">{{ user.username }}</p>
+          <p class="truncate text-sm text-slate-500">{{ user.email }}</p>
+        </div>
+      </div>
+      <dl class="mt-4 space-y-2 text-sm">
+        <div class="flex justify-between">
+          <dt class="text-slate-500">Estado</dt>
+          <dd>
+            <p-tag
+              [value]="user.status === 'active' ? 'Activo' : 'Inactivo'"
+              [severity]="user.status === 'active' ? 'success' : 'danger'"
+              [rounded]="true"
+            />
+          </dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-slate-500">Permisos</dt>
+          <dd class="font-medium">{{ session.permissionCount() }}</dd>
+        </div>
+      </dl>
+      <div class="mt-4 flex flex-wrap gap-2">
+        @for (role of session.roleNames(); track role) {
+          <p-tag [value]="role" severity="info" [rounded]="true" />
+        } @empty {
+          <span class="text-sm text-slate-400">Sin roles asignados.</span>
+        }
+      </div>
+    }
+  </p-card>
+
+  <div class="rounded-xl border border-slate-200 bg-white lg:col-span-2">
+    <p-table
+      [value]="session.permissions()"
+      [paginator]="session.permissions().length > 10"
+      [rows]="10"
+      tableStyleClass="min-w-xl"
+    >
+      <ng-template #header>
+        <tr>
+          <th class="w-24">Método</th>
+          <th>Ruta</th>
+          <th>Descripción</th>
+          <th>Rol</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-p>
+        <tr>
+          <td><p-tag [value]="p.method" [severity]="methodSeverity(p.method)" /></td>
+          <td class="font-mono text-xs text-slate-700">{{ p.path }}</td>
+          <td class="text-sm text-slate-600">{{ p.description || '—' }}</td>
+          <td class="text-xs text-slate-500">{{ p.role_name }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="4" class="py-6 text-center text-sm text-slate-500">Sin permisos efectivos.</td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

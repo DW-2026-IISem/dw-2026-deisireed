@@ -1,15 +1,34 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth-guard';
+import { guestGuard } from './core/guards/guest-guard';
 
 export const routes: Routes = [
+  {
+    path: 'login',
+    title: 'Iniciar sesión · TazaNorte',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
+  },
   {
     path: 'construir',
     loadComponent: () => import('./features/construir/construir').then((m) => m.Construir),
   },
   {
     path: '',
+    canActivate: [authGuard],
     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'clientes' },
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      {
+        path: 'dashboard',
+        title: 'Panel · TazaNorte',
+        loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+      },
+      {
+        path: 'perfil',
+        title: 'Mi perfil · TazaNorte',
+        loadComponent: () => import('./features/auth/profile/profile').then((m) => m.Profile),
+      },
       {
         path: 'clientes',
         title: 'Clientes · TazaNorte',
@@ -56,12 +75,7 @@ export const routes: Routes = [
             (m) => m.OrderItemList,
           ),
       },
-      {
-        path: 'dashboard',
-        title: 'Panel · TazaNorte',
-        loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
-      },
     ],
   },
-  { path: '**', redirectTo: 'clientes' },
+  { path: '**', redirectTo: 'dashboard' },
 ];
