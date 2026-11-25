@@ -1,7 +1,6 @@
-import { Money, Timestamps } from './api.model';
+export type Money = number | string;
 
-/** Tabla `order_items` — /api/detalle-pedidos */
-export interface OrderItem extends Timestamps {
+export interface OrderItem {
   id: number;
   pedido_id: number;
   producto_id: number;
@@ -12,10 +11,14 @@ export interface OrderItem extends Timestamps {
   is_active: boolean;
 }
 
-export interface OrderItemPayload {
+export interface OrderItemCreatePayload {
   pedido_id: number;
   producto_id: number;
   cantidad: number;
   observaciones?: string | null;
-  is_active?: boolean;
+}
+
+export interface OrderItemUpdatePayload {
+  cantidad?: number;
+  observaciones?: string | null;
 }

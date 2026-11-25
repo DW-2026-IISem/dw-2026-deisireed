@@ -1,0 +1,208 @@
+<app-page-header
+  title="Nuevo pedido"
+  subtitle="El pedido se arma en memoria y se guarda en una sola petición transaccional."
+>
+  <a pButton routerLink="/pedidos" severity="secondary" outlined>
+    <i pButtonIcon class="pi pi-arrow-left"></i>
+    <span pButtonLabel>Volver</span>
+  </a>
+</app-page-header>
+
+@if (error(); as message) {
+  <p-message severity="error" styleClass="mb-4 w-full">{{ message }}</p-message>
+}
+
+<div class="grid gap-4 lg:grid-cols-5">
+  <!-- Productos activos -->
+  <div class="lg:col-span-3">
+    <p-card header="Productos activos">
+      <div class="mb-4 flex items-center gap-2">
+        <i class="pi pi-search text-slate-400"></i>
+        <input
+          pInputText
+          type="search"
+          aria-label="Buscar productos"
+          placeholder="Buscar por nombre o SKU…"
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+          class="w-full"
+        />
+      </div>
+
+      @if (loading()) {
+        <p class="py-8 text-center text-sm text-slate-500">Cargando productos…</p>
+      } @else {
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          @for (product of visibleProducts(); track product.id) {
+            <button
+              type="button"
+              (click)="addProduct(product.id)"
+              class="relative flex min-h-20 flex-col items-start justify-between gap-2 rounded-lg border border-slate-200 bg-white p-3 text-left transition hover:border-amber-500 hover:bg-amber-50"
+              [class.border-amber-500]="qtyById().has(product.id)"
+              [class.bg-amber-50]="qtyById().has(product.id)"
+            >
+              <span class="font-medium text-slate-800">{{ product.nombre }}</span>
+              <span class="text-sm text-slate-600">
+                {{ product.precio | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+              </span>
+              @if (qtyById().get(product.id); as qty) {
+                <span
+                  class="absolute right-2 top-2 rounded-full bg-amber-600 px-2 text-xs font-semibold text-white"
+                >
+                  {{ qty }}
+                </span>
+              }
+            </button>
+          } @empty {
+            <p class="col-span-full py-8 text-center text-sm text-slate-500">
+              Ningún producto coincide.
+            </p>
+          }
+        </div>
+      }
+    </p-card>
+  </div>
+
+  <!-- Pedido -->
+  <div class="lg:col-span-2">
+    <p-card header="Pedido" styleClass="lg:sticky lg:top-4">
+      <div class="space-y-3">
+        <div>
+          <label for="order-client" class="mb-1 block text-sm font-medium text-slate-700">
+            Cliente <span class="text-red-500">*</span>
+          </label>
+          <p-select
+            inputId="order-client"
+            [fluid]="true"
+            [ngModel]="clientId()"
+            (ngModelChange)="clientId.set($event)"
+            [options]="clients()"
+            optionLabel="nombre"
+            optionValue="id"
+            [filter]="true"
+            placeholder="Selecciona un cliente"
+            [loading]="loading()"
+          />
+        </div>
+
+        <div>
+          <label for="order-register" class="mb-1 block text-sm font-medium text-slate-700">
+            Turno de caja <span class="text-red-500">*</span>
+          </label>
+          <p-select
+            inputId="order-register"
+            [fluid]="true"
+            [ngModel]="cashRegisterId()"
+            (ngModelChange)="cashRegisterId.set($event)"
+            [options]="cashRegisters()"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Selecciona un turno"
+            [loading]="loading()"
+          />
+        </div>
+
+        <div>
+          <span class="mb-1 block text-sm font-medium text-slate-700">Canal</span>
+          <p-selectbutton
+            [options]="channels"
+            [ngModel]="channel()"
+            (ngModelChange)="channel.set($event)"
+            optionLabel="label"
+            optionValue="value"
+            [allowEmpty]="false"
+          />
+        </div>
+      </div>
+
+      <ul class="mt-4 divide-y divide-slate-100 border-y border-slate-100">
+        @for (line of lines(); track line.producto_id) {
+          <li class="space-y-2 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="min-w-0">
+                <p class="truncate font-medium text-slate-800">
+                  {{ productById().get(line.producto_id)?.nombre }}
+                </p>
+                <p class="text-xs text-slate-400">
+                  {{ unitPrice(line) | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} c/u
+                </p>
+              </div>
+              <div class="flex items-center">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="secondary"
+                  icon="pi pi-minus"
+                  aria-label="Quitar una unidad"
+                  (click)="changeQty(line.producto_id, -1)"
+                ></button>
+                <span class="w-6 text-center font-medium">{{ line.cantidad }}</span>
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="secondary"
+                  icon="pi pi-plus"
+                  aria-label="Agregar una unidad"
+                  (click)="changeQty(line.producto_id, 1)"
+                ></button>
+              </div>
+              <span class="w-24 text-right font-medium text-slate-800">
+                {{ lineTotal(line) | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+              </span>
+            </div>
+            <input
+              pInputText
+              class="w-full text-sm"
+              placeholder="Observaciones (opcional)"
+              [attr.aria-label]="'Observaciones de ' + productById().get(line.producto_id)?.nombre"
+              [ngModel]="line.observaciones ?? ''"
+              (ngModelChange)="setNote(line.producto_id, $event)"
+            />
+          </li>
+        } @empty {
+          <li class="py-6 text-center text-sm text-slate-500">Toca un producto para agregarlo.</li>
+        }
+      </ul>
+
+      <dl class="mt-4 space-y-2 text-sm">
+        <div class="flex justify-between">
+          <dt class="text-slate-500">Unidades</dt>
+          <dd>{{ units() }}</dd>
+        </div>
+        <div class="flex justify-between text-base">
+          <dt class="font-semibold">Total</dt>
+          <dd class="font-semibold">{{ total() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</dd>
+        </div>
+      </dl>
+      <p class="mt-1 text-xs text-slate-400">El backend recalcula precios y total al guardar.</p>
+
+      <div class="mt-4 flex gap-2">
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          outlined
+          [disabled]="lines().length === 0 || saving()"
+          (click)="clear()"
+        >
+          <span pButtonLabel>Vaciar</span>
+        </button>
+        <button
+          pButton
+          type="button"
+          class="flex-1"
+          [loading]="saving()"
+          [disabled]="!canSave()"
+          (click)="save()"
+        >
+          <i pButtonIcon class="pi pi-check"></i>
+          <span pButtonLabel>Registrar pedido</span>
+        </button>
+      </div>
+    </p-card>
+  </div>
+</div>

@@ -1,0 +1,43 @@
+<div class="space-y-4">
+  <dl class="grid gap-3 text-sm sm:grid-cols-2">
+    <div><dt class="text-slate-500">Cliente</dt><dd class="font-medium">{{ clientName() || ('#' + order().cliente_id) }}</dd></div>
+    <div><dt class="text-slate-500">Estado</dt>
+      <dd><p-tag [value]="stateLabel[order().estado]" [severity]="severity(order().estado)" /></dd></div>
+    <div><dt class="text-slate-500">Fecha</dt><dd>{{ order().fecha | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+    <div><dt class="text-slate-500">Canal · Turno</dt><dd>{{ order().canal === 'caja' ? 'Caja' : 'Para llevar' }} · #{{ order().turno_caja_id }}</dd></div>
+  </dl>
+
+  <div class="overflow-x-auto">
+    <p-table [value]="activeItems()" tableStyleClass="min-w-xl">
+      <ng-template #header>
+        <tr>
+          <th>Producto</th>
+          <th class="text-right">Unitario</th>
+          <th class="text-right">Cant.</th>
+          <th class="text-right">Total</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-item>
+        <tr>
+          <td>
+            {{ productName()(item.producto_id) }}
+            @if (item.observaciones) {
+              <div class="text-xs text-slate-500">{{ item.observaciones }}</div>
+            }
+          </td>
+          <td class="text-right">{{ item.valor_unitario | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td class="text-right">{{ item.cantidad }}</td>
+          <td class="text-right">{{ item.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="4" class="text-center text-slate-500">Sin líneas activas.</td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <div class="flex justify-between border-t border-slate-200 pt-2 text-base">
+    <span class="text-slate-500">{{ itemCount() }} unidades · Subtotal {{ order().subtotal | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</span>
+    <span class="font-semibold">Total {{ order().total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</span>
+  </div>
+</div>

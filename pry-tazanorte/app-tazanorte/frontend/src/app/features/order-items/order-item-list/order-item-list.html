@@ -1,0 +1,120 @@
+<div class="mx-auto max-w-7xl space-y-4 p-4">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <h1 class="text-2xl font-semibold">Detalle de pedidos</h1>
+    <div class="flex gap-2">
+      <button pButton type="button" label="Recargar" icon="pi pi-refresh" severity="secondary" [loading]="loading()" (click)="load()"></button>
+      <button pButton type="button" label="Agregar línea" icon="pi pi-plus" (click)="openCreate()"></button>
+    </div>
+  </div>
+
+  <p class="text-sm text-slate-500">
+    El flujo normal es crear el pedido completo en «Nuevo pedido». Aquí se corrigen líneas; solo se puede
+    editar mientras el pedido esté pendiente.
+  </p>
+
+  @if (error(); as message) {
+    @if (!dialogVisible()) {
+      <p-message severity="error">{{ message }}</p-message>
+    }
+  }
+
+  <div class="overflow-x-auto">
+    <p-table [value]="items()" [loading]="loading()" [paginator]="true" [rows]="10" tableStyleClass="min-w-5xl">
+      <ng-template #header>
+        <tr>
+          <th>#</th>
+          <th>Pedido</th>
+          <th>Producto</th>
+          <th class="text-right">Unitario</th>
+          <th class="text-right">Cant.</th>
+          <th class="text-right">Total</th>
+          <th>Observaciones</th>
+          <th class="text-right">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-item>
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>#{{ item.pedido_id }} <span class="text-xs text-slate-500">({{ orderState(item) }})</span></td>
+          <td>{{ productName()(item.producto_id) }}</td>
+          <td class="text-right">{{ item.valor_unitario | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td class="text-right">{{ item.cantidad }}</td>
+          <td class="text-right">{{ item.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td>{{ item.observaciones || '—' }}</td>
+          <td class="text-right whitespace-nowrap">
+            <button pButton text rounded icon="pi pi-pencil" [disabled]="!isEditable(item)" (click)="openEdit(item)"></button>
+            <button pButton text rounded severity="warn" icon="pi pi-ban" [disabled]="!isEditable(item)" (click)="deactivate(item)"></button>
+            <button pButton text rounded severity="danger" icon="pi pi-trash" [disabled]="!isEditable(item)" (click)="remove(item)"></button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="8" class="text-center text-slate-500">No hay líneas activas.</td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-dialog
+    [visible]="dialogVisible()"
+    (visibleChange)="dialogVisible.set($event)"
+    [header]="editing() ? 'Editar línea #' + editing()!.id : 'Agregar línea'"
+    [modal]="true"
+    styleClass="w-full max-w-lg mx-4"
+  >
+    <div class="space-y-4">
+      @if (error(); as message) {
+        <p-message severity="error">{{ message }}</p-message>
+      }
+
+      <div>
+        <label class="mb-1 block text-sm text-slate-500">Pedido (pendiente)</label>
+        <p-select
+          [fluid]="true"
+          [disabled]="editing() !== null"
+          [ngModel]="formOrderId()"
+          (ngModelChange)="formOrderId.set($event)"
+          [options]="editing() ? orders() : pendingOrderOptions()"
+          [optionLabel]="editing() ? 'id' : 'label'"
+          optionValue="id"
+          placeholder="Selecciona un pedido"
+        />
+      </div>
+
+      <div>
+        <label class="mb-1 block text-sm text-slate-500">Producto</label>
+        <p-select
+          [fluid]="true"
+          [disabled]="editing() !== null"
+          [ngModel]="formProductId()"
+          (ngModelChange)="formProductId.set($event)"
+          [options]="products()"
+          optionLabel="nombre"
+          optionValue="id"
+          [filter]="true"
+          placeholder="Selecciona un producto"
+        />
+      </div>
+
+      <div>
+        <label class="mb-1 block text-sm text-slate-500">Cantidad</label>
+        <p-inputnumber
+          [fluid]="true"
+          [ngModel]="formQuantity()"
+          (ngModelChange)="formQuantity.set($event ?? 1)"
+          [min]="1"
+          [showButtons]="true"
+        />
+      </div>
+
+      <div>
+        <label class="mb-1 block text-sm text-slate-500">Observaciones</label>
+        <input pInputText class="w-full" [ngModel]="formNote()" (ngModelChange)="formNote.set($event)" />
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button pButton type="button" label="Cancelar" severity="secondary" text (click)="dialogVisible.set(false)"></button>
+        <button pButton type="button" label="Guardar" icon="pi pi-check" [loading]="saving()" (click)="save()"></button>
+      </div>
+    </div>
+  </p-dialog>
+</div>

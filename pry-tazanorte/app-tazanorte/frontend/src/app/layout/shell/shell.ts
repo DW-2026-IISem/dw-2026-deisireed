@@ -9,15 +9,6 @@ import { Aside } from '../aside/aside';
 import { Footer } from '../footer/footer';
 import { Header } from '../header/header';
 
-/**
- * Layout persistente de la aplicación.
- *
- * El Header, el Aside y el Footer se montan **una sola vez**; solo la región
- * central cambia con `<router-outlet />`.
- *
- * Fase I: sin `AuthService` ni `SessionStore`. Las rutas de negocio se agregan
- * como hijas de `Shell` desde ISS-03; la sesión, en ISS-08.
- */
 @Component({
   host: { class: 'block' },
   selector: 'app-shell',
@@ -26,18 +17,19 @@ import { Header } from '../header/header';
   styleUrl: './shell.css',
 })
 export class Shell {
-  /** `lg` de Tailwind: desde aquí el Aside es fijo y el botón lo alterna. */
   private readonly isDesktop = watchMediaQuery('(min-width: 1024px)');
 
   readonly sidebarCollapsed = signal(false);
   readonly mobileOpen = signal(false);
 
-  /** Menú mínimo de la Fase I; crece con cada CRUD. */
   readonly items: MenuItem[] = [
+    { label: 'Panel', icon: 'pi pi-chart-bar', routerLink: '/dashboard' },
+    { label: 'Pedidos', icon: 'pi pi-shopping-cart', routerLink: '/pedidos' },
+    { label: 'Detalle de pedidos', icon: 'pi pi-list', routerLink: '/detalle-pedidos' },
+    { label: 'Productos', icon: 'pi pi-box', routerLink: '/productos' },
     { label: 'Clientes', icon: 'pi pi-users', routerLink: '/clientes' },
     { label: 'Empleados', icon: 'pi pi-id-card', routerLink: '/empleados' },
     { label: 'Turnos de caja', icon: 'pi pi-clock', routerLink: '/turnos-caja' },
-    { label: 'Prototipo', icon: 'pi pi-desktop', routerLink: '/construir' },
   ];
 
   protected onMenuToggle(): void {

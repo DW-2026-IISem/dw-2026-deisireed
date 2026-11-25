@@ -1,0 +1,71 @@
+<div class="mx-auto max-w-7xl space-y-4 p-4">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <h1 class="text-2xl font-semibold">Pedidos</h1>
+    <div class="flex gap-2">
+      <button pButton type="button" label="Recargar" icon="pi pi-refresh" severity="secondary" [loading]="loading()" (click)="load()"></button>
+      <a pButton routerLink="/pedidos/nuevo" label="Nuevo pedido" icon="pi pi-plus"></a>
+    </div>
+  </div>
+
+  @if (error(); as message) {
+    <p-message severity="error" [text]="message" />
+  }
+
+  <div class="overflow-x-auto">
+    <p-table [value]="orders()" [loading]="loading()" [paginator]="true" [rows]="10" tableStyleClass="min-w-5xl">
+      <ng-template #header>
+        <tr>
+          <th>#</th>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Canal</th>
+          <th class="text-right">Unid.</th>
+          <th class="text-right">Total</th>
+          <th>Estado</th>
+          <th class="text-right">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-order>
+        <tr>
+          <td>{{ order.id }}</td>
+          <td>{{ order.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ clientName()(order.cliente_id) }}</td>
+          <td>{{ order.canal === 'caja' ? 'Caja' : 'Para llevar' }}</td>
+          <td class="text-right">{{ units(order) }}</td>
+          <td class="text-right">{{ order.total | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td>
+         <p-tag
+          [value]="stateText(order.estado)"
+         [severity]="severity(order.estado)" />
+         </td>         
+          <td class="text-right whitespace-nowrap">
+            <button pButton text rounded icon="pi pi-eye" pTooltip="Ver detalle" (click)="openDetail(order)"></button>
+          @for (next of availableNext(order.estado); track next) {              <button pButton size="small" severity="secondary" class="mx-1" [label]="stateText(next)" (click)="advance(order, next)"></button>
+            }
+            @if (order.estado !== 'entregado' && order.estado !== 'cancelado') {
+              <button pButton text rounded severity="warn" icon="pi pi-ban" (click)="cancel(order)"></button>
+            }
+            @if (order.estado === 'pendiente') {
+              <button pButton text rounded severity="danger" icon="pi pi-trash" (click)="remove(order)"></button>
+            }
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="8" class="text-center text-slate-500">No hay pedidos.</td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-dialog
+    [visible]="detailVisible()"
+    (visibleChange)="detailVisible.set($event)"
+    [header]="detailTitle()"
+    [modal]="true"
+    styleClass="w-full max-w-2xl mx-4"
+  >
+    @if (selected(); as order) {
+      <app-order-detail [order]="order" [products]="products()" [clientName]="clientName()(order.cliente_id)" />
+    }
+  </p-dialog>
+</div>

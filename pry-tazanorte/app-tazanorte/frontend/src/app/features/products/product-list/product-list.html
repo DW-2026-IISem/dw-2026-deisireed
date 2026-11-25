@@ -1,0 +1,123 @@
+<app-page-header
+  title="Productos"
+  subtitle="Catálogo activo de la carta. La baja lógica lo oculta sin borrarlo."
+>
+  <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
+  <p-tag
+    [value]="'Promedio ' + (avgPrice() | currency: 'COP' : 'symbol-narrow' : '1.0-0')"
+    severity="secondary"
+    [rounded]="true"
+  />
+  <button pButton type="button" (click)="openCreate()">
+    <i pButtonIcon class="pi pi-plus"></i>
+    <span pButtonLabel>Nuevo producto</span>
+  </button>
+</app-page-header>
+
+@if (error()) {
+  <p-message severity="error" styleClass="mb-4 w-full">{{ error() }}</p-message>
+}
+
+<div class="rounded-xl border border-slate-200 bg-white">
+  <p-table
+    [value]="visibleRows()"
+    [loading]="loading()"
+    [paginator]="visibleRows().length > 10"
+    [rows]="10"
+    dataKey="id"
+    tableStyleClass="min-w-3xl"
+  >
+    <ng-template #caption>
+      <div class="flex items-center gap-2">
+        <i class="pi pi-search text-slate-400"></i>
+        <input
+          pInputText
+          type="search"
+          aria-label="Buscar productos"
+          placeholder="Buscar por SKU, nombre o descripción…"
+          [value]="filter()"
+          (input)="filter.set($any($event.target).value)"
+          class="w-full"
+        />
+      </div>
+      @if (filter()) {
+        <p class="mt-2 text-xs text-slate-500">
+          {{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».
+        </p>
+      }
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="sku">
+          <div class="flex items-center gap-1">SKU <p-sort-icon field="sku" /></div>
+        </th>
+        <th pSortableColumn="nombre">
+          <div class="flex items-center gap-1">Producto <p-sort-icon field="nombre" /></div>
+        </th>
+        <th pSortableColumn="precio" class="text-right">
+          <div class="flex items-center justify-end gap-1">Precio <p-sort-icon field="precio" /></div>
+        </th>
+        <th>Estado</th>
+        <th class="w-40 text-right">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-product>
+      <tr>
+        <td><span class="font-mono text-sm text-slate-600">{{ product.sku }}</span></td>
+        <td>
+          <p class="font-medium text-slate-800">{{ product.nombre }}</p>
+          <p class="text-xs text-slate-400">{{ product.descripcion || 'Sin descripción' }}</p>
+        </td>
+        <td class="text-right font-medium text-slate-800">
+          {{ toNumber(product.precio) | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+        </td>
+        <td><app-status-tag [active]="product.is_active" /></td>
+        <td>
+          <div class="flex justify-end gap-1">
+            <button pButton type="button" text rounded severity="secondary" icon="pi pi-pencil"
+              aria-label="Editar producto" pTooltip="Editar" (click)="openEdit(product)"></button>
+            <button pButton type="button" text rounded severity="warn" icon="pi pi-ban"
+              aria-label="Dar de baja el producto" pTooltip="Baja lógica" (click)="deactivate(product)"></button>
+            <button pButton type="button" text rounded severity="danger" icon="pi pi-trash"
+              aria-label="Eliminar producto" pTooltip="Eliminar" (click)="remove(product)"></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="5">
+          @if (filter()) {
+            <app-empty-state icon="pi pi-search" title="Sin coincidencias"
+              message="Ningún producto coincide con la búsqueda." />
+          } @else {
+            <app-empty-state icon="pi pi-box" title="Sin productos activos"
+              message="Crea el primero con «Nuevo producto» o ejecuta el seeder del backend." />
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="title()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-2xl mx-4"
+>
+  <app-product-form
+    [product]="editing()"
+    [saving]="saving()"
+    [resetKey]="resetKey()"
+    (saved)="save($event)"
+    (cancelled)="dialogVisible.set(false)"
+  />
+</p-dialog>

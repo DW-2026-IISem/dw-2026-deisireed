@@ -1,16 +1,9 @@
 import { Routes } from '@angular/router';
 
-/**
- * Rutas de la aplicación.
- *
- * `loadComponent` descarga cada pantalla solo cuando se visita su URL.
- * `Shell` es el layout persistente: sus hijas se dibujan en su `<router-outlet />`.
- */
 export const routes: Routes = [
   {
     path: 'construir',
-    loadComponent: () =>
-      import('./features/construir/construir').then((m) => m.Construir),
+    loadComponent: () => import('./features/construir/construir').then((m) => m.Construir),
   },
   {
     path: '',
@@ -27,9 +20,7 @@ export const routes: Routes = [
         path: 'empleados',
         title: 'Empleados · TazaNorte',
         loadComponent: () =>
-          import('./features/employees/employee-list/employee-list').then(
-            (m) => m.EmployeeList,
-          ),
+          import('./features/employees/employee-list/employee-list').then((m) => m.EmployeeList),
       },
       {
         path: 'turnos-caja',
@@ -39,7 +30,38 @@ export const routes: Routes = [
             (m) => m.CashRegisterList,
           ),
       },
+      {
+        path: 'productos',
+        title: 'Productos · TazaNorte',
+        loadComponent: () =>
+          import('./features/products/product-list/product-list').then((m) => m.ProductList),
+      },
+      {
+        path: 'pedidos',
+        title: 'Pedidos · TazaNorte',
+        loadComponent: () =>
+          import('./features/orders/order-list/order-list').then((m) => m.OrderList),
+      },
+      {
+        path: 'pedidos/nuevo',
+        title: 'Nuevo pedido · TazaNorte',
+        loadComponent: () =>
+          import('./features/orders/order-form/order-form').then((m) => m.OrderForm),
+      },
+      {
+        path: 'detalle-pedidos',
+        title: 'Detalle de pedidos · TazaNorte',
+        loadComponent: () =>
+          import('./features/order-items/order-item-list/order-item-list').then(
+            (m) => m.OrderItemList,
+          ),
+      },
+      {
+        path: 'dashboard',
+        title: 'Panel · TazaNorte',
+        loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+      },
     ],
   },
-  { path: '**', redirectTo: 'construir' },
+  { path: '**', redirectTo: 'clientes' },
 ];

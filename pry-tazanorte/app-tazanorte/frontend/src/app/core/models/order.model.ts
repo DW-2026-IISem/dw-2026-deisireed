@@ -1,11 +1,9 @@
-import { Money, Timestamps } from './api.model';
-import { OrderItem } from './order-item.model';
+import { Money, OrderItem } from './order-item.model';
 
 export type OrderChannel = 'caja' | 'para_llevar';
 export type OrderState = 'pendiente' | 'pagado' | 'en_preparacion' | 'entregado' | 'cancelado';
 
-/** Tabla `orders` — /api/pedidos. El pedido no tiene `is_active`: su ciclo es `estado`. */
-export interface Order extends Timestamps {
+export interface Order {
   id: number;
   cliente_id: number;
   turno_caja_id: number;
@@ -23,18 +21,33 @@ export interface OrderLineInput {
   observaciones?: string | null;
 }
 
-/** No lleva subtotal, total ni estado: los calcula/fija Express. */
 export interface OrderCreatePayload {
   cliente_id: number;
   turno_caja_id: number;
   canal?: OrderChannel;
-  fecha?: string;
   items: OrderLineInput[];
 }
 
 export interface OrderUpdatePayload {
   cliente_id?: number;
   turno_caja_id?: number;
-  canal: OrderChannel;
+  canal?: OrderChannel;
   fecha?: string;
+}
+
+/** Catálogos mínimos que necesitan pedidos y dashboard. */
+export interface ClientRef {
+  id: number;
+  nombre: string;
+  numero_documento?: string;
+}
+export interface ProductRef {
+  id: number;
+  sku?: string;
+  nombre: string;
+  precio: Money;
+}
+export interface CashRegisterRef {
+  id: number;
+  nombre: string;
 }

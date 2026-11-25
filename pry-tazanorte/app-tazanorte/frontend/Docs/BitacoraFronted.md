@@ -235,7 +235,7 @@ src/app/demo/ejemplo/ ├── ejemplo.ts        ← la clase (estado y lógica
 
 ![](images/clipboard-4260431308.png)
 
-### 1.9.3 Leer `ejemplo.ts` línea a línea 
+### 1.9.3 Leer `ejemplo.ts` línea a línea
 
 ```         
 // 1. Se importan solo las piezas que se usan. import { Component, computed, effect, signal } from '@angular/core'; import { ButtonModule } from 'primeng/button'; import { CardModule } from 'primeng/card'; import { InputTextModule } from 'primeng/inputtext'; import { MessageModule } from 'primeng/message'; import { TagModule } from 'primeng/tag';  // 2. El objeto que se muestra y se modifica. export interface Producto {   nombre: string;   precio: number;   activo: boolean; }  // 3. @Component describe CÓMO se pinta la clase. @Component({   host: { class: 'block' },              // <app-ejemplo> se comporta como bloque   selector: 'app-ejemplo',               // se usa como <app-ejemplo></app-ejemplo>   imports: [ButtonModule, CardModule, InputTextModule, MessageModule, TagModule],   templateUrl: './ejemplo.html',   styleUrl: './ejemplo.css', }) export class Ejemplo {   // 4. ESTADO: el signal guarda un objeto completo.   protected readonly producto = signal<Producto>(productoInicial());    // 5. DERIVADOS: se calculan desde `producto()`, nunca se asignan.   protected readonly precioFinal = computed(() =>     Math.round(this.producto().precio * 1.19),   );   protected readonly estadoTexto = computed(() =>     this.producto().activo ? 'Activo' : 'Inactivo',   );    // 6. EFECTO: se ejecuta al crear y en cada cambio del objeto.   private readonly registro = effect(() => {     const { nombre, precio, activo } = this.producto();     console.log(`[ejemplo] ${nombre} · precio ${precio} · ${activo ? 'activo' : 'inactivo'}`);   });    // 7. Métodos que la plantilla llama desde los eventos.   protected cambiarNombre(event: Event): void {     const nombre = (event.target as HTMLInputElement).value;     this.producto.update((actual) => ({ ...actual, nombre }));   }    protected variarPrecio(delta: number): void {     this.producto.update((actual) => ({       ...actual,       precio: Math.max(0, actual.precio + delta),     }));   }    protected alternarEstado(): void {     this.producto.update((actual) => ({ ...actual, activo: !actual.activo }));   }    protected reiniciar(): void {     this.producto.set(productoInicial());   } } 
@@ -287,7 +287,7 @@ Este es el punto que más se equivoca al empezar. Un signal compara **referencia
 
 ### 1.9.7 Zoneless: por qué la vista se actualiza sin `Zone.js`
 
-### ![](images/clipboard-1816268820.png)1.9.8 Estilos globales y estilos del componente 
+### ![](images/clipboard-1816268820.png)1.9.8 Estilos globales y estilos del componente
 
 ```         
 /* src/app/demo/ejemplo/ejemplo.css — únicamente demostrativo. */ .ejemplo-alcance {   border: 2px dashed #0f766e;   border-radius: 0.75rem;   padding: 0.75rem 1rem;   background-color: #f0fdfa; } 
@@ -303,7 +303,7 @@ Este es el punto que más se equivoca al empezar. Un signal compara **referencia
 
 ![](images/clipboard-2660559702.png)
 
-### 1.9.9 Verificación  ![](images/clipboard-2549843426.png)
+### 1.9.9 Verificación ![](images/clipboard-2549843426.png)
 
 ![](images/clipboard-4154570117.png)
 
@@ -709,7 +709,7 @@ export interface DashboardStats {   clients: number;   productTypes: number;   p
 
 ![](images/clipboard-2912154914.png)
 
-##  2.3 Servicios HTTP por feature: desenvolver la respuesta
+## 2.3 Servicios HTTP por feature: desenvolver la respuesta
 
 ```         
 ng generate service features/clients/client-api --skip-tests --defaults ng generate service features/product-types/product-type-api --skip-tests --defaults ng generate service features/products/product-api --skip-tests --defaults ng generate service features/sales/sale-api --skip-tests --defaults ng generate service features/product-sales/product-sale-api --skip-tests --defaults ng generate service features/admin/users/user-api --skip-tests --defaults ng generate service features/admin/roles/role-api --skip-tests --defaults ng generate service features/admin/resources/resource-api --skip-tests --defaults ng generate service features/admin/role-users/role-user-api --skip-tests --defaults ng generate service features/admin/resource-roles/resource-role-api --skip-tests --defaults ng generate service core/services/notification --skip-tests --defaults 
@@ -1203,7 +1203,7 @@ ng generate component features/products/product-list --skip-tests --defaults ng 
 cat > src/app/features/products/product-api.ts <<'EOF' import { HttpClient } from '@angular/common/http'; import { Injectable, inject } from '@angular/core'; import { Observable, map } from 'rxjs'; import { environment } from '../../../environments/environment'; import { Product, ProductPayload } from '../../core/models/product.model';  /** /api/productos — el backend valida que el ProductType esté activo. */ @Injectable({ providedIn: 'root' }) export class ProductApi {   private readonly http = inject(HttpClient);   private readonly base = `${environment.apiUrl}/productos`;    list(): Observable<Product[]> {     return this.http       .get<{ products: Product[] }>(this.base)       .pipe(map((response) => response.products));   }    get(id: number): Observable<Product> {     return this.http       .get<{ product: Product }>(`${this.base}/${id}`)       .pipe(map((response) => response.product));   }    create(payload: ProductPayload): Observable<Product> {     return this.http       .post<{ product: Product }>(this.base, payload)       .pipe(map((response) => response.product));   }    update(id: number, payload: Partial<ProductPayload>): Observable<Product> {     return this.http       .patch<{ product: Product }>(`${this.base}/${id}`, payload)       .pipe(map((response) => response.product));   }    deactivate(id: number): Observable<unknown> {     return this.http.patch(`${this.base}/${id}/deactivate`, {});   }    remove(id: number): Observable<unknown> {     return this.http.delete(`${this.base}/${id}`);   } } EOF 
 ```
 
-## ![](images/clipboard-1236390418.png) 
+## ![](images/clipboard-1236390418.png)
 
 ![](images/clipboard-936936378.png)
 
@@ -1214,6 +1214,8 @@ cat > src/app/features/products/product-api.ts <<'EOF' import { HttpClient } fro
 ```         
 import { forkJoin, of } from 'rxjs';  readonly rows = signal<Product[]>([]); readonly types = signal<ProductType[]>([]);  load(): void {   this.loading.set(true);   this.error.set(null);   forkJoin({     products: this.api.list(),     // SELLER no tiene GET /api/tipos-producto: evita el 403 evitable.     types: this.session.canPermission('GET /api/tipos-producto')       ? this.typesApi.list()       : of([]),   }).subscribe({     next: ({ products, types }) => {       this.rows.set(products);       this.types.set(types);       this.loading.set(false);     },     error: (error: unknown) => {       this.error.set(toApiMessage(error));       this.loading.set(false);     },   }); } 
 ```
+
+![](images/clipboard-957306536.png)
 
 ### Mapa `id → nombre` con `computed`
 
@@ -1325,11 +1327,15 @@ POST /api/ventas {   "client_id": 1,   "tax": 19,   "discounts": 0,   "items": [
 ng generate component features/sales/sale-list --skip-tests --defaults ng generate component features/sales/sale-form --skip-tests --defaults 
 ```
 
+![](images/clipboard-2716255348.png)
+
 ## 6.2 Servicio
 
 ```         
 cat > src/app/features/sales/sale-api.ts <<'EOF' import { HttpClient } from '@angular/common/http'; import { Injectable, inject } from '@angular/core'; import { Observable, map } from 'rxjs'; import { environment } from '../../../environments/environment'; import { Sale, SaleCreatePayload, SaleUpdatePayload } from '../../core/models/sale.model';  /** /api/ventas — POST es transaccional (cabecera + detalle + stock). */ @Injectable({ providedIn: 'root' }) export class SaleApi {   private readonly http = inject(HttpClient);   private readonly base = `${environment.apiUrl}/ventas`;    list(): Observable<Sale[]> {     return this.http.get<{ sales: Sale[] }>(this.base).pipe(map((response) => response.sales));   }    get(id: number): Observable<Sale> {     return this.http       .get<{ sale: Sale }>(`${this.base}/${id}`)       .pipe(map((response) => response.sale));   }    /** POST transaccional: devuelve `{ sale, items }`; el stock ya está descontado. */   create(payload: SaleCreatePayload): Observable<Sale> {     return this.http       .post<{ sale: Sale; items: unknown[] }>(this.base, payload)       .pipe(map((response) => response.sale));   }    update(id: number, payload: SaleUpdatePayload): Observable<Sale> {     return this.http       .patch<{ sale: Sale }>(`${this.base}/${id}`, payload)       .pipe(map((response) => response.sale));   }    /** Cancelación: la venta y sus líneas pasan a inactive y el backend restaura el stock. */   deactivate(id: number): Observable<unknown> {     return this.http.patch(`${this.base}/${id}/deactivate`, {});   }    /** DELETE físico: borra primero product_sales y luego la cabecera. */   remove(id: number): Observable<unknown> {     return this.http.delete(`${this.base}/${id}`);   } } EOF 
 ```
+
+![](images/clipboard-2458583356.png)
 
 ## 6.3 Formulario de venta con Signals
 
@@ -1371,6 +1377,8 @@ addLine(): void {   const productId = this.selectedProductId();   const requeste
 save(): void {   const clientId = this.clientId();   if (clientId === null) {     this.error.set('Selecciona un cliente activo.');     return;   }   if (this.lines().length === 0) {     this.error.set('La venta requiere al menos una línea.');     return;   }    this.saving.set(true);   this.error.set(null);    this.api     .create({       client_id: clientId,       tax: Number(this.tax() ?? 0),       discounts: Number(this.discounts() ?? 0),       items: this.lines(),     })     .subscribe({       next: (sale) => {         this.saving.set(false);         this.notify.success(`Venta #${sale.id} registrada`, 'Stock y totales actualizados.');         void this.router.navigate(['/ventas']);       },       error: (error: unknown) => {         this.saving.set(false);         const message = toApiMessage(error);         this.error.set(message);         this.notify.error('La venta no se registró', message);       },     }); } 
 ```
 
+![](images/clipboard-165783049.png)
+
 ## 6.4 Plantilla: tres bloques
 
 1.  **Cliente** — `p-select` con `[ngModel]` y `(ngModelChange)`.
@@ -1405,11 +1413,15 @@ save(): void {   const clientId = this.clientId();   if (clientId === null) {   
 <dl class="mt-4 space-y-2 text-sm">   <div class="flex justify-between">     <dt class="text-slate-500">Subtotal</dt>     <dd class="font-medium">{{ subtotal() | currency: 'USD' : 'symbol' : '1.2-2' }}</dd>   </div>   <div class="flex justify-between">     <dt class="text-slate-500">Impuesto</dt>     <dd>{{ tax() | currency: 'USD' : 'symbol' : '1.2-2' }}</dd>   </div>   <div class="flex justify-between">     <dt class="text-slate-500">Descuento</dt>     <dd>-{{ discounts() | currency: 'USD' : 'symbol' : '1.2-2' }}</dd>   </div>   <div class="flex justify-between border-t border-slate-200 pt-2 text-base">     <dt class="font-semibold">Total</dt>     <dd class="font-semibold">{{ total() | currency: 'USD' : 'symbol' : '1.2-2' }}</dd>   </div> </dl> 
 ```
 
+![](images/clipboard-2894189780.png)
+
 ## 6.5 Listado de ventas
 
 ```         
 readonly clientName = computed(() => {   const map = new Map(this.clients().map((client) => [client.id, client.name]));   return (id: number) => map.get(id) ?? `Cliente #${id}`; });  items(sale: Sale): number {   return (sale.items ?? []).reduce((sum, item) => sum + item.quantity, 0); } 
 ```
+
+![](images/clipboard-2721884622.png)
 
 ## 6.6 Rutas
 

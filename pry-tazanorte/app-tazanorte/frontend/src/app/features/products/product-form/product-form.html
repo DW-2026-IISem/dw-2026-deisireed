@@ -1,0 +1,82 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+  <div class="grid gap-4 sm:grid-cols-3">
+    <div>
+      <label for="product-sku" class="mb-1 block text-sm font-medium text-slate-700">
+        SKU <span class="text-red-500">*</span>
+      </label>
+      <input id="product-sku" pInputText formControlName="sku" placeholder="CAF-001" class="w-full" />
+      @if (form.controls.sku.touched && form.controls.sku.invalid) {
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+          El SKU es obligatorio (máximo 50 caracteres).
+        </p-message>
+      }
+    </div>
+
+    <div class="sm:col-span-2">
+      <label for="product-name" class="mb-1 block text-sm font-medium text-slate-700">
+        Nombre <span class="text-red-500">*</span>
+      </label>
+      <input id="product-name" pInputText formControlName="nombre" placeholder="Capuchino" class="w-full" />
+      @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+          El nombre es obligatorio.
+        </p-message>
+      }
+    </div>
+  </div>
+
+  <div>
+    <label for="product-price" class="mb-1 block text-sm font-medium text-slate-700">
+      Precio <span class="text-red-500">*</span>
+    </label>
+    <p-inputnumber
+      inputId="product-price"
+      formControlName="precio"
+      mode="currency"
+      currency="COP"
+      locale="es-CO"
+      [min]="0"
+      [minFractionDigits]="0"
+      [maxFractionDigits]="2"
+      [fluid]="true"
+    />
+    @if (form.controls.precio.touched && form.controls.precio.invalid) {
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+        El precio es obligatorio y debe ser mayor o igual a 0.
+      </p-message>
+    }
+  </div>
+
+  <div>
+    <label for="product-desc" class="mb-1 block text-sm font-medium text-slate-700">
+      Descripción
+    </label>
+    <textarea
+      id="product-desc"
+      pTextarea
+      formControlName="descripcion"
+      rows="3"
+      placeholder="Espresso con leche vaporizada"
+      class="w-full"
+    ></textarea>
+    @if (form.controls.descripcion.touched && form.controls.descripcion.invalid) {
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+        Máximo 500 caracteres.
+      </p-message>
+    }
+  </div>
+
+  @if (product()) {
+    <p class="text-xs text-slate-500">El estado solo cambia con la baja lógica.</p>
+  }
+
+  <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
+    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()">
+      <span pButtonLabel>Cancelar</span>
+    </button>
+    <button pButton type="submit" [loading]="saving()">
+      <i pButtonIcon class="pi pi-check"></i>
+      <span pButtonLabel>Guardar</span>
+    </button>
+  </div>
+</form>

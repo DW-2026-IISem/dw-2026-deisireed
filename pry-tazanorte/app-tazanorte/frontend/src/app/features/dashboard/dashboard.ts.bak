@@ -1,0 +1,116 @@
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { MessageModule } from 'primeng/message';
+import { SkeletonModule } from 'primeng/skeleton';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { forkJoin } from 'rxjs';
+import { ClientRef, Order, ProductRef } from '../../core/models/order.model';
+import {
+  ORDER_STATE_LABEL,
+  httpMessage,
+  orderSeverity,
+  toNumber,
+} from '../../core/utils/order-utils';
+import { OrderApi, OrderCatalogApi } from '../orders/order-api';
+
+@Component({
+  selector: 'app-dashboard',
+  imports: [
+    CurrencyPipe,
+    DatePipe,
+    RouterLink,
+    ButtonModule,
+    CardModule,
+    MessageModule,
+    SkeletonModule,
+    TableModule,
+    TagModule,
+  ],
+  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.css',
+})
+export class Dashboard {
+  private readonly ordersApi = inject(OrderApi);
+  private readonly catalog = inject(OrderCatalogApi);
+
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
+
+  readonly clients = signal<ClientRef[]>([]);
+  readonly products = signal<ProductRef[]>([]);
+  readonly orders = signal<Order[]>([]);
+
+  readonly stateLabel = ORDER_STATE_LABEL;
+  readonly severity = orderSeverity;
+
+  /** Reemplaza el "stock bajo" de la guía: aquí no hay stock, sí pedidos por atender. */
+  readonly pending = computed(() => this.orders().filter((order) => order.estado === 'pendiente'));
+
+  /** Ingresos = pedidos ya pagados (pagado, en preparación o entregado). */
+  readonly revenue = computed(() =>
+    this.orders()
+      .filter((order) => ['pagado', 'en_preparacion', 'entregado'].includes(order.estado))
+      .reduce((sum, order) => sum + toNumber(order.total), 0),
+  );
+
+  readonly latestOrders = computed(() =>
+    [...this.orders()]
+      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+      .slice(0, 5),
+  );
+
+  readonly productName = computed(() => {
+    const map = new Map(this.products().map((p) => [p.id, p.nombre]));
+    return (id: number) => map.get(id) ?? `Producto #${id}`;
+  });
+
+  readonly clientName = computed(() => {
+    const map = new Map(this.clients().map((c) => [c.id, c.nombre]));
+    return (id: number) => map.get(id) ?? `Cliente #${id}`;
+  });
+
+  /** Top 5 de productos por unidades vendidas (líneas activas de pedidos no cancelados). */
+  readonly topProducts = computed(() => {
+    const totals = new Map<number, number>();
+    for (const order of this.orders()) {
+      for (const item of order.items ?? []) {
+        if (item.is_active) {
+          totals.set(item.producto_id, (totals.get(item.producto_id) ?? 0) + item.cantidad);
+        }
+      }
+    }
+    return [...totals.entries()]
+      .map(([producto_id, cantidad]) => ({ producto_id, cantidad }))
+      .sort((a, b) => b.cantidad - a.cantidad)
+      .slice(0, 5);
+  });
+
+  constructor() {
+    this.load();
+  }
+
+  load(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    forkJoin({
+      clients: this.catalog.clients(),
+      products: this.catalog.products(),
+      orders: this.ordersApi.list(),
+    }).subscribe({
+      next: ({ clients, products, orders }) => {
+        this.clients.set(clients);
+        this.products.set(products);
+        this.orders.set(orders);
+        this.loading.set(false);
+      },
+      error: (error: unknown) => {
+        this.error.set(httpMessage(error));
+        this.loading.set(false);
+      },
+    });
+  }
+}
