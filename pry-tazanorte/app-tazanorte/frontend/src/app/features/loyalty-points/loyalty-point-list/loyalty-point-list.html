@@ -1,0 +1,123 @@
+<app-page-header title="Puntos" subtitle="Fidelización: 1 punto por cada $ 1.000 de un pedido pagado.">
+  <p-tag [value]="rows().length + ' movimientos'" severity="info" [rounded]="true" />
+  <button pButton type="button" *appHasPermission="'POST /api/puntos-fidelizacion'" (click)="openCreate()">
+    <i pButtonIcon class="pi pi-star"></i><span pButtonLabel>Nuevo movimiento</span>
+  </button>
+</app-page-header>
+
+@if (error()) {
+  <p-message severity="error" styleClass="mb-4 w-full">{{ error() }}</p-message>
+}
+
+@if (balance(); as b) {
+  <div class="mb-4 grid gap-4 sm:grid-cols-3">
+    <div class="rounded-xl border border-slate-200 bg-white p-4">
+      <p class="text-sm text-slate-500">Saldo</p>
+      <p class="text-2xl font-semibold text-amber-500">{{ b.saldo }}</p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-4">
+      <p class="text-sm text-slate-500">Acumulados</p>
+      <p class="text-2xl font-semibold text-slate-800">{{ b.acumulados }}</p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-4">
+      <p class="text-sm text-slate-500">Redimidos</p>
+      <p class="text-2xl font-semibold text-slate-800">{{ b.redimidos }}</p>
+    </div>
+  </div>
+}
+
+<div class="rounded-xl border border-slate-200 bg-white">
+  <p-table [value]="visibleRows()" [loading]="loading()" [paginator]="visibleRows().length > 10" [rows]="10" dataKey="id" tableStyleClass="min-w-4xl">
+    <ng-template #caption>
+      <p-select [options]="clients()" optionLabel="nombre" optionValue="id" [filter]="true" filterBy="nombre,numero_documento"
+        [ngModel]="clientFilter()" (ngModelChange)="filterClient($event)" [showClear]="true"
+        placeholder="Todos los clientes (elige uno para ver su saldo)" ariaLabel="Filtrar por cliente" [fluid]="true" />
+    </ng-template>
+    <ng-template #header>
+      <tr>
+        <th>Fecha</th>
+        <th>Cliente</th>
+        <th>Tipo</th>
+        <th class="text-right">Puntos</th>
+        <th>Pedido</th>
+        <th>Estado</th>
+        <th class="w-28 text-right">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td class="text-sm text-slate-600">{{ row.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>
+          <p class="text-sm font-medium text-slate-800">{{ clientName()(row.cliente_id) }}</p>
+          <p class="text-xs text-slate-400">{{ row.observaciones || '' }}</p>
+        </td>
+        <td>
+          <p-tag [value]="row.tipo === 'acumulacion' ? 'Acumulación' : 'Redención'"
+            [severity]="row.tipo === 'acumulacion' ? 'success' : 'info'" [rounded]="true" />
+        </td>
+        <td class="text-right font-semibold" [class.text-emerald-300]="row.tipo === 'acumulacion'">
+          {{ row.tipo === 'acumulacion' ? '+' : '−' }}{{ row.cantidad }}
+        </td>
+        <td class="text-sm text-slate-600">{{ row.pedido_id ? '#' + row.pedido_id : '—' }}</td>
+        <td><app-status-tag [active]="row.is_active" /></td>
+        <td>
+          <div class="flex justify-end gap-1">
+            <button pButton type="button" text rounded severity="warn" icon="pi pi-ban"
+              *appHasPermission="'PATCH /api/puntos-fidelizacion/:id/deactivate'" aria-label="Anular movimiento" pTooltip="Anular" (click)="annul(row)"></button>
+            <button pButton type="button" text rounded severity="danger" icon="pi pi-trash"
+              *appHasPermission="'DELETE /api/puntos-fidelizacion/:id'" aria-label="Eliminar movimiento" pTooltip="Eliminar" (click)="remove(row)"></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr><td colspan="7"><app-empty-state icon="pi pi-star" title="Sin movimientos" message="Acumula puntos sobre un pedido pagado." /></td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" header="Nuevo movimiento de puntos"
+  [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" styleClass="w-full max-w-lg mx-4">
+  <div class="space-y-4">
+    @if (formError(); as message) {
+      <p-message severity="error" styleClass="w-full">{{ message }}</p-message>
+    }
+    <p-selectbutton [options]="typeOptions" optionLabel="label" optionValue="value"
+      [ngModel]="type()" (ngModelChange)="type.set($event)" [allowEmpty]="false" />
+    <div>
+      <label for="lp-client" class="mb-1 block text-sm font-medium text-slate-700">Cliente <span class="text-red-500">*</span></label>
+      <p-select inputId="lp-client" [options]="clients()" optionLabel="nombre" optionValue="id" [filter]="true" filterBy="nombre,numero_documento"
+        [ngModel]="clientId()" (ngModelChange)="selectClient($event)" placeholder="Selecciona el cliente" [fluid]="true" />
+      @if (dialogBalance(); as b) {
+        <p class="mt-1 text-xs text-slate-500">Saldo actual: <strong class="text-amber-500">{{ b.saldo }}</strong> puntos</p>
+      }
+    </div>
+    @if (type() === 'acumulacion') {
+      <div>
+        <label for="lp-order" class="mb-1 block text-sm font-medium text-slate-700">Pedido pagado <span class="text-red-500">*</span></label>
+        <p-select inputId="lp-order" [options]="earnableOrders()" optionLabel="label" optionValue="id"
+          [ngModel]="orderId()" (ngModelChange)="orderId.set($event)" [disabled]="clientId() === null"
+          placeholder="Pedidos pagados sin puntos" emptyMessage="Este cliente no tiene pedidos pendientes de acumular" [fluid]="true" />
+      </div>
+    } @else {
+      <div>
+        <label for="lp-qty" class="mb-1 block text-sm font-medium text-slate-700">Puntos a redimir <span class="text-red-500">*</span></label>
+        <p-inputnumber inputId="lp-qty" [ngModel]="quantity()" (ngModelChange)="quantity.set($event ?? 0)"
+          [min]="1" [max]="dialogBalance()?.saldo ?? null" [showButtons]="true" [fluid]="true" />
+      </div>
+    }
+    <div>
+      <label for="lp-note" class="mb-1 block text-sm font-medium text-slate-700">Observaciones</label>
+      <input id="lp-note" pInputText class="w-full" [ngModel]="note()" (ngModelChange)="note.set($event)" placeholder="Opcional" />
+    </div>
+    <div class="flex items-center justify-between border-t border-slate-100 pt-4">
+      <span class="text-sm text-slate-500">
+        Movimiento: <strong [class.text-emerald-300]="preview() > 0" class="text-slate-800">{{ preview() > 0 ? '+' : '' }}{{ preview() }}</strong> puntos
+      </span>
+      <div class="flex gap-2">
+        <button pButton type="button" severity="secondary" outlined (click)="dialogVisible.set(false)"><span pButtonLabel>Cancelar</span></button>
+        <button pButton type="button" [loading]="saving()" (click)="save()"><i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Guardar</span></button>
+      </div>
+    </div>
+  </div>
+</p-dialog>

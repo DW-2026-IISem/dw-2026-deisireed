@@ -1,19 +1,30 @@
+import { registerLocaleData } from '@angular/common';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import localeEsCo from '@angular/common/locales/es-CO';
+import {
+  ApplicationConfig,
+  DEFAULT_CURRENCY_CODE,
+  LOCALE_ID,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
-import Aura from '@primeuix/themes/aura';
 import { environment } from '../environments/environment';
+import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth-interceptor';
 import { errorInterceptor } from './core/interceptors/error-interceptor';
-import { routes } from './app.routes';
+import { TazaNortePreset } from './theme/tazanorte-preset';
+
+// Pipes en español de Colombia: $ 53.500 y fechas en español.
+registerLocaleData(localeEsCo);
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    { provide: LOCALE_ID, useValue: 'es-CO' },
+    { provide: DEFAULT_CURRENCY_CODE, useValue: 'COP' },
 
-    // El orden importa: auth añade el Bearer y reintenta; error avisa fallos globales.
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
 
     provideRouter(
@@ -27,7 +38,7 @@ export const appConfig: ApplicationConfig = {
       ripple: true,
       inputVariant: 'outlined',
       theme: {
-        preset: Aura,
+        preset: TazaNortePreset,
         options: {
           darkModeSelector: '.app-dark',
           cssLayer: { name: 'primeng', order: 'theme, base, primeng, utilities' },

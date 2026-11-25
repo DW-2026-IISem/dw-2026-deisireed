@@ -1,0 +1,38 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+  <div class="grid gap-4 sm:grid-cols-3">
+    <div>
+      <label for="sup-code" class="mb-1 block text-sm font-medium text-slate-700">Código <span class="text-red-500">*</span></label>
+      <input id="sup-code" pInputText formControlName="codigo" placeholder="INS-005" class="w-full font-mono uppercase" />
+      @if (form.controls.codigo.touched && form.controls.codigo.invalid) {
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">Obligatorio (máx. 50).</p-message>
+      }
+    </div>
+    <div class="sm:col-span-2">
+      <label for="sup-name" class="mb-1 block text-sm font-medium text-slate-700">Insumo <span class="text-red-500">*</span></label>
+      <input id="sup-name" pInputText formControlName="nombre" placeholder="Leche entera" class="w-full" />
+      @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">El nombre es obligatorio.</p-message>
+      }
+    </div>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="sup-unit" class="mb-1 block text-sm font-medium text-slate-700">Unidad <span class="text-red-500">*</span></label>
+      <p-select inputId="sup-unit" formControlName="unidad_medida" [options]="units" optionLabel="label" optionValue="value" [editable]="true" [fluid]="true" />
+    </div>
+    <div>
+      <label for="sup-min" class="mb-1 block text-sm font-medium text-slate-700">Stock mínimo <span class="text-red-500">*</span></label>
+      <p-inputnumber inputId="sup-min" formControlName="stock_minimo" [min]="0" [maxFractionDigits]="2" locale="es-CO" [fluid]="true" />
+    </div>
+  </div>
+
+  @if (supply()) {
+    <p class="text-xs text-slate-500">El estado solo cambia con la baja lógica.</p>
+  }
+
+  <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
+    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()"><span pButtonLabel>Cancelar</span></button>
+    <button pButton type="submit" [loading]="saving()"><i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Guardar</span></button>
+  </div>
+</form>

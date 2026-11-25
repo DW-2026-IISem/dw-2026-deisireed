@@ -1,17 +1,9 @@
-<div class="flex min-h-screen flex-col bg-slate-100">
-  <app-header
-    [username]="username()"
-    [initials]="session.initials()"
-    [roleLabel]="session.roleLabel()"
-    [authEnabled]="session.authEnabled"
-    [showSession]="true"
-    [userItems]="userItems()"
-    (menuRequested)="onMenuToggle()"
-  />
+<div class="relative flex min-h-screen">
+  <div class="tn-beans" aria-hidden="true"></div>
 
-  <div class="flex flex-1">
-    @if (!sidebarCollapsed()) {
-      <aside class="hidden w-72 shrink-0 lg:block">
+  @if (!sidebarCollapsed()) {
+    <aside class="relative z-10 hidden w-72 shrink-0 p-3 lg:block">
+      <div class="sticky top-3 h-[calc(100vh-1.5rem)]">
         <app-aside
           [items]="navGroups()"
           [showSession]="true"
@@ -21,20 +13,32 @@
           (navigated)="mobileOpen.set(false)"
           (logoutRequested)="logout()"
         />
-      </aside>
-    }
+      </div>
+    </aside>
+  }
+
+  <div class="relative z-10 flex min-w-0 flex-1 flex-col">
+    <app-header
+      [username]="username()"
+      [initials]="session.initials()"
+      [roleLabel]="session.roleLabel()"
+      [authEnabled]="session.authEnabled"
+      [showSession]="true"
+      [userItems]="userItems()"
+      (menuRequested)="onMenuToggle()"
+    />
 
     <main id="contenido" class="min-w-0 flex-1 p-4 sm:p-6">
       <div class="mx-auto w-full max-w-7xl">
         <router-outlet />
       </div>
     </main>
-  </div>
 
-  <app-footer />
+    <app-footer />
+  </div>
 </div>
 
-<p-drawer [(visible)]="mobileOpen" header="Menú" position="left" styleClass="w-72">
+<p-drawer [(visible)]="mobileOpen" position="left" styleClass="w-72 !bg-transparent !border-0 !shadow-none" [showCloseIcon]="false">
   <app-aside
     [items]="navGroups()"
     [showSession]="true"

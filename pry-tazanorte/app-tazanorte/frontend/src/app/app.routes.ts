@@ -1,3 +1,4 @@
+import { CAFE_ROUTES } from './features/cafe.routes';
 import { ADMIN_ROUTES } from './features/admin/admin.routes';
 import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
@@ -24,6 +25,7 @@ export const routes: Routes = [
     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
     children: [
       ...ADMIN_ROUTES,
+      ...CAFE_ROUTES,
       {
         // Inicio por rol: primera pantalla del menú que puede abrir.
         path: '',

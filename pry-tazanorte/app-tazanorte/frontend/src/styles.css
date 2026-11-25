@@ -1,3 +1,183 @@
 @layer theme, base, primeng, utilities;
 @import 'tailwindcss';
 @import 'primeicons/primeicons.css';
+
+/*
+ * Estética TazaNorte (referencias 1-4).
+ * Se remapean las escalas que ya usan las plantillas: así cambia todo sin tocar cada HTML.
+ */
+@theme {
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --color-white: #fffaf5;
+
+  --color-slate-50: #fdf8f3;
+  --color-slate-100: #f6ede3;
+  --color-slate-200: #ead9c8;
+  --color-slate-300: #d9c1aa;
+  --color-slate-400: #a88b72;
+  --color-slate-500: #8a6d55;
+  --color-slate-600: #6f5440;
+  --color-slate-700: #573f2f;
+  --color-slate-800: #3f2c20;
+  --color-slate-900: #2b1a10;
+  --color-slate-950: #1a0f08;
+
+  --color-amber-50: #fbf1e7;
+  --color-amber-100: #f5e0cb;
+  --color-amber-200: #ebc39c;
+  --color-amber-300: #dca06d;
+  --color-amber-400: #c47f48;
+  --color-amber-500: #a0592e;
+  --color-amber-600: #8b4a2b;
+  --color-amber-700: #74391f;
+  --color-amber-800: #5e2d18;
+  --color-amber-900: #472213;
+  --color-amber-950: #2e160b;
+
+  --color-emerald-300: #2f7d52;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 100% -10%, #f0dcc6 0%, transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, #efd9c2 0%, transparent 55%),
+    #f6ede3;
+}
+
+/* Títulos con serif, como «More Than Just Coffee». */
+main h1,
+.tn-serif {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Granos de café flotando (imagen 3) ---------- */
+.tn-beans {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url('/brand/beans.svg');
+  background-size: 460px;
+  opacity: 0.08;
+  animation: tn-drift 90s linear infinite;
+}
+
+@keyframes tn-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 460px 920px;
+  }
+}
+
+/* ---------- Menú lateral espresso (imagen 4 + banda de la imagen 1) ---------- */
+.tn-aside .p-panelmenu {
+  gap: 0.25rem;
+}
+.tn-aside .p-panelmenu-panel {
+  background: transparent;
+  border: 0;
+  padding: 0.15rem 0;
+}
+.tn-aside .p-panelmenu-header-content {
+  background: transparent !important;
+  border: 0;
+  color: #d9b89a;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+}
+.tn-aside .p-panelmenu-content,
+.tn-aside .p-panelmenu-submenu {
+  background: transparent;
+  border: 0;
+}
+.tn-aside .p-panelmenu-item-content {
+  background: transparent;
+  color: #f3e6d8;
+  border-radius: 9999px;
+  transition: background 0.2s, transform 0.2s;
+}
+.tn-aside .p-panelmenu :is(a, span, .pi, svg) {
+  color: inherit !important;
+}
+.tn-aside .p-panelmenu-item-content:hover {
+  background: rgb(246 237 227 / 0.1) !important;
+  transform: translateX(3px);
+}
+.tn-aside .p-panelmenu-item-link-active,
+.tn-aside a[aria-current='page'] {
+  background: #f6ede3;
+  border-radius: 9999px;
+  color: #3b2416 !important;
+  font-weight: 600;
+}
+
+/* ---------- Animaciones de página ---------- */
+@keyframes tn-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+main router-outlet + * {
+  animation: tn-fade-up 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.p-datatable-tbody > tr {
+  animation: tn-fade-up 0.4s ease-out both;
+}
+.p-datatable-tbody > tr:nth-child(2) { animation-delay: 0.03s; }
+.p-datatable-tbody > tr:nth-child(3) { animation-delay: 0.06s; }
+.p-datatable-tbody > tr:nth-child(4) { animation-delay: 0.09s; }
+.p-datatable-tbody > tr:nth-child(5) { animation-delay: 0.12s; }
+.p-datatable-tbody > tr:nth-child(6) { animation-delay: 0.15s; }
+.p-datatable-tbody > tr:nth-child(7) { animation-delay: 0.18s; }
+.p-datatable-tbody > tr:nth-child(8) { animation-delay: 0.21s; }
+.p-datatable-tbody > tr:nth-child(9) { animation-delay: 0.24s; }
+.p-datatable-tbody > tr:nth-child(10) { animation-delay: 0.27s; }
+
+/* Tarjetas y botones con elevación (imagen 2). */
+.p-card,
+.tn-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.p-card:hover,
+.tn-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 22px 45px -22px rgb(59 36 22 / 0.45);
+}
+.p-button {
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.p-button:not(:disabled):not(.p-button-text):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px -12px rgb(139 74 43 / 0.7);
+}
+
+/* Tarjeta de producto (imagen 3): la foto «salta» al pasar el mouse. */
+.tn-product img {
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.tn-product:hover img {
+  transform: translateX(-50%) translateY(-6px) rotate(-4deg) scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

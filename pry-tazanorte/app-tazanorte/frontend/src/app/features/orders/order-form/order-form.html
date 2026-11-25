@@ -1,7 +1,4 @@
-<app-page-header
-  title="Nuevo pedido"
-  subtitle="El pedido se arma en memoria y se guarda en una sola petición transaccional."
->
+<app-page-header title="Nuevo pedido" subtitle="Toca un producto para agregarlo; se guarda en una sola petición.">
   <a pButton routerLink="/pedidos" severity="secondary" outlined>
     <i pButtonIcon class="pi pi-arrow-left"></i>
     <span pButtonLabel>Volver</span>
@@ -12,197 +9,142 @@
   <p-message severity="error" styleClass="mb-4 w-full">{{ message }}</p-message>
 }
 
-<div class="grid gap-4 lg:grid-cols-5">
-  <!-- Productos activos -->
-  <div class="lg:col-span-3">
-    <p-card header="Productos activos">
-      <div class="mb-4 flex items-center gap-2">
-        <i class="pi pi-search text-slate-400"></i>
-        <input
-          pInputText
-          type="search"
-          aria-label="Buscar productos"
-          placeholder="Buscar por nombre o SKU…"
-          [ngModel]="search()"
-          (ngModelChange)="search.set($event)"
-          class="w-full"
-        />
-      </div>
+<div class="grid gap-6 lg:grid-cols-5">
+  <!-- Carta: tarjetas con la foto saliendo por arriba (imagen 3) -->
+  <section class="lg:col-span-3">
+    <div class="mb-2 flex items-end justify-between gap-4">
+      <h2 class="tn-serif text-2xl font-bold text-slate-900">Nuestra carta</h2>
+      <span class="text-sm text-slate-500">{{ visibleProducts().length }} productos</span>
+    </div>
+    <div class="mb-4 flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-1 backdrop-blur">
+      <i class="pi pi-search text-slate-400"></i>
+      <input
+        pInputText
+        type="search"
+        aria-label="Buscar productos"
+        placeholder="Buscar capuchino, croissant…"
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+        class="w-full !border-0 !bg-transparent !shadow-none"
+      />
+    </div>
 
-      @if (loading()) {
-        <p class="py-8 text-center text-sm text-slate-500">Cargando productos…</p>
-      } @else {
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          @for (product of visibleProducts(); track product.id) {
-            <button
-              type="button"
-              (click)="addProduct(product.id)"
-              class="relative flex min-h-20 flex-col items-start justify-between gap-2 rounded-lg border border-slate-200 bg-white p-3 text-left transition hover:border-amber-500 hover:bg-amber-50"
-              [class.border-amber-500]="qtyById().has(product.id)"
-              [class.bg-amber-50]="qtyById().has(product.id)"
-            >
-              <span class="font-medium text-slate-800">{{ product.nombre }}</span>
-              <span class="text-sm text-slate-600">
-                {{ product.precio | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+    @if (loading()) {
+      <p class="py-12 text-center text-sm text-slate-500">Cargando la carta…</p>
+    } @else {
+      <div class="grid grid-cols-2 gap-x-4 gap-y-14 pt-10 sm:grid-cols-3">
+        @for (product of visibleProducts(); track product.id) {
+          <button
+            type="button"
+            (click)="addProduct(product.id)"
+            class="tn-product tn-card relative flex flex-col items-center rounded-3xl border border-slate-200 bg-white/80 px-3 pb-3 pt-16 text-center backdrop-blur"
+            [class.ring-2]="qtyById().has(product.id)"
+            [class.ring-amber-500]="qtyById().has(product.id)"
+            [attr.aria-label]="'Agregar ' + product.nombre"
+          >
+            <img
+              [src]="productImage(product.nombre)"
+              (error)="onImageError($event)"
+              [alt]="product.nombre"
+              loading="lazy"
+              class="absolute -top-10 left-1/2 h-24 w-24 -translate-x-1/2 rounded-full object-cover shadow-xl ring-4 ring-white"
+            />
+            @if (qtyById().get(product.id); as qty) {
+              <span class="absolute right-3 top-3 flex h-6 min-w-6 items-center justify-center rounded-full bg-amber-600 px-1.5 text-xs font-bold text-white">
+                {{ qty }}
               </span>
-              @if (qtyById().get(product.id); as qty) {
-                <span
-                  class="absolute right-2 top-2 rounded-full bg-amber-600 px-2 text-xs font-semibold text-white"
-                >
-                  {{ qty }}
-                </span>
-              }
-            </button>
-          } @empty {
-            <p class="col-span-full py-8 text-center text-sm text-slate-500">
-              Ningún producto coincide.
-            </p>
-          }
-        </div>
-      }
-    </p-card>
-  </div>
+            }
+            <span class="tn-serif text-base font-bold text-slate-900">{{ product.nombre }}</span>
+            <span class="mt-1 line-clamp-2 min-h-8 text-[11px] leading-4 text-slate-500">{{ productDescription(product) }}</span>
+            <span class="mt-3 flex w-full items-center justify-between">
+              <span class="font-bold text-slate-900">{{ product.precio | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</span>
+              <span class="flex h-8 w-8 items-center justify-center rounded-full bg-amber-600 text-white shadow-md">
+                <i class="pi pi-plus text-xs"></i>
+              </span>
+            </span>
+          </button>
+        } @empty {
+          <p class="col-span-full py-8 text-center text-sm text-slate-500">Ningún producto coincide.</p>
+        }
+      </div>
+    }
+  </section>
 
   <!-- Pedido -->
-  <div class="lg:col-span-2">
-    <p-card header="Pedido" styleClass="lg:sticky lg:top-4">
-      <div class="space-y-3">
-        <div>
-          <label for="order-client" class="mb-1 block text-sm font-medium text-slate-700">
-            Cliente <span class="text-red-500">*</span>
-          </label>
-          <p-select
-            inputId="order-client"
-            [fluid]="true"
-            [ngModel]="clientId()"
-            (ngModelChange)="clientId.set($event)"
-            [options]="clients()"
-            optionLabel="nombre"
-            optionValue="id"
-            [filter]="true"
-            placeholder="Selecciona un cliente"
-            [loading]="loading()"
-          />
-        </div>
+  <section class="lg:col-span-2">
+    <div class="rounded-3xl bg-[#3b2416] p-5 text-[#f3e6d8] shadow-2xl shadow-[#3b2416]/30 lg:sticky lg:top-24">
+      <h2 class="tn-serif text-2xl font-bold text-[#f6ede3]">Pedido</h2>
 
+      <div class="mt-4 space-y-3">
         <div>
-          <label for="order-register" class="mb-1 block text-sm font-medium text-slate-700">
-            Turno de caja <span class="text-red-500">*</span>
-          </label>
-          <p-select
-            inputId="order-register"
-            [fluid]="true"
-            [ngModel]="cashRegisterId()"
-            (ngModelChange)="cashRegisterId.set($event)"
-            [options]="cashRegisters()"
-            optionLabel="nombre"
-            optionValue="id"
-            placeholder="Selecciona un turno"
-            [loading]="loading()"
-          />
+          <label for="order-client" class="mb-1 block text-xs uppercase tracking-wider text-[#d9b89a]">Cliente *</label>
+          <p-select inputId="order-client" [fluid]="true" [ngModel]="clientId()" (ngModelChange)="clientId.set($event)"
+            [options]="clients()" optionLabel="nombre" optionValue="id" [filter]="true" placeholder="Selecciona un cliente" [loading]="loading()" />
         </div>
-
         <div>
-          <span class="mb-1 block text-sm font-medium text-slate-700">Canal</span>
-          <p-selectbutton
-            [options]="channels"
-            [ngModel]="channel()"
-            (ngModelChange)="channel.set($event)"
-            optionLabel="label"
-            optionValue="value"
-            [allowEmpty]="false"
-          />
+          <label for="order-register" class="mb-1 block text-xs uppercase tracking-wider text-[#d9b89a]">Turno de caja *</label>
+          <p-select inputId="order-register" [fluid]="true" [ngModel]="cashRegisterId()" (ngModelChange)="cashRegisterId.set($event)"
+            [options]="cashRegisters()" optionLabel="nombre" optionValue="id" placeholder="Selecciona un turno" [loading]="loading()" />
+        </div>
+        <div>
+          <span class="mb-1 block text-xs uppercase tracking-wider text-[#d9b89a]">Canal</span>
+          <p-selectbutton [options]="channels" [ngModel]="channel()" (ngModelChange)="channel.set($event)"
+            optionLabel="label" optionValue="value" [allowEmpty]="false" />
         </div>
       </div>
 
-      <ul class="mt-4 divide-y divide-slate-100 border-y border-slate-100">
+      <ul class="mt-5 max-h-80 space-y-3 overflow-y-auto pr-1">
         @for (line of lines(); track line.producto_id) {
-          <li class="space-y-2 py-3">
-            <div class="flex items-center justify-between gap-2">
-              <div class="min-w-0">
-                <p class="truncate font-medium text-slate-800">
-                  {{ productById().get(line.producto_id)?.nombre }}
-                </p>
-                <p class="text-xs text-slate-400">
-                  {{ unitPrice(line) | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} c/u
-                </p>
+          <li class="rounded-2xl bg-[#f6ede3]/10 p-3">
+            <div class="flex items-center gap-3">
+              <img [src]="productImage(productName(line))" (error)="onImageError($event)" alt=""
+                class="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-[#f6ede3]/30" />
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-semibold text-[#f6ede3]">{{ productName(line) }}</p>
+                <p class="text-xs text-[#d9b89a]">{{ unitPrice(line) | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} c/u</p>
               </div>
-              <div class="flex items-center">
-                <button
-                  pButton
-                  type="button"
-                  text
-                  rounded
-                  severity="secondary"
-                  icon="pi pi-minus"
-                  aria-label="Quitar una unidad"
-                  (click)="changeQty(line.producto_id, -1)"
-                ></button>
-                <span class="w-6 text-center font-medium">{{ line.cantidad }}</span>
-                <button
-                  pButton
-                  type="button"
-                  text
-                  rounded
-                  severity="secondary"
-                  icon="pi pi-plus"
-                  aria-label="Agregar una unidad"
-                  (click)="changeQty(line.producto_id, 1)"
-                ></button>
+              <div class="flex items-center gap-1">
+                <button type="button" class="flex h-7 w-7 items-center justify-center rounded-full bg-[#f6ede3]/15 hover:bg-[#f6ede3]/25"
+                  aria-label="Quitar una unidad" (click)="changeQty(line.producto_id, -1)"><i class="pi pi-minus text-[10px]"></i></button>
+                <span class="w-6 text-center text-sm font-bold">{{ line.cantidad }}</span>
+                <button type="button" class="flex h-7 w-7 items-center justify-center rounded-full bg-[#f6ede3]/15 hover:bg-[#f6ede3]/25"
+                  aria-label="Agregar una unidad" (click)="changeQty(line.producto_id, 1)"><i class="pi pi-plus text-[10px]"></i></button>
               </div>
-              <span class="w-24 text-right font-medium text-slate-800">
-                {{ lineTotal(line) | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
-              </span>
             </div>
             <input
-              pInputText
-              class="w-full text-sm"
-              placeholder="Observaciones (opcional)"
-              [attr.aria-label]="'Observaciones de ' + productById().get(line.producto_id)?.nombre"
+              class="mt-2 w-full rounded-full border-0 bg-[#f6ede3]/10 px-3 py-1.5 text-xs text-[#f6ede3] placeholder:text-[#d9b89a]/70 focus:outline-none focus:ring-1 focus:ring-[#d9b89a]"
+              placeholder="Observaciones (sin azúcar, leche deslactosada…)"
+              [attr.aria-label]="'Observaciones de ' + productName(line)"
               [ngModel]="line.observaciones ?? ''"
               (ngModelChange)="setNote(line.producto_id, $event)"
             />
           </li>
         } @empty {
-          <li class="py-6 text-center text-sm text-slate-500">Toca un producto para agregarlo.</li>
+          <li class="rounded-2xl border border-dashed border-[#f6ede3]/20 py-8 text-center text-sm text-[#d9b89a]">
+            Toca un producto para agregarlo.
+          </li>
         }
       </ul>
 
-      <dl class="mt-4 space-y-2 text-sm">
-        <div class="flex justify-between">
-          <dt class="text-slate-500">Unidades</dt>
-          <dd>{{ units() }}</dd>
+      <div class="mt-5 border-t border-[#f6ede3]/15 pt-4">
+        <div class="flex items-center justify-between text-sm text-[#d9b89a]">
+          <span>{{ units() }} unidades</span>
+          <span>Sumará {{ points() }} puntos al pagar</span>
         </div>
-        <div class="flex justify-between text-base">
-          <dt class="font-semibold">Total</dt>
-          <dd class="font-semibold">{{ total() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</dd>
+        <div class="mt-2 flex items-end justify-between">
+          <span class="tn-serif text-lg text-[#f6ede3]">Total</span>
+          <span class="tn-serif text-3xl font-bold text-[#f6ede3]">{{ total() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</span>
         </div>
-      </dl>
-      <p class="mt-1 text-xs text-slate-400">El backend recalcula precios y total al guardar.</p>
+      </div>
 
-      <div class="mt-4 flex gap-2">
-        <button
-          pButton
-          type="button"
-          severity="secondary"
-          outlined
-          [disabled]="lines().length === 0 || saving()"
-          (click)="clear()"
-        >
-          <span pButtonLabel>Vaciar</span>
-        </button>
-        <button
-          pButton
-          type="button"
-          class="flex-1"
-          [loading]="saving()"
-          [disabled]="!canSave()"
-          (click)="save()"
-        >
+      <div class="mt-5 flex gap-2">
+        <button type="button" class="rounded-full border border-[#f6ede3]/30 px-4 py-2 text-sm hover:bg-[#f6ede3]/10 disabled:opacity-40"
+          [disabled]="lines().length === 0 || saving()" (click)="clear()">Vaciar</button>
+        <button pButton type="button" class="flex-1" [loading]="saving()" [disabled]="!canSave()" (click)="save()">
           <i pButtonIcon class="pi pi-check"></i>
           <span pButtonLabel>Registrar pedido</span>
         </button>
       </div>
-    </p-card>
-  </div>
+    </div>
+  </section>
 </div>

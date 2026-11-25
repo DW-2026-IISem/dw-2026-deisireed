@@ -1,0 +1,93 @@
+<app-page-header title="Pagos" subtitle="Pagos de pedidos. Caja registra y cobra; supervisión confirma o anula.">
+  <p-tag [value]="pendingCount() + ' por confirmar'" severity="warn" [rounded]="true" />
+  <p-tag [value]="'Cobrado ' + (collected() | currency: 'COP' : 'symbol-narrow' : '1.0-0')" severity="success" [rounded]="true" />
+  <button pButton type="button" *appHasPermission="'POST /api/pagos'" (click)="openCreate()">
+    <i pButtonIcon class="pi pi-wallet"></i><span pButtonLabel>Registrar pago</span>
+  </button>
+</app-page-header>
+
+@if (error()) {
+  <p-message severity="error" styleClass="mb-4 w-full">{{ error() }}</p-message>
+}
+
+<div class="rounded-xl border border-slate-200 bg-white">
+  <p-table [value]="visibleRows()" [loading]="loading()" [paginator]="visibleRows().length > 10" [rows]="10" dataKey="id" tableStyleClass="min-w-4xl">
+    <ng-template #caption>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-sm text-slate-500">Estado:</span>
+        <p-selectbutton [options]="stateOptions" optionLabel="label" optionValue="value"
+          [ngModel]="stateFilter()" (ngModelChange)="stateFilter.set($event)" [allowEmpty]="true" />
+      </div>
+    </ng-template>
+    <ng-template #header>
+      <tr>
+        <th>Pago</th>
+        <th>Pedido</th>
+        <th>Método</th>
+        <th class="text-right">Monto</th>
+        <th>Estado</th>
+        <th class="text-right">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-payment>
+      <tr>
+        <td>
+          <p class="font-medium text-slate-800">#{{ payment.id }}</p>
+          <p class="text-xs text-slate-400">{{ payment.fecha | date: 'dd/MM/yyyy HH:mm' }}</p>
+        </td>
+        <td class="text-sm text-slate-700">{{ orderLabel(payment.referencia_id) }}</td>
+        <td><p-tag [value]="methodText(payment.metodo)" severity="secondary" [rounded]="true" /></td>
+        <td class="text-right font-medium text-slate-800">{{ payment.monto | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+        <td><p-tag [value]="stateText(payment.estado)" [severity]="stateSeverity(payment.estado)" [rounded]="true" /></td>
+        <td>
+          <div class="flex flex-wrap items-center justify-end gap-1">
+            @if (payment.estado === 'PENDIENTE') {
+              <button pButton type="button" size="small" *appHasPermission="'PATCH /api/pagos/:id'" (click)="confirm(payment)">
+                <i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Confirmar</span>
+              </button>
+            }
+            <button pButton type="button" text rounded severity="warn" icon="pi pi-ban"
+              *appHasPermission="'PATCH /api/pagos/:id/deactivate'" aria-label="Anular pago" pTooltip="Anular" (click)="annul(payment)"></button>
+            <button pButton type="button" text rounded severity="danger" icon="pi pi-trash"
+              *appHasPermission="'DELETE /api/pagos/:id'" aria-label="Eliminar pago" pTooltip="Eliminar" (click)="remove(payment)"></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr><td colspan="6"><app-empty-state icon="pi pi-wallet" title="Sin pagos" message="Registra el primero con «Registrar pago»." /></td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" header="Registrar pago"
+  [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" styleClass="w-full max-w-lg mx-4">
+  <div class="space-y-4">
+    @if (formError(); as message) {
+      <p-message severity="error" styleClass="w-full">{{ message }}</p-message>
+    }
+    <div>
+      <label for="pay-order" class="mb-1 block text-sm font-medium text-slate-700">Pedido <span class="text-red-500">*</span></label>
+      <p-select inputId="pay-order" [options]="orderOptions()" optionLabel="label" optionValue="id" [filter]="true"
+        [ngModel]="orderId()" (ngModelChange)="selectOrder($event)" placeholder="Selecciona el pedido" [fluid]="true" />
+    </div>
+    <div>
+      <span class="mb-1 block text-sm font-medium text-slate-700">Método de pago</span>
+      <p-selectbutton [options]="methodOptions" optionLabel="label" optionValue="value"
+        [ngModel]="method()" (ngModelChange)="method.set($event)" [allowEmpty]="false" />
+    </div>
+    <div>
+      <label for="pay-amount" class="mb-1 block text-sm font-medium text-slate-700">Monto <span class="text-red-500">*</span></label>
+      <p-inputnumber inputId="pay-amount" [ngModel]="amount()" (ngModelChange)="amount.set($event ?? 0)"
+        mode="currency" currency="COP" locale="es-CO" [maxFractionDigits]="0" [min]="0" [fluid]="true" />
+    </div>
+    <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
+      <button pButton type="button" severity="secondary" outlined [disabled]="saving()" (click)="register('PENDIENTE')">
+        <span pButtonLabel>Guardar pendiente</span>
+      </button>
+      <button pButton type="button" [loading]="saving()" (click)="register('COMPLETADO')">
+        <i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Cobrar</span>
+      </button>
+    </div>
+  </div>
+</p-dialog>

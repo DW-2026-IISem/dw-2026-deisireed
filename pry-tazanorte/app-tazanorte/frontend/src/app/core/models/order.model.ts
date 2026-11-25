@@ -44,6 +44,7 @@ export interface ClientRef {
 export interface ProductRef {
   id: number;
   sku?: string;
+  descripcion?: string | null;
   nombre: string;
   precio: Money;
 }

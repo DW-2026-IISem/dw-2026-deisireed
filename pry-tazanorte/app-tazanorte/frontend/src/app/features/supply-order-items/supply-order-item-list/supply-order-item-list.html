@@ -1,0 +1,91 @@
+<app-page-header title="Consumo de insumos" subtitle="Insumos usados en cada línea de pedido. Barra registra; bodega consulta y anula.">
+  <p-tag [value]="rows().length + ' consumos'" severity="info" [rounded]="true" />
+  <button pButton type="button" *appHasPermission="'POST /api/insumo-pedido-detalles'" (click)="openCreate()">
+    <i pButtonIcon class="pi pi-plus"></i><span pButtonLabel>Registrar insumo</span>
+  </button>
+</app-page-header>
+
+@if (error()) {
+  <p-message severity="error" styleClass="mb-4 w-full">{{ error() }}</p-message>
+}
+
+<div class="rounded-xl border border-slate-200 bg-white">
+  <p-table [value]="visibleRows()" [loading]="loading()" [paginator]="visibleRows().length > 10" [rows]="10" dataKey="id" tableStyleClass="min-w-3xl">
+    <ng-template #caption>
+      <div class="flex items-center gap-2">
+        <i class="pi pi-search text-slate-400"></i>
+        <input pInputText type="search" aria-label="Buscar consumos" placeholder="Buscar por insumo, código o pedido…"
+          [value]="filter()" (input)="filter.set($any($event.target).value)" class="w-full" />
+      </div>
+    </ng-template>
+    <ng-template #header>
+      <tr>
+        <th>Insumo</th>
+        <th>Línea</th>
+        <th class="text-right">Cantidad</th>
+        <th>Estado</th>
+        <th class="w-40 text-right">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td class="font-medium text-slate-800">{{ supplyName(row) }}</td>
+        <td class="text-sm text-slate-600">{{ lineLabel(row.pedido_detalle_id) }}</td>
+        <td class="text-right">{{ toNumber(row.cantidad_usada) | number: '1.0-3' }} {{ unit(row) }}</td>
+        <td><app-status-tag [active]="row.is_active" /></td>
+        <td>
+          <div class="flex justify-end gap-1">
+            <button pButton type="button" text rounded severity="secondary" icon="pi pi-pencil"
+              *appHasPermission="'PATCH /api/insumo-pedido-detalles/:id'" aria-label="Editar cantidad" pTooltip="Editar cantidad" (click)="openEdit(row)"></button>
+            <button pButton type="button" text rounded severity="warn" icon="pi pi-ban"
+              *appHasPermission="'PATCH /api/insumo-pedido-detalles/:id/deactivate'" aria-label="Anular consumo" pTooltip="Anular" (click)="annul(row)"></button>
+            <button pButton type="button" text rounded severity="danger" icon="pi pi-trash"
+              *appHasPermission="'DELETE /api/insumo-pedido-detalles/:id'" aria-label="Eliminar consumo" pTooltip="Eliminar" (click)="remove(row)"></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr><td colspan="5"><app-empty-state icon="pi pi-inbox" title="Sin consumos" message="Barra los registra al preparar cada línea." /></td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" [header]="dialogTitle()"
+  [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" styleClass="w-full max-w-lg mx-4">
+  <div class="space-y-4">
+    @if (formError(); as message) {
+      <p-message severity="error" styleClass="w-full">{{ message }}</p-message>
+    }
+    <div>
+      <label for="soi-line" class="mb-1 block text-sm font-medium text-slate-700">Línea del pedido <span class="text-red-500">*</span></label>
+      @if (editing(); as current) {
+        <input id="soi-line" pInputText class="w-full" [value]="lineLabel(current.pedido_detalle_id)" disabled />
+      } @else {
+        <p-select inputId="soi-line" [options]="lineOptions()" optionLabel="label" optionValue="id" [filter]="true"
+          [ngModel]="lineId()" (ngModelChange)="lineId.set($event)" placeholder="Pedido pagado o en preparación"
+          emptyMessage="No hay líneas en preparación" [fluid]="true" />
+      }
+    </div>
+    <div>
+      <label for="soi-supply" class="mb-1 block text-sm font-medium text-slate-700">Insumo <span class="text-red-500">*</span></label>
+      <p-select inputId="soi-supply" [options]="activeSupplies()" optionLabel="nombre" optionValue="id" [filter]="true" filterBy="nombre,codigo"
+        [ngModel]="supplyId()" (ngModelChange)="supplyId.set($event)" [disabled]="editing() !== null"
+        placeholder="Selecciona un insumo" [fluid]="true" />
+    </div>
+    <div>
+      <label for="soi-qty" class="mb-1 block text-sm font-medium text-slate-700">
+        Cantidad usada <span class="text-red-500">*</span>
+        @if (selectedUnit()) {
+          <span class="text-slate-400">({{ selectedUnit() }})</span>
+        }
+      </label>
+      <p-inputnumber inputId="soi-qty" [ngModel]="quantity()" (ngModelChange)="quantity.set($event ?? 0)"
+        [min]="0" [maxFractionDigits]="3" locale="es-CO" [showButtons]="true" [step]="0.1" [fluid]="true" />
+    </div>
+    <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
+      <button pButton type="button" severity="secondary" outlined (click)="dialogVisible.set(false)"><span pButtonLabel>Cancelar</span></button>
+      <button pButton type="button" [loading]="saving()" (click)="save()"><i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Guardar</span></button>
+    </div>
+  </div>
+</p-dialog>

@@ -1,3 +1,4 @@
+import { productDescription, productImage, useDefaultImage } from '../../../core/utils/product-media';
 import { HasPermission } from '../../../shared/directives/has-permission';
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
@@ -70,6 +71,9 @@ export class ProductList {
   readonly title = computed(() => (this.editing() ? 'Editar producto' : 'Nuevo producto'));
 
   protected readonly toNumber = toNumber;
+  protected readonly productImage = productImage;
+  protected readonly productDescription = productDescription;
+  protected readonly onImageError = useDefaultImage;
 
   constructor() {
     this.load();

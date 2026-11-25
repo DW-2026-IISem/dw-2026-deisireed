@@ -4,6 +4,17 @@ import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LoyaltyPoint, LoyaltyPointPayload } from '../../core/models/loyalty-point.model';
 
+/** GET /api/puntos-fidelizacion/cliente/:id/saldo */
+export interface LoyaltyBalance {
+  cliente_id: number;
+  acumulados: number;
+  redimidos: number;
+  saldo: number;
+}
+
+/** 1 punto por cada $1.000 de un pedido pagado (PESOS_PER_POINT del backend). */
+export const PESOS_PER_POINT = 1000;
+
 @Injectable({ providedIn: 'root' })
 export class LoyaltyPointApi {
   private readonly http = inject(HttpClient);
@@ -12,42 +23,34 @@ export class LoyaltyPointApi {
   list(): Observable<LoyaltyPoint[]> {
     return this.http
       .get<{ loyalty_points: LoyaltyPoint[] }>(this.base)
-      .pipe(map((response) => response.loyalty_points));
+      .pipe(map((r) => r.loyalty_points));
   }
 
-  get(id: number): Observable<LoyaltyPoint> {
+  balance(clienteId: number): Observable<LoyaltyBalance> {
     return this.http
-      .get<{ loyalty_point: LoyaltyPoint }>(`${this.base}/${id}`)
-      .pipe(map((response) => response.loyalty_point));
+      .get<{ balance: LoyaltyBalance }>(`${this.base}/cliente/${clienteId}/saldo`)
+      .pipe(map((r) => r.balance));
   }
 
+  /** El backend calcula la cantidad en una acumulación; en redención se envía. */
   create(payload: LoyaltyPointPayload): Observable<LoyaltyPoint> {
     return this.http
       .post<{ loyalty_point: LoyaltyPoint }>(this.base, payload)
-      .pipe(map((response) => response.loyalty_point));
+      .pipe(map((r) => r.loyalty_point));
   }
 
-  update(
-    id: number,
-    payload: Partial<Omit<LoyaltyPointPayload, 'is_active'>>,
-  ): Observable<LoyaltyPoint> {
+  /** Solo observaciones: el movimiento es historial. */
+  update(id: number, payload: { observaciones: string | null }): Observable<LoyaltyPoint> {
     return this.http
       .patch<{ loyalty_point: LoyaltyPoint }>(`${this.base}/${id}`, payload)
-      .pipe(map((response) => response.loyalty_point));
+      .pipe(map((r) => r.loyalty_point));
   }
 
-  replace(id: number, payload: Omit<LoyaltyPointPayload, 'is_active'>): Observable<LoyaltyPoint> {
-    return this.http
-      .put<{ loyalty_point: LoyaltyPoint }>(`${this.base}/${id}`, payload)
-      .pipe(map((response) => response.loyalty_point));
-  }
-
-  /** Baja lógica: is_active = false. */
+  /** Anular movimiento (no permitido si sus puntos ya se redimieron). */
   deactivate(id: number): Observable<unknown> {
     return this.http.patch(`${this.base}/${id}/deactivate`, {});
   }
 
-  /** Baja física: DELETE. */
   remove(id: number): Observable<unknown> {
     return this.http.delete(`${this.base}/${id}`);
   }

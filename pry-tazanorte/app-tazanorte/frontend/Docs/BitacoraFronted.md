@@ -2352,90 +2352,26 @@ location / {   try_files $uri $uri/ /index.html; }
 
 ![](images/clipboard-1020990152.png)
 
-Si publicas en un subdirectorio, añade:
+# 11.8 Verificación y cierre 
 
-```         
-ng build --base-href /storelab/ 
-```
+![![](images/clipboard-657599322.png)](images/clipboard-2360010984.png)
 
-Y configura `apiUrl` con el dominio real del backend, recordando CORS.
+![![](images/clipboard-2413041407.png)](images/clipboard-1853795767.png)
 
-## Criterios de aceptación (ISS-11)
+![](images/clipboard-3330871668.png)
 
-1.  `ng build` termina con **0 errores**.
+![![](images/clipboard-459617078.png)](images/clipboard-2014493242.png)
 
-2.  No hay warnings de presupuesto que impidan el despliegue.
+![![](images/clipboard-1684740903.png)](images/clipboard-3321990671.png)
 
-3.  Los 15 puntos del checklist de humo pasan.
+![![](images/clipboard-3498860404.png)](images/clipboard-4118091582.png)
 
-4.  Emular la Fase I con `requireAuth: false` (frontend) y `AUTH_ENABLED=false` (backend) en una copia de práctica produce el comportamiento esperado (sin guards, directiva siempre visible, sin `Bearer` y `200` en negocio).
+![![](images/clipboard-3231095428.png)](images/clipboard-4187130352.png)
 
-5.  Revocar el refresh token cierra la sesión de forma controlada.
+![](images/clipboard-3905376144.png)
 
-6.  `prettier --check` no reporta archivos sin formatear.
+![![](images/clipboard-1854743978.png)](images/clipboard-1015380565.png)
 
-7.  El `dist/` se sirve con fallback SPA y las rutas profundas recargan bien.
+![![](images/clipboard-2394053871.png)](images/clipboard-2647186518.png)
 
-## Cierre del recorrido
-
-Has construido, con CLI y signals, las dos fases del backend:
-
-```         
-Fase 0 · Fundamentos ISS-00  Entorno validado ISS-01  Angular 22 + Tailwind 4 + PrimeNG 22 ISS-02  Core, modelos y layout (sin sesión todavía)  Fase I · Business CRUD (sin auth) ISS-03  Clientes ISS-04  Tipos de producto ISS-05  Productos + stock ISS-06  Ventas transaccionales ISS-07  Detalle + dashboard · CIERRE FASE I  Fase II · Auth con RBAC ISS-08  Formulario de sesión, JWT, perfil y permisos efectivos (bloque 1) ISS-09  Guards + RBAC de las pantallas business (bloque 2) ISS-10  Formularios de usuarios, roles, recursos y pivotes (bloque 3) ISS-11  Build, calidad y cierre del proyecto 
-```
-
-### Checklist de cierre por fase
-
-**Fase I:** - [x] Los 5 CRUD de negocio están implementados con el contrato del backend. - [ ] Los 5 CRUD funcionan contra un backend sin middlewares (requiere backend). - [x] No queda ninguna pieza de auth sin conexión: guards, directiva e interceptor solo se activan en Fase II. - [x] Tests y build pasan.
-
-**Fase II:** - [x] El login es obligatorio y el refresh rota el token una sola vez (`refreshInFlight` con `shareReplay`). - [x] Cada ruta de negocio tiene `permissionGuard` y su `data.permission`. - [x] Cada botón de escritura está envuelto en `*appHasPermission`. - [x] La matriz efectiva filtra el menú y las acciones; los guards cubren la navegación directa. La comprobación con backend real queda pendiente. - [x] Los 5 formularios auth permiten administrar la cadena `User → Role → Resource`.
-
-### Resultado reportado por la fuente (2026-10-23)
-
-| **Comando / recorrido** | **Resultado** |
-|:-----------------------------------|:-----------------------------------|
-| `npm test -- --watch=false` | 22 archivos, **131 pruebas aprobadas** |
-| `npm run build` | **0 errores**; inicial 576.65 kB (warning en 750 kB) |
-| `npx prettier --check "src/**/*.{ts,html,css}"` | Todos los archivos formateados |
-| `npm run docs:check` | 17 ISS y 165 archivos de `src/` enlazados |
-| `/dashboard` sin sesión en el navegador | Redirige a `/login?returnUrl=%2Fdashboard` |
-| `/construir` | Renderiza con datos locales, sin solicitudes `/api` |
-| Backend con `AUTH_ENABLED=false` (puerto 4001) | `200` en las 5 rutas de negocio y `201` en `POST /api/clientes` **sin token** |
-| Backend con `AUTH_ENABLED=false` (rutas auth) | `401` en `/api/usuarios`, `/api/sesion/perfil` y `/api/permisos` |
-| `GET /api/productos-falsos` con `AUTH_ENABLED=false` | `401`: el prefijo no se abre por accidente |
-
-La cobertura unitaria incluye `SessionStore` (permisos, `:id`, persistencia), `authGuard`, `guestGuard`, `permissionGuard`, `authOnlyGuard`, `*appHasPermission`, `ProductList`, `SaleForm` (borrador, stock y POST transaccional), `Dashboard`, `Login`, `UserList` y los servicios HTTP. El menú del Shell se prueba con permisos, sin permisos y en modo laboratorio.
-
-**Pendiente de revisión manual:** los puntos 2–15 del checklist de humo exigen el backend Express arriba con MySQL. Sin él no se puede medir login real, RBAC contra la API, descuento de stock ni rotación/revocación del refresh token. No se marca como verificado lo que solo está cubierto por pruebas con HTTP simulado.
-
-El siguiente paso natural es añadir **pruebas unitarias con Vitest** sobre `SessionStore`, `filterRows` y los guards, y un **E2E** con Playwright que recorra login, venta y verificación de stock.
-
-## Solución de último recurso
-
-Si algo no compila y no encuentras la causa:
-
-```         
-rm -rf node_modules .angular dist npm ci ng build 
-```
-
-Y revisa la consola del navegador con `ng serve` en primer plano: los errores de plantilla de Angular 22 indican el archivo y la línea exactos.
-
-## Verificación del primer esqueleto
-
-Con backend detenido abre `/construir`: Header, Aside, contenido y Footer deben aparecer. Pulsa una opción en escritorio y móvil, verifica Drawer y ausencia de solicitudes `/api`. Ejecuta `npm test -- --watch=false`: la prueba del CLI que esperaba “Hello” fue reemplazada por pruebas de esta ruta y su menú.
-
-## Correspondencia con el código
-
-Esta guía es la que contiene los comandos (`ng new`, `ng generate`, `cat >`) y la explicación paso a paso para construir el frontend desde cero. El código no se duplica en `docs/`: la referencia completa son los archivos reales del proyecto, enlazados al final de esta ISS.
-
-Los ejemplos breves muestran incrementos y no sustituyen todos los archivos del componente. Las configuraciones de las primeras etapas omiten deliberadamente la sesión y las rutas que se construyen después; en el proyecto consolidado la seguridad final está activa. No combines imports de una etapa final con stubs que todavía no implementaste.
-
-## Código completo de referencia
-
-Los fragmentos de esta ISS se estudian por incrementos. Estos archivos contienen la implementación consolidada, incluida la seguridad de la fase final:
-
-- angular.json (`angular.json`).
-
-- package.json (`package.json`).
-
-- src/app/app.spec.ts (`src/app/app.spec.ts`).
+![![](images/clipboard-3900417012.png)](images/clipboard-3667820946.png)
